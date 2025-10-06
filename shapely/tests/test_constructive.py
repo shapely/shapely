@@ -13,9 +13,12 @@ from shapely import (
     MultiPolygon,
     Point,
     Polygon,
+    geos_version,
 )
+from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
+    ArrayLike,
     all_types,
     empty,
     empty_line_string,
@@ -40,9 +43,11 @@ CONSTRUCTIVE_NO_ARGS = (
     ),
     shapely.envelope,
     shapely.extract_unique_points,
+    shapely.minimum_clearance_line,
     shapely.node,
     shapely.normalize,
     shapely.point_on_surface,
+    shapely.constrained_delaunay_triangles,
 )
 
 CONSTRUCTIVE_FLOAT_ARG = (
@@ -57,6 +62,13 @@ CONSTRUCTIVE_FLOAT_ARG = (
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", CONSTRUCTIVE_NO_ARGS)
 def test_no_args_array(geometry, func):
+    if (
+        geometry.is_empty
+        and shapely.get_num_geometries(geometry) > 0
+        and func is shapely.node
+        and geos_version < (3, 10, 3)
+    ):  # GEOS GH-601
+        pytest.xfail("GEOS < 3.10.3 crashes with empty geometries")
     actual = func([geometry, geometry])
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
@@ -233,6 +245,95 @@ def test_make_valid_1d(geom, expected):
 @pytest.mark.parametrize(
     "geom,expected",
     [
+        (point, point),  # a valid geometry stays the same (but is copied)
+        # an L shaped polygon without area is converted to a linestring
+        (
+            Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]),
+            LineString([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]),
+        ),
+        # a polygon with self-intersection (bowtie) is converted into polygons
+        (
+            Polygon([(0, 0), (2, 2), (2, 0), (0, 2), (0, 0)]),
+            MultiPolygon(
+                [
+                    Polygon([(1, 1), (2, 2), (2, 0), (1, 1)]),
+                    Polygon([(0, 0), (0, 2), (1, 1), (0, 0)]),
+                ]
+            ),
+        ),
+        (empty, empty),
+        ([empty], [empty]),
+    ],
+)
+def test_make_valid_structure(geom, expected):
+    actual = shapely.make_valid(geom, method="structure")
+    assert actual is not expected
+    # normalize needed to handle variation in output across GEOS versions
+    assert shapely.normalize(actual) == expected
+
+
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        (point, point),  # a valid geometry stays the same (but is copied)
+        # an L shaped polygon without area is converted to Empty Polygon
+        (
+            Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]),
+            Polygon(),
+        ),
+        # a polygon with self-intersection (bowtie) is converted into polygons
+        (
+            Polygon([(0, 0), (2, 2), (2, 0), (0, 2), (0, 0)]),
+            MultiPolygon(
+                [
+                    Polygon([(1, 1), (2, 2), (2, 0), (1, 1)]),
+                    Polygon([(0, 0), (0, 2), (1, 1), (0, 0)]),
+                ]
+            ),
+        ),
+        (empty, empty),
+        ([empty], [empty]),
+    ],
+)
+def test_make_valid_structure_keep_collapsed_false(geom, expected):
+    actual = shapely.make_valid(geom, method="structure", keep_collapsed=False)
+    assert actual is not expected
+    # normalize needed to handle variation in output across GEOS versions
+    assert shapely.normalize(actual) == expected
+
+
+@pytest.mark.parametrize(
+    "method, keep_collapsed, error_type, error",
+    [
+        (
+            np.array(["linework", "structure"]),
+            True,
+            TypeError,
+            "method only accepts scalar values",
+        ),
+        (
+            "linework",
+            [True, False],
+            TypeError,
+            "keep_collapsed only accepts scalar values",
+        ),
+        ("unknown", True, ValueError, "Unknown method: unknown"),
+        (
+            "linework",
+            False,
+            ValueError,
+            "The 'linework' method does not support 'keep_collapsed=False'",
+        ),
+    ],
+)
+def test_make_valid_invalid_params(method, keep_collapsed, error_type, error):
+    with pytest.raises(error_type, match=error):
+        _ = shapely.make_valid(Point(), method=method, keep_collapsed=keep_collapsed)
+
+
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
         (point, point),  # a point is always in normalized form
         # order coordinates of linestrings and parts of multi-linestring
         (
@@ -393,12 +494,9 @@ def test_remove_repeated_points_invalid_type(geom, tolerance):
                 holes=[[(2, 2), (4, 2), (4, 4), (2, 4), (2, 2)]],
             ),
         ),
-        pytest.param(
+        (
             MultiLineString([[(0, 0), (1, 2)], [(3, 3), (4, 4)]]),
             MultiLineString([[(1, 2), (0, 0)], [(4, 4), (3, 3)]]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 8, 1), reason="GEOS < 3.8.1"
-            ),
         ),
         (
             MultiPolygon(
@@ -521,6 +619,15 @@ def test_clip_by_rect_polygon(geom, rect, expected):
 
 @pytest.mark.parametrize("geometry", all_types)
 def test_clip_by_rect_array(geometry):
+    if (
+        geometry.is_empty
+        and shapely.get_type_id(geometry) == shapely.GeometryType.POINT
+        and (geos_version < (3, 10, 6) or ((3, 11, 0) <= geos_version < (3, 11, 3)))
+    ):
+        # GEOS GH-913
+        with pytest.raises(GEOSException):
+            shapely.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
+        return
     actual = shapely.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
@@ -716,7 +823,6 @@ def test_polygonize_full_missing():
     assert all(geom == GeometryCollection() for geom in result)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("max_segment_length", [-1, 0])
 def test_segmentize_invalid_max_segment_length(geometry, max_segment_length):
@@ -724,14 +830,12 @@ def test_segmentize_invalid_max_segment_length(geometry, max_segment_length):
         shapely.segmentize(geometry, max_segment_length=max_segment_length)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", all_types)
 def test_segmentize_max_segment_length_nan(geometry):
     actual = shapely.segmentize(geometry, max_segment_length=np.nan)
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geometry", [empty, empty_point, empty_line_string, empty_polygon]
 )
@@ -740,19 +844,16 @@ def test_segmentize_empty(geometry):
     assert_geometries_equal(actual, geometry)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", [point, point_z, multi_point])
 def test_segmentize_no_change(geometry):
     actual = shapely.segmentize(geometry, max_segment_length=5)
     assert_geometries_equal(actual, geometry)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_segmentize_none():
     assert shapely.segmentize(None, max_segment_length=5) is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geometry,tolerance, expected",
     [
@@ -881,7 +982,6 @@ def test_oriented_envelope_all_types(geometry):
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 @pytest.mark.parametrize(
     "func", [shapely.oriented_envelope, shapely.minimum_rotated_rectangle]
 )
@@ -889,18 +989,16 @@ def test_oriented_envelope_all_types(geometry):
     "geometry, expected",
     [
         (
-            MultiPoint([(0, 0), (10, 0), (10, 10)]),
-            Polygon([[10.0, 10.0], [10.0, 0.0], [0.0, 0.0], [0.0, 10.0], [10.0, 10.0]]),
+            MultiPoint([(1.0, 1.0), (1.0, 5.0), (3.0, 6.0), (4.0, 2.0), (5.0, 5.0)]),
+            Polygon([(1.0, 1.0), (1.0, 6.0), (5.0, 6.0), (5.0, 1.0), (1.0, 1.0)]),
         ),
         (
             LineString([(1, 1), (5, 1), (10, 10)]),
             Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
         ),
         (
-            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
-            Polygon(
-                [[1.0, 1.0], [5.0, 10.0], [16.691, 4.804], [12.691, -4.196], [1.0, 1.0]]
-            ),
+            Polygon([(1, 1), (15, 1), (5, 9), (1, 1)]),
+            Polygon([(1.0, 1.0), (5.0, 9.0), (16.2, 3.4), (12.2, -4.6), (1.0, 1.0)]),
         ),
         (
             LineString([(1, 1), (10, 1)]),
@@ -923,22 +1021,19 @@ def test_oriented_envelope(geometry, expected, func):
 
 @pytest.mark.skipif(shapely.geos_version >= (3, 12, 0), reason="GEOS >= 3.12")
 @pytest.mark.parametrize(
-    "func", [shapely.oriented_envelope, shapely.minimum_rotated_rectangle]
-)
-@pytest.mark.parametrize(
     "geometry, expected",
     [
         (
-            MultiPoint([(0, 0), (10, 0), (10, 10)]),
-            Polygon([(0, 0), (5, -5), (15, 5), (10, 10), (0, 0)]),
+            MultiPoint([(1.0, 1.0), (1.0, 5.0), (3.0, 6.0), (4.0, 2.0), (5.0, 5.0)]),
+            Polygon([(-0.2, 1.4), (1.5, 6.5), (5.1, 5.3), (3.4, 0.2), (-0.2, 1.4)]),
         ),
         (
             LineString([(1, 1), (5, 1), (10, 10)]),
             Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
         ),
         (
-            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
-            Polygon([(15, 1), (15, 10), (1, 10), (1, 1), (15, 1)]),
+            Polygon([(1, 1), (15, 1), (5, 9), (1, 1)]),
+            Polygon([(1.0, 1.0), (1.0, 9.0), (15.0, 9.0), (15.0, 1.0), (1.0, 1.0)]),
         ),
         (
             LineString([(1, 1), (10, 1)]),
@@ -954,9 +1049,22 @@ def test_oriented_envelope(geometry, expected, func):
         ),
     ],
 )
-def test_oriented_envelope_pre_geos_312(geometry, expected, func):
-    actual = func(geometry)
+def test_oriented_envelope_pre_geos_312(geometry, expected):
+    # use private method (similar as direct shapely.lib.oriented_envelope)
+    # to cover the C code for older GEOS versions
+    actual = shapely.constructive._oriented_envelope_geos(geometry)
     assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
+
+
+def test_oriented_evelope_array_like():
+    # https://github.com/shapely/shapely/issues/1929
+    # because we have a custom python implementation, need to ensure this has
+    # the same capabilities as numpy ufuncs to work with array-likes
+    geometries = [Point(1, 1).buffer(1), Point(2, 2).buffer(1)]
+    actual = shapely.oriented_envelope(ArrayLike(geometries))
+    assert isinstance(actual, ArrayLike)
+    expected = shapely.oriented_envelope(geometries)
+    assert_geometries_equal(np.asarray(actual), expected)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
@@ -972,3 +1080,277 @@ def test_concave_hull_kwargs():
     result3 = shapely.concave_hull(mp, ratio=0)
     result4 = shapely.concave_hull(mp, ratio=1)
     assert shapely.get_num_coordinates(result4) < shapely.get_num_coordinates(result3)
+
+
+class TestConstrainedDelaunayTriangulation:
+    """
+    Only testing the number of triangles and their type here.
+    This doesn't actually test the points in the resulting geometries.
+
+    """
+
+    def test_poly(self):
+        polys = shapely.constrained_delaunay_triangles(
+            Polygon([(10, 10), (20, 40), (90, 90), (90, 10), (10, 10)])
+        )
+        assert len(polys.geoms) == 2
+        for p in polys.geoms:
+            assert isinstance(p, Polygon)
+
+    def test_multi_polygon(self):
+        multipoly = MultiPolygon(
+            [
+                Polygon(((50, 30), (60, 30), (100, 100), (50, 30))),
+                Polygon(((10, 10), (20, 40), (90, 90), (90, 10), (10, 10))),
+            ]
+        )
+        polys = shapely.constrained_delaunay_triangles(multipoly)
+        assert len(polys.geoms) == 3
+        for p in polys.geoms:
+            assert isinstance(p, Polygon)
+
+    def test_point(self):
+        p = Point(1, 1)
+        polys = shapely.constrained_delaunay_triangles(p)
+        assert len(polys.geoms) == 0
+
+    def test_empty_poly(self):
+        polys = shapely.constrained_delaunay_triangles(Polygon())
+        assert len(polys.geoms) == 0
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_voronoi_polygons_ordered():
+    mp = MultiPoint([(3.0, 1.0), (3.0, 2.0), (1.0, 2.0), (1.0, 1.0)])
+    result = shapely.voronoi_polygons(mp, ordered=False)
+    assert result.geoms[0].equals(
+        Polygon([(-1, -1), (-1, 1.5), (2, 1.5), (2, -1), (-1, -1)])
+    )
+
+    result_ordered = shapely.voronoi_polygons(mp, ordered=True)
+    assert result_ordered.geoms[0].equals(
+        Polygon([(5, -1), (2, -1), (2, 1.5), (5, 1.5), (5, -1)])
+    )
+
+
+@pytest.mark.skipif(shapely.geos_version >= (3, 12, 0), reason="GEOS >= 3.12")
+def test_voronoi_polygons_ordered_raise():
+    mp = MultiPoint([(3.0, 1.0), (3.0, 2.0), (1.0, 2.0), (1.0, 1.0)])
+    with pytest.raises(
+        UnsupportedGEOSVersionError, match="Ordered Voronoi polygons require GEOS"
+    ):
+        shapely.voronoi_polygons(mp, ordered=True)
+
+
+@pytest.mark.parametrize("geometry", all_types)
+def test_maximum_inscribed_circle_all_types(geometry):
+    if shapely.get_type_id(geometry) not in [3, 6]:
+        # Maximum Inscribed Circle is only supported for (Multi)Polygon input
+        with pytest.raises(
+            GEOSException,
+            match=(
+                "Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
+                "must be a Polygon or MultiPolygon|"
+                "Operation not supported by GeometryCollection"
+            ),
+        ):
+            shapely.maximum_inscribed_circle(geometry)
+        return
+
+    if geometry.is_empty:
+        with pytest.raises(
+            GEOSException, match="Empty input(?: geometry)? is not supported"
+        ):
+            shapely.maximum_inscribed_circle(geometry)
+        return
+
+    actual = shapely.maximum_inscribed_circle([geometry, geometry])
+    assert actual.shape == (2,)
+    assert actual[0] is None or isinstance(actual[0], Geometry)
+
+    actual = shapely.maximum_inscribed_circle(None)
+    assert actual is None
+
+
+@pytest.mark.parametrize(
+    "geometry, expected",
+    [
+        (
+            "POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))",
+            "LINESTRING (5 5, 2.5 7.5)",
+        ),
+    ],
+)
+def test_maximum_inscribed_circle(geometry, expected):
+    geometry, expected = shapely.from_wkt(geometry), shapely.from_wkt(expected)
+    actual = shapely.maximum_inscribed_circle(geometry)
+    assert_geometries_equal(actual, expected)
+
+
+def test_maximum_inscribed_circle_empty():
+    geometry = shapely.from_wkt("POINT EMPTY")
+    with pytest.raises(
+        GEOSException,
+        match=(
+            "Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
+            "must be a Polygon or MultiPolygon"
+        ),
+    ):
+        shapely.maximum_inscribed_circle(geometry)
+
+    geometry = shapely.from_wkt("POLYGON EMPTY")
+    with pytest.raises(
+        GEOSException, match="Empty input(?: geometry)? is not supported"
+    ):
+        shapely.maximum_inscribed_circle(geometry)
+
+
+def test_maximum_inscribed_circle_invalid_tolerance():
+    geometry = shapely.from_wkt("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))")
+    with pytest.raises(ValueError, match="'tolerance' should be positive"):
+        shapely.maximum_inscribed_circle(geometry, tolerance=-1)
+
+
+@pytest.mark.parametrize("geometry", all_types)
+def test_orient_polygons_all_types(geometry):
+    actual = shapely.orient_polygons([geometry, geometry])
+    assert actual.shape == (2,)
+    assert isinstance(actual[0], Geometry)
+
+    actual = shapely.orient_polygons(None)
+    assert actual is None
+
+
+def test_orient_polygons():
+    # polygon with both shell and hole having clockwise orientation
+    polygon = Polygon(
+        [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+        holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+    )
+
+    result = shapely.orient_polygons(polygon)
+    assert result.exterior.is_ccw
+    assert not result.interiors[0].is_ccw
+
+    result = shapely.orient_polygons(polygon, exterior_cw=True)
+    assert not result.exterior.is_ccw
+    assert result.interiors[0].is_ccw
+
+    # in a MultiPolygon
+    mp = MultiPolygon([polygon, polygon])
+    result = shapely.orient_polygons(mp)
+    assert len(result.geoms) == 2
+    for geom in result.geoms:
+        assert geom.exterior.is_ccw
+        assert not geom.interiors[0].is_ccw
+
+    result = shapely.orient_polygons([mp], exterior_cw=True)[0]
+    assert len(result.geoms) == 2
+    for geom in result.geoms:
+        assert not geom.exterior.is_ccw
+        assert geom.interiors[0].is_ccw
+
+    # in a GeometryCollection
+    gc = GeometryCollection([Point(1, 1), polygon, mp])
+    result = shapely.orient_polygons(gc)
+    assert len(result.geoms) == 3
+    assert result.geoms[0] == Point(1, 1)
+    assert result.geoms[1] == shapely.orient_polygons(polygon)
+    assert result.geoms[2] == shapely.orient_polygons(mp)
+
+
+def test_orient_polygons_non_polygonal_input():
+    arr = np.array([Point(0, 0), LineString([(0, 0), (1, 1)]), None])
+    result = shapely.orient_polygons(arr)
+    assert_geometries_equal(result, arr)
+
+
+def test_orient_polygons_array():
+    # because we have a custom python implementation for older GEOS, need to
+    # ensure this has the same capabilities as numpy ufuncs to work with array-likes
+    polygon = Polygon(
+        [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+        holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+    )
+    geometries = np.array([[polygon] * 3] * 2)
+    actual = shapely.orient_polygons(geometries)
+    assert isinstance(actual, np.ndarray)
+    assert actual.shape == (2, 3)
+    expected = shapely.orient_polygons(polygon)
+    assert (actual == expected).all()
+
+
+def test_orient_polygons_array_like():
+    # because we have a custom python implementation for older GEOS, need to
+    # ensure this has the same capabilities as numpy ufuncs to work with array-likes
+    polygon = Polygon(
+        [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+        holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+    )
+    geometries = [polygon, Point(2, 2).buffer(1)]
+    actual = shapely.orient_polygons(ArrayLike(geometries))
+    assert isinstance(actual, ArrayLike)
+    expected = shapely.orient_polygons(geometries)
+    assert_geometries_equal(np.asarray(actual), expected)
+
+
+def test_buffer_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `quad_segs` for `buffer` is deprecated"
+    ):
+        shapely.buffer(point, 1.0, 8)
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs` and `cap_style` "
+        "for `buffer` are deprecated"
+    ):
+        shapely.buffer(point, 1.0, 8, "round")
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs`, `cap_style`, and `join_style` "
+        "for `buffer` are deprecated"
+    ):
+        shapely.buffer(point, 1.0, 8, "round", "round")
+    with pytest.deprecated_call():
+        shapely.buffer(point, 1.0, 8, "round", "round", 5.0)
+    with pytest.deprecated_call():
+        shapely.buffer(point, 1.0, 8, "round", "round", 5.0, False)
+
+
+def test_offset_curve_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `quad_segs` for `offset_curve` is deprecated"
+    ):
+        shapely.offset_curve(line_string, 2.0, 8)
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs` and `join_style` "
+        "for `offset_curve` are deprecated"
+    ):
+        shapely.offset_curve(line_string, 2.0, 8, "round")
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs`, `join_style`, and `mitre_limit` "
+        "for `offset_curve` are deprecated"
+    ):
+        shapely.offset_curve(line_string, 2.0, 8, "round", 5.0)
+
+
+def test_simplify_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `preserve_topology` for `simplify` is deprecated"
+    ):
+        shapely.simplify(line_string, 1.0, True)
+
+
+def test_voronoi_polygons_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `extend_to` for `voronoi_polygons` is deprecated"
+    ):
+        shapely.voronoi_polygons(multi_point, 0.0, None)
+    with pytest.deprecated_call(
+        match="positional arguments `extend_to` and `only_edges` "
+        "for `voronoi_polygons` are deprecated"
+    ):
+        shapely.voronoi_polygons(multi_point, 0.0, None, False)
+    with pytest.deprecated_call(
+        match="positional arguments `extend_to`, `only_edges`, and `ordered` "
+        "for `voronoi_polygons` are deprecated"
+    ):
+        shapely.voronoi_polygons(multi_point, 0.0, None, False, False)

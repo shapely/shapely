@@ -1,10 +1,13 @@
-"""
-Provides a wrapper for GEOS types and functions.
+"""Provides a wrapper for GEOS types and functions.
 
-Note: GEOS functions in Cython must be called using the get_geos_handle context manager.
-Example:
+Note: GEOS functions in Cython must be called using the get_geos_handle context
+manager.
+
+Examples
+--------
     with get_geos_handle() as geos_handle:
         SomeGEOSFunc(geos_handle, ...<other params>)
+
 """
 
 cdef extern from "geos_c.h":
@@ -37,6 +40,8 @@ cdef extern from "geos_c.h":
     void GEOSGeom_destroy_r(GEOSContextHandle_t handle, GEOSGeometry* g) nogil
 
     # Coordinate sequences
+    const GEOSCoordSequence* GEOSGeom_getCoordSeq_r(GEOSContextHandle_t handle, const GEOSGeometry* g)
+    GEOSCoordSequence* GEOSCoordSeq_clone_r(GEOSContextHandle_t handle, const GEOSCoordSequence* s)
     GEOSCoordSequence* GEOSCoordSeq_create_r(GEOSContextHandle_t handle, unsigned int size, unsigned int dims) nogil
     void GEOSCoordSeq_destroy_r(GEOSContextHandle_t handle, GEOSCoordSequence* s) nogil
     int GEOSCoordSeq_setX_r(GEOSContextHandle_t handle, GEOSCoordSequence* s, unsigned int idx, double val) nogil

@@ -23,7 +23,6 @@ class AffineTestCase(unittest.TestCase):
             affinity.affine_transform(None, [1, 2, 3, 4, 5, 6])
 
     def test_affine_geom_types(self):
-
         # identity matrices, which should result with no transformation
         matrix2d = (1, 0, 0, 1, 0, 0)
         matrix3d = (1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -42,7 +41,6 @@ class AffineTestCase(unittest.TestCase):
                 a3 = affinity.affine_transform(g3, matrix3d)
                 assert a3.has_z
                 assert g3.equals(a3)
-            return
 
         pt2d = load_wkt("POINT(12.3 45.6)")
         pt3d = load_wkt("POINT(12.3 45.6 7.89)")
@@ -65,8 +63,7 @@ class AffineTestCase(unittest.TestCase):
         )
         test_geom(
             load_wkt(
-                "MULTILINESTRING((0 0, -0.7 -0.7, 0.6 -1), "
-                "(-0.5 0.5, 0.7 0.6, 0 -0.6))"
+                "MULTILINESTRING((0 0, -0.7 -0.7, 0.6 -1), (-0.5 0.5, 0.7 0.6, 0 -0.6))"
             )
         )
         test_geom(
@@ -117,19 +114,19 @@ class AffineTestCase(unittest.TestCase):
         # 2D equality checks
         expected2d = load_wkt("LINESTRING(-0.2 14.35, -0.2 11.6, 1 11.6)")
         expected3d = load_wkt(
-            "LINESTRING(-0.2 14.35 130.54096, " "-0.2 11.6 140.47744, 1 11.6 139.19728)"
+            "LINESTRING(-0.2 14.35 130.54096, -0.2 11.6 140.47744, 1 11.6 139.19728)"
         )
         expected32 = load_wkt(
-            "LINESTRING(-0.2 14.35 100.2, " "-0.2 11.6 132.8, 1 11.6 128.6)"
+            "LINESTRING(-0.2 14.35 100.2, -0.2 11.6 132.8, 1 11.6 128.6)"
         )
         assert a22.equals_exact(expected2d, 1e-6)
         assert a23.equals_exact(expected2d, 1e-6)
         # Do explicit 3D check of coordinate values
-        for a, e in zip(a32.coords, expected32.coords):
-            for ap, ep in zip(a, e):
+        for a, e in zip(a32.coords, expected32.coords, strict=True):
+            for ap, ep in zip(a, e, strict=True):
                 self.assertAlmostEqual(ap, ep)
-        for a, e in zip(a33.coords, expected3d.coords):
-            for ap, ep in zip(a, e):
+        for a, e in zip(a33.coords, expected3d.coords, strict=True):
+            for ap, ep in zip(a, e, strict=True):
                 self.assertAlmostEqual(ap, ep)
 
 
@@ -190,8 +187,8 @@ class TransformOpsTestCase(unittest.TestCase):
         els = load_wkt("LINESTRING(210 500 5, 210 200 15, 330 200 10)")
         assert sls.equals(els)
         # Do explicit 3D check of coordinate values
-        for a, b in zip(sls.coords, els.coords):
-            for ap, bp in zip(a, b):
+        for a, b in zip(sls.coords, els.coords, strict=True):
+            for ap, bp in zip(a, b, strict=True):
                 self.assertEqual(ap, bp)
         # retest with named parameters for the same result
         sls = affinity.scale(geom=ls, xfact=2, yfact=3, zfact=0.5, origin="center")
@@ -210,8 +207,8 @@ class TransformOpsTestCase(unittest.TestCase):
         els = load_wkt("LINESTRING(380 800 505, 380 500 515, 500 500 510)")
         assert sls.equals(els)
         # Do explicit 3D check of coordinate values
-        for a, b in zip(sls.coords, els.coords):
-            for ap, bp in zip(a, b):
+        for a, b in zip(sls.coords, els.coords, strict=True):
+            for ap, bp in zip(a, b, strict=True):
                 assert ap == bp
 
     def test_scale_empty(self):
@@ -250,7 +247,7 @@ class TransformOpsTestCase(unittest.TestCase):
         # around the second coordinate tuple
         sls = affinity.skew(ls, 15, -30, origin=ls.coords[1])
         els = load_wkt(
-            "LINESTRING(266.7949192431123038 400, 240 300, " "300 265.3589838486224153)"
+            "LINESTRING(266.7949192431123038 400, 240 300, 300 265.3589838486224153)"
         )
         assert sls.equals_exact(els, 1e-6)
         # around the absolute Point of origin
@@ -297,8 +294,8 @@ class TransformOpsTestCase(unittest.TestCase):
         els = load_wkt("LINESTRING(340 800 0, 340 700 20, 400 700 10)")
         assert tls.equals(els)
         # Do explicit 3D check of coordinate values
-        for a, b in zip(tls.coords, els.coords):
-            for ap, bp in zip(a, b):
+        for a, b in zip(tls.coords, els.coords, strict=True):
+            for ap, bp in zip(a, b, strict=True):
                 assert ap == bp
         # retest with named parameters for the same result
         tls = affinity.translate(geom=ls, xoff=100, yoff=400, zoff=-10)

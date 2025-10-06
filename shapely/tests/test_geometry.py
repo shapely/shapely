@@ -6,14 +6,15 @@ import pytest
 import shapely
 from shapely import LinearRing, LineString, MultiPolygon, Point, Polygon
 from shapely.testing import assert_geometries_equal
-from shapely.tests.common import all_types
-from shapely.tests.common import empty as empty_geometry_collection
 from shapely.tests.common import (
+    all_types,
+    empty as empty_geometry_collection,
     empty_line_string,
     empty_line_string_z,
     empty_point,
     empty_point_z,
     empty_polygon,
+    equal_geometries_abnormally_yield_unequal,
     geometry_collection,
     geometry_collection_z,
     ignore_invalid,
@@ -28,7 +29,9 @@ from shapely.tests.common import (
     multi_polygon,
     multi_polygon_z,
     point,
+    point_m,
     point_z,
+    point_zm,
     polygon,
     polygon_with_hole,
     polygon_with_hole_z,
@@ -38,17 +41,17 @@ from shapely.tests.common import (
 
 def test_get_num_points():
     actual = shapely.get_num_points(all_types + (None,)).tolist()
-    assert actual == [0, 3, 5, 0, 0, 0, 0, 0, 0, 0]
+    assert actual == [0, 3, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 
 def test_get_num_interior_rings():
-    actual = shapely.get_num_interior_rings(all_types + (polygon_with_hole, None))
-    assert actual.tolist() == [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+    actual = shapely.get_num_interior_rings(all_types + (None,)).tolist()
+    assert actual == [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 
 def test_get_num_geometries():
     actual = shapely.get_num_geometries(all_types + (None,)).tolist()
-    assert actual == [1, 1, 1, 1, 2, 1, 2, 2, 0, 0]
+    assert actual == [1, 1, 1, 1, 1, 2, 1, 2, 2, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0]
 
 
 @pytest.mark.parametrize(
@@ -94,7 +97,7 @@ def test_get_exterior_ring_non_polygon(geom):
 
 def test_get_exterior_ring():
     actual = shapely.get_exterior_ring([polygon, polygon_with_hole])
-    assert (shapely.get_type_id(actual) == 2).all()
+    assert (shapely.get_type_id(actual) == shapely.GeometryType.LINEARRING).all()
 
 
 @pytest.mark.parametrize(
@@ -138,13 +141,13 @@ def test_get_geometry_collection(geom):
 
 
 def test_get_type_id():
-    actual = shapely.get_type_id(all_types).tolist()
-    assert actual == [0, 1, 2, 3, 4, 5, 6, 7, 7]
+    actual = shapely.get_type_id(all_types + (None,)).tolist()
+    assert actual == [0, 1, 2, 3, 3, 4, 5, 6, 7, 7, 0, 1, 3, 4, 5, 6, 4, 5, 6, 7, -1]
 
 
 def test_get_dimensions():
-    actual = shapely.get_dimensions(all_types).tolist()
-    assert actual == [0, 1, 1, 2, 0, 1, 2, 1, -1]
+    actual = shapely.get_dimensions(all_types + (None,)).tolist()
+    assert actual == [0, 1, 1, 2, 2, 0, 1, 2, 1, -1, 0, 1, 2, 0, 1, 2, 0, 1, 2, 1, -1]
 
 
 def test_get_coordinate_dimension():
@@ -154,13 +157,13 @@ def test_get_coordinate_dimension():
 
 def test_get_num_coordinates():
     actual = shapely.get_num_coordinates(all_types + (None,)).tolist()
-    assert actual == [1, 3, 5, 5, 2, 2, 10, 3, 0, 0]
+    assert actual == [1, 3, 5, 5, 10, 2, 2, 10, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 
 def test_get_srid():
     """All geometry types have no SRID by default; None returns -1"""
     actual = shapely.get_srid(all_types + (None,)).tolist()
-    assert actual == [0, 0, 0, 0, 0, 0, 0, 0, 0, -1]
+    assert actual == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1]
 
 
 def test_get_set_srid():
@@ -175,9 +178,18 @@ def test_get_set_srid():
         shapely.get_x,
         shapely.get_y,
         shapely.get_z,
+        pytest.param(
+            shapely.get_m,
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+            ),
+        ),
     ],
 )
-@pytest.mark.parametrize("geom", all_types[1:])
+@pytest.mark.parametrize(
+    "geom",
+    np.array(all_types)[shapely.get_type_id(all_types) != shapely.GeometryType.POINT],
+)
 def test_get_xyz_no_point(func, geom):
     assert np.isnan(func(geom))
 
@@ -198,38 +210,32 @@ def test_get_z_2d():
     assert np.isnan(shapely.get_z(point))
 
 
+@pytest.mark.skipif(
+    shapely.geos_version < (3, 12, 0),
+    reason="M coordinates not supported with GEOS < 3.12",
+)
+def test_get_m():
+    assert shapely.get_m([point_m, point_zm]).tolist() == [5.0, 5.0]
+    assert np.isnan(shapely.get_m(point))
+    assert np.isnan(shapely.get_m(point_z))
+
+
 @pytest.mark.parametrize("geom", all_types)
 def test_new_from_wkt(geom):
     actual = shapely.from_wkt(str(geom))
-    assert_geometries_equal(actual, geom)
+    if equal_geometries_abnormally_yield_unequal(geom):
+        # abnormal test
+        with pytest.raises(AssertionError):
+            assert_geometries_equal(actual, geom)
+    else:
+        # normal test
+        assert_geometries_equal(actual, geom)
 
 
 def test_adapt_ptr_raises():
     point = Point(2, 2)
     with pytest.raises(AttributeError):
         point._geom += 1
-
-
-@pytest.mark.parametrize(
-    "geom", all_types + (shapely.points(np.nan, np.nan), empty_point)
-)
-def test_hash_same_equal(geom):
-    assert hash(geom) == hash(shapely.transform(geom, lambda x: x))
-
-
-@pytest.mark.parametrize("geom", all_types[:-1])
-def test_hash_same_not_equal(geom):
-    assert hash(geom) != hash(shapely.transform(geom, lambda x: x + 1))
-
-
-@pytest.mark.parametrize("geom", all_types)
-def test_eq(geom):
-    assert geom == shapely.transform(geom, lambda x: x)
-
-
-@pytest.mark.parametrize("geom", all_types[:-1])
-def test_neq(geom):
-    assert geom != shapely.transform(geom, lambda x: x + 1)
 
 
 @pytest.mark.parametrize("geom", all_types)
@@ -239,16 +245,16 @@ def test_set_unique(geom):
 
 
 def test_set_nan():
-    # As NaN != NaN, you can have multiple "NaN" points in a set
-    # set([float("nan"), float("nan")]) also returns a set with 2 elements
+    # Although NaN != NaN, you cannot have multiple "NaN" points in a set
+    # This is because "NaN" coordinates in a geometry are considered as equal.
     with ignore_invalid():
         a = set(shapely.linestrings([[[np.nan, np.nan], [np.nan, np.nan]]] * 10))
-    assert len(a) == 10  # different objects: NaN != NaN
+    assert len(a) == 1  # same objects: NaN == NaN (as geometry coordinates)
 
 
 def test_set_nan_same_objects():
     # You can't put identical objects in a set.
-    # x = float("nan"); set([x, x]) also retuns a set with 1 element
+    # x = float("nan"); set([x, x]) also returns a set with 1 element
     a = set([line_string_nan] * 10)
     assert len(a) == 1
 
@@ -276,7 +282,7 @@ def test_get_parts(geom):
     if expected_num_parts == 0:
         expected_parts = []
     else:
-        expected_parts = shapely.get_geometry(geom, range(0, expected_num_parts))
+        expected_parts = shapely.get_geometry(geom, range(expected_num_parts))
 
     parts = shapely.get_parts(geom)
     assert len(parts) == expected_num_parts
@@ -289,7 +295,7 @@ def test_get_parts_array():
     geom = np.array([None, empty_line_string, multi_point, point, multi_polygon])
     expected_parts = []
     for g in geom:
-        for i in range(0, shapely.get_num_geometries(g)):
+        for i in range(shapely.get_num_geometries(g)):
             expected_parts.append(shapely.get_geometry(g, i))
 
     parts = shapely.get_parts(geom)
@@ -304,7 +310,7 @@ def test_get_parts_geometry_collection_multi():
     """
     geom = shapely.geometrycollections([multi_point, multi_line_string, multi_polygon])
     expected_num_parts = shapely.get_num_geometries(geom)
-    expected_parts = shapely.get_geometry(geom, range(0, expected_num_parts))
+    expected_parts = shapely.get_geometry(geom, range(expected_num_parts))
 
     parts = shapely.get_parts(geom)
     assert len(parts) == expected_num_parts
@@ -312,7 +318,7 @@ def test_get_parts_geometry_collection_multi():
 
     expected_subparts = []
     for g in np.asarray(expected_parts):
-        for i in range(0, shapely.get_num_geometries(g)):
+        for i in range(shapely.get_num_geometries(g)):
             expected_subparts.append(shapely.get_geometry(g, i))
 
     subparts = shapely.get_parts(parts)
@@ -325,7 +331,7 @@ def test_get_parts_return_index():
     expected_parts = []
     expected_index = []
     for i, g in enumerate(geom):
-        for j in range(0, shapely.get_num_geometries(g)):
+        for j in range(shapely.get_num_geometries(g)):
             expected_parts.append(shapely.get_geometry(g, j))
             expected_index.append(i)
 
@@ -360,6 +366,13 @@ def test_get_parts_None(geom):
 def test_get_parts_invalid_geometry(geom):
     with pytest.raises(TypeError, match="One of the arguments is of incorrect type."):
         shapely.get_parts(geom)
+
+
+def test_get_parts_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `return_index` for `get_parts` is deprecated"
+    ):
+        shapely.get_parts(multi_point, False)
 
 
 @pytest.mark.parametrize(
@@ -407,7 +420,7 @@ def test_get_rings_return_index():
             continue
         expected_parts.append(shapely.get_exterior_ring(g))
         expected_index.append(i)
-        for j in range(0, shapely.get_num_interior_rings(g)):
+        for j in range(shapely.get_num_interior_rings(g)):
             expected_parts.append(shapely.get_interior_ring(g, j))
             expected_index.append(i)
 
@@ -422,6 +435,13 @@ def test_get_rings_invalid_dimensions(geom):
     """Only 1D inputs are supported"""
     with pytest.raises(ValueError, match="Array should be one dimensional"):
         shapely.get_parts(geom)
+
+
+def test_get_rings_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `return_index` for `get_rings` is deprecated"
+    ):
+        shapely.get_rings(polygon, False)
 
 
 def test_get_precision():
@@ -467,17 +487,15 @@ def test_set_precision_drop_coords():
 
 @pytest.mark.parametrize("mode", ("valid_output", "pointwise", "keep_collapsed"))
 def test_set_precision_z(mode):
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")  # GEOS <= 3.9 emits warning for 'pointwise'
-        geometry = shapely.set_precision(Point(0.9, 0.9, 0.9), 1, mode=mode)
-        assert shapely.get_precision(geometry) == 1
-        assert_geometries_equal(geometry, Point(1, 1, 0.9))
+    geometry = shapely.set_precision(Point(0.9, 0.9, 0.9), 1, mode=mode)
+    assert shapely.get_precision(geometry) == 1
+    assert_geometries_equal(geometry, Point(1, 1, 0.9))
 
 
 @pytest.mark.parametrize("mode", ("valid_output", "pointwise", "keep_collapsed"))
 def test_set_precision_nan(mode):
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore")  # GEOS <= 3.9 emits warning for 'pointwise'
+        warnings.simplefilter("ignore")  # GEOS emits warnings
         actual = shapely.set_precision(line_string_nan, 1, mode=mode)
         assert_geometries_equal(actual, line_string_nan)
 
@@ -490,6 +508,7 @@ def test_set_precision_grid_size_nan():
     assert shapely.set_precision(Point(0.9, 0.9), np.nan) is None
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize(
     "geometry,mode,expected",
     [
@@ -503,14 +522,10 @@ def test_set_precision_grid_size_nan():
                 ]
             ),
         ),
-        pytest.param(
+        (
             Polygon([(2, 2), (4, 2), (3.2, 3), (4, 4), (2, 4), (2.8, 3), (2, 2)]),
             "pointwise",
             Polygon([(2, 2), (4, 2), (3, 3), (4, 4), (2, 4), (3, 3), (2, 2)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 10, 0),
-                reason="pointwise does not work pre-GEOS 3.10",
-            ),
         ),
         (
             Polygon([(2, 2), (4, 2), (3.2, 3), (4, 4), (2, 4), (2.8, 3), (2, 2)]),
@@ -523,60 +538,41 @@ def test_set_precision_grid_size_nan():
             ),
         ),
         (LineString([(0, 0), (0.1, 0.1)]), "valid_output", LineString()),
-        pytest.param(
+        (
             LineString([(0, 0), (0.1, 0.1)]),
             "pointwise",
             LineString([(0, 0), (0, 0)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 10, 0),
-                reason="pointwise does not work pre-GEOS 3.10",
-            ),
         ),
         (
             LineString([(0, 0), (0.1, 0.1)]),
             "keep_collapsed",
             LineString([(0, 0), (0, 0)]),
         ),
-        pytest.param(
+        (
             LinearRing([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "valid_output",
             LinearRing(),
-            marks=pytest.mark.skipif(
-                shapely.geos_version == (3, 10, 0), reason="Segfaults on GEOS 3.10.0"
-            ),
         ),
-        pytest.param(
+        (
             LinearRing([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "pointwise",
             LinearRing([(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 10, 0),
-                reason="pointwise does not work pre-GEOS 3.10",
-            ),
         ),
-        pytest.param(
+        (
             LinearRing([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "keep_collapsed",
             # See https://trac.osgeo.org/geos/ticket/1135#comment:5
             LineString([(0, 0), (0, 0), (0, 0)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 10, 0),
-                reason="this collapsed into an invalid linearring pre-GEOS 3.10",
-            ),
         ),
         (
             Polygon([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "valid_output",
             Polygon(),
         ),
-        pytest.param(
+        (
             Polygon([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "pointwise",
             Polygon([(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 10, 0),
-                reason="pointwise does not work pre-GEOS 3.10",
-            ),
         ),
         (
             Polygon([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
@@ -588,19 +584,12 @@ def test_set_precision_grid_size_nan():
 def test_set_precision_collapse(geometry, mode, expected):
     """Lines and polygons collapse to empty geometries if vertices are too close"""
     actual = shapely.set_precision(geometry, 1, mode=mode)
-    if shapely.geos_version < (3, 9, 0):
-        # pre GEOS 3.9 has difficulty comparing empty geometries exactly
-        # normalize and compare by WKT instead
-        assert shapely.to_wkt(shapely.normalize(actual)) == shapely.to_wkt(
-            shapely.normalize(expected)
-        )
-    else:
-        # force to 2D because GEOS 3.10 yields 3D geometries when they are empty.
-        assert_geometries_equal(shapely.force_2d(actual), expected)
+    # force to 2D because of various dimension issues; GEOS GH-1152
+    assert_geometries_equal(shapely.force_2d(actual), expected)
 
 
 def test_set_precision_intersection():
-    """Operations should use the most precise presision grid size of the inputs"""
+    """Operations should use the most precise precision grid size of the inputs"""
 
     box1 = shapely.normalize(shapely.box(0, 0, 0.9, 0.9))
     box2 = shapely.normalize(shapely.box(0.75, 0, 1.75, 0.75))
@@ -627,18 +616,6 @@ def set_precision_preserve_topology(preserve_topology):
     assert_geometries_equal(shapely.force_2d(actual), LineString())
 
 
-@pytest.mark.skipif(shapely.geos_version >= (3, 10, 0), reason="GEOS >= 3.10")
-def set_precision_pointwise_pre_310():
-    # using 'pointwise' emits a warning
-    with pytest.warns(UserWarning):
-        actual = shapely.set_precision(
-            LineString([(0, 0), (0.1, 0.1)]),
-            1.0,
-            mode="pointwise",
-        )
-    assert_geometries_equal(shapely.force_2d(actual), LineString())
-
-
 @pytest.mark.parametrize("flags", [np.array([0, 1]), 4, "foo"])
 def set_precision_illegal_flags(flags):
     # the preserve_topology kwarg is deprecated (ignored)
@@ -654,10 +631,6 @@ def test_empty():
 
 # corresponding to geometry_collection_z:
 geometry_collection_2 = shapely.geometrycollections([point, line_string])
-empty_geom_mark = pytest.mark.skipif(
-    shapely.geos_version < (3, 9, 0),
-    reason="Empty points don't have a dimensionality before GEOS 3.9",
-)
 
 
 @pytest.mark.parametrize(
@@ -665,12 +638,12 @@ empty_geom_mark = pytest.mark.skipif(
     [
         (point, point),
         (point_z, point),
-        pytest.param(empty_point, empty_point, marks=empty_geom_mark),
-        pytest.param(empty_point_z, empty_point, marks=empty_geom_mark),
+        (empty_point, empty_point),
+        (empty_point_z, empty_point),
         (line_string, line_string),
         (line_string_z, line_string),
-        pytest.param(empty_line_string, empty_line_string, marks=empty_geom_mark),
-        pytest.param(empty_line_string_z, empty_line_string, marks=empty_geom_mark),
+        (empty_line_string, empty_line_string),
+        (empty_line_string_z, empty_line_string),
         (polygon, polygon),
         (polygon_z, polygon),
         (polygon_with_hole, polygon_with_hole),
@@ -696,12 +669,12 @@ def test_force_2d(geom, expected):
     [
         (point, point_z),
         (point_z, point_z),
-        pytest.param(empty_point, empty_point_z, marks=empty_geom_mark),
-        pytest.param(empty_point_z, empty_point_z, marks=empty_geom_mark),
+        (empty_point, empty_point_z),
+        (empty_point_z, empty_point_z),
         (line_string, line_string_z),
         (line_string_z, line_string_z),
-        pytest.param(empty_line_string, empty_line_string_z, marks=empty_geom_mark),
-        pytest.param(empty_line_string_z, empty_line_string_z, marks=empty_geom_mark),
+        (empty_line_string, empty_line_string_z),
+        (empty_line_string_z, empty_line_string_z),
         (polygon, polygon_z),
         (polygon_z, polygon_z),
         (polygon_with_hole, polygon_with_hole_z),

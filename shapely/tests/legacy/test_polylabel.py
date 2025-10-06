@@ -2,8 +2,8 @@ import unittest
 
 import pytest
 
-from shapely.algorithms.polylabel import Cell, polylabel
-from shapely.errors import TopologicalError
+import shapely
+from shapely.algorithms.polylabel import polylabel
 from shapely.geometry import LineString, Point, Polygon
 
 
@@ -16,42 +16,9 @@ class PolylabelTestCase(unittest.TestCase):
         polygon = LineString(
             [(0, 0), (50, 200), (100, 100), (20, 50), (-100, -20), (-150, -200)]
         ).buffer(100)
-        label = polylabel(polygon, tolerance=10)
-        expected = Point(59.35615556364569, 121.8391962974644)
-        assert expected.equals_exact(label, 1e-6)
-
-    def test_invalid_polygon(self):
-        """
-        Makes sure that the polylabel function throws an exception when provided
-        an invalid polygon.
-
-        """
-        bowtie_polygon = Polygon(
-            [(0, 0), (0, 20), (10, 10), (20, 20), (20, 0), (10, 10), (0, 0)]
-        )
-        with pytest.raises(TopologicalError):
-            polylabel(bowtie_polygon)
-
-    def test_cell_sorting(self):
-        """
-        Tests rich comparison operators of Cells for use in the polylabel
-        minimum priority queue.
-
-        """
-        polygon = Point(0, 0).buffer(100)
-        cell1 = Cell(0, 0, 50, polygon)  # closest
-        cell2 = Cell(50, 50, 50, polygon)  # furthest
-        assert cell1 < cell2
-        assert cell1 <= cell2
-        assert (cell2 <= cell1) is False
-        assert cell1 == cell1
-        assert (cell1 == cell2) is False
-        assert cell1 != cell2
-        assert (cell1 != cell1) is False
-        assert cell2 > cell1
-        assert (cell1 > cell2) is False
-        assert cell2 >= cell1
-        assert (cell1 >= cell2) is False
+        label = polylabel(polygon, tolerance=0.001)
+        expected = Point(59.733, 111.330)
+        assert expected.equals_exact(label, 1e-3)
 
     def test_concave_polygon(self):
         """
@@ -81,7 +48,15 @@ class PolylabelTestCase(unittest.TestCase):
             ]
         )
         label = polylabel(polygon)
-        assert label.coords[:] == [(32.722025, -117.201875)]
+        if shapely.geos_version >= (3, 14, 0):
+            # https://github.com/libgeos/geos/issues/1265
+            assert label.coords[:] == [(32.722025, -117.195155)]
+        elif shapely.geos_version >= (3, 12, 0):
+            # recent GEOS corrects for this
+            assert label.coords[:] == [(32.722025, -117.201875)]
+        else:
+            # older versions not
+            assert label.coords[:] == [(32.722025, -117.208595)]
 
     def test_polygon_with_hole(self):
         """
@@ -95,3 +70,16 @@ class PolylabelTestCase(unittest.TestCase):
         label = polylabel(polygon, 0.05)
         assert label.x == pytest.approx(7.65625)
         assert label.y == pytest.approx(7.65625)
+
+    @pytest.mark.skipif(
+        shapely.geos_version < (3, 12, 0), reason="Fails with GEOS < 3.12"
+    )
+    def test_polygon_infinite_loop(self):
+        # https://github.com/shapely/shapely/issues/1836
+        # corner case that caused an infinite loop in the old custom implemetation
+        polygon = shapely.from_wkt(
+            "POLYGON ((536520.0679737709 5438764.374763639, 536520.0679737704 5438764.374763602, 536520.0679737709 5438764.374763642, 536520.0679737709 5438764.374763639))"  # noqa: E501
+        )
+        label = polylabel(polygon)
+        assert label.x == pytest.approx(536520.068)
+        assert label.y == pytest.approx(5438764.375)

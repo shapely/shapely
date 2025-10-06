@@ -1,31 +1,29 @@
-"""Polygons and their linear ring components
-"""
+"""Polygons and their linear ring components."""
 
 import numpy as np
 
 import shapely
-from shapely.algorithms.cga import is_ccw_impl, signed_area
+from shapely import _geometry_helpers
+from shapely.algorithms.cga import signed_area  # noqa
 from shapely.errors import TopologicalError
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
 
-__all__ = ["Polygon", "LinearRing"]
+__all__ = ["LinearRing", "Polygon", "orient"]
 
 
 def _unpickle_linearring(wkb):
     linestring = shapely.from_wkb(wkb)
     srid = shapely.get_srid(linestring)
-    linearring = shapely.linearrings(shapely.get_coordinates(linestring))
+    linearring = _geometry_helpers.linestring_to_linearring(linestring)
     if srid:
         linearring = shapely.set_srid(linearring, srid)
     return linearring
 
 
 class LinearRing(LineString):
-    """
-    A geometry type composed of one or more line segments
-    that forms a closed loop.
+    """Geometry type composed of one or more line segments that forms a closed loop.
 
     A LinearRing is a closed, one-dimensional feature.
     A LinearRing that crosses itself or touches itself at a single point is
@@ -47,6 +45,7 @@ class LinearRing(LineString):
     --------
     Construct a square ring.
 
+    >>> from shapely import LinearRing
     >>> ring = LinearRing( ((0, 0), (0, 1), (1 ,1 ), (1 , 0)) )
     >>> ring.is_closed
     True
@@ -59,13 +58,14 @@ class LinearRing(LineString):
 
     __slots__ = []
 
-    def __new__(self, coordinates=None):
+    def __new__(cls, coordinates=None):
+        """Create a new LinearRing geometry."""
         if coordinates is None:
             # empty geometry
             # TODO better way?
             return shapely.from_wkt("LINEARRING EMPTY")
         elif isinstance(coordinates, LineString):
-            if type(coordinates) == LinearRing:
+            if type(coordinates) is LinearRing:
                 # return original objects since geometries are immutable
                 return coordinates
             elif not coordinates.is_valid:
@@ -108,22 +108,28 @@ class LinearRing(LineString):
 
     @property
     def __geo_interface__(self):
+        """Return a GeoJSON-like mapping of the LinearRing geometry."""
         return {"type": "LinearRing", "coordinates": tuple(self.coords)}
 
     def __reduce__(self):
-        """WKB doesn't differentiate between LineString and LinearRing so we
-        need to move the coordinate sequence into the correct geometry type"""
+        """Pickle support.
+
+        WKB doesn't differentiate between LineString and LinearRing so we
+        need to move the coordinate sequence into the correct geometry type
+        """
         return (_unpickle_linearring, (shapely.to_wkb(self, include_srid=True),))
 
     @property
     def is_ccw(self):
-        """True is the ring is oriented counter clock-wise"""
-        return bool(is_ccw_impl()(self))
+        """True if the ring is oriented counter clock-wise."""
+        return bool(shapely.is_ccw(self))
 
     @property
     def is_simple(self):
-        """True if the geometry is simple, meaning that any self-intersections
-        are only at boundary points, else False"""
+        """True if the geometry is simple.
+
+        Simple means that any self-intersections are only at boundary points.
+        """
         return bool(shapely.is_simple(self))
 
 
@@ -131,7 +137,6 @@ shapely.lib.registry[2] = LinearRing
 
 
 class InteriorRingSequence:
-
     _parent = None
     _ndim = None
     _index = 0
@@ -181,8 +186,7 @@ class InteriorRingSequence:
 
 
 class Polygon(BaseGeometry):
-    """
-    A geometry type representing an area that is enclosed by a linear ring.
+    """A geometry type representing an area that is enclosed by a linear ring.
 
     A polygon is a two-dimensional feature and has a non-zero area. It may
     have one or more negative-space "holes" which are also bounded by linear
@@ -210,15 +214,18 @@ class Polygon(BaseGeometry):
     --------
     Create a square polygon with no holes
 
+    >>> from shapely import Polygon
     >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
     >>> polygon = Polygon(coords)
     >>> polygon.area
     1.0
+
     """
 
     __slots__ = []
 
-    def __new__(self, shell=None, holes=None):
+    def __new__(cls, shell=None, holes=None):
+        """Create a new Polygon geometry."""
         if shell is None:
             # empty geometry
             # TODO better way?
@@ -243,51 +250,26 @@ class Polygon(BaseGeometry):
 
     @property
     def exterior(self):
+        """Return the exterior ring of the polygon."""
         return shapely.get_exterior_ring(self)
 
     @property
     def interiors(self):
+        """Return the sequence of interior rings of the polygon."""
         if self.is_empty:
             return []
         return InteriorRingSequence(self)
 
     @property
     def coords(self):
+        """Not implemented for polygons."""
         raise NotImplementedError(
             "Component rings have coordinate sequences, but the polygon does not"
         )
 
-    def __eq__(self, other):
-        if not isinstance(other, BaseGeometry):
-            return NotImplemented
-        if not isinstance(other, Polygon):
-            return False
-        check_empty = (self.is_empty, other.is_empty)
-        if all(check_empty):
-            return True
-        elif any(check_empty):
-            return False
-        my_coords = [self.exterior.coords] + [
-            interior.coords for interior in self.interiors
-        ]
-        other_coords = [other.exterior.coords] + [
-            interior.coords for interior in other.interiors
-        ]
-        if not len(my_coords) == len(other_coords):
-            return False
-        # equal_nan=False is the default, but not yet available for older numpy
-        return np.all(
-            [
-                np.array_equal(left, right)  # , equal_nan=False)
-                for left, right in zip(my_coords, other_coords)
-            ]
-        )
-
-    def __hash__(self):
-        return super().__hash__()
-
     @property
     def __geo_interface__(self):
+        """Return a GeoJSON-like mapping of the Polygon geometry."""
         if self.exterior == LinearRing():
             coords = []
         else:
@@ -297,10 +279,10 @@ class Polygon(BaseGeometry):
         return {"type": "Polygon", "coordinates": tuple(coords)}
 
     def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
-        """Returns SVG path element for the Polygon geometry.
+        """Return SVG path element for the Polygon geometry.
 
         Parameters
-        ==========
+        ----------
         scale_factor : float
             Multiplication factor for the SVG stroke-width.  Default is 1.
         fill_color : str, optional
@@ -308,6 +290,7 @@ class Polygon(BaseGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.6
+
         """
         if self.is_empty:
             return "<g />"
@@ -326,9 +309,9 @@ class Polygon(BaseGeometry):
             ]
         )
         return (
-            '<path fill-rule="evenodd" fill="{2}" stroke="#555555" '
-            'stroke-width="{0}" opacity="{3}" d="{1}" />'
-        ).format(2.0 * scale_factor, path, fill_color, opacity)
+            f'<path fill-rule="evenodd" fill="{fill_color}" stroke="#555555" '
+            f'stroke-width="{2.0 * scale_factor}" opacity="{opacity}" d="{path}" />'
+        )
 
     @classmethod
     def from_bounds(cls, xmin, ymin, xmax, ymax):
@@ -340,16 +323,23 @@ shapely.lib.registry[3] = Polygon
 
 
 def orient(polygon, sign=1.0):
-    s = float(sign)
-    rings = []
-    ring = polygon.exterior
-    if signed_area(ring) / s >= 0.0:
-        rings.append(ring)
-    else:
-        rings.append(list(ring.coords)[::-1])
-    for ring in polygon.interiors:
-        if signed_area(ring) / s <= 0.0:
-            rings.append(ring)
-        else:
-            rings.append(list(ring.coords)[::-1])
-    return Polygon(rings[0], rings[1:])
+    """Return an oriented polygon.
+
+    It is recommended to use :func:`shapely.orient_polygons` instead.
+
+    Parameters
+    ----------
+    polygon : shapely.Polygon
+    sign : float, default 1.
+        The sign of the result's signed area.
+        A non-negative sign means that the coordinates of the geometry's exterior
+        rings will be oriented counter-clockwise.
+
+    Returns
+    -------
+    Geometry or array_like
+
+    Refer to :func:`shapely.orient_polygons` for full documentation.
+
+    """
+    return shapely.orient_polygons(polygon, exterior_cw=sign < 0.0)

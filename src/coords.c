@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include <Python.h>
 #include <math.h>
@@ -16,7 +15,7 @@
 
 /* These function prototypes enables that these functions can call themselves */
 static char get_coordinates(GEOSContextHandle_t, GEOSGeometry*, PyArrayObject*, npy_intp*,
-                            int);
+                            int, int);
 static void* set_coordinates(GEOSContextHandle_t, GEOSGeometry*, PyArrayObject*,
                              npy_intp*, int);
 
@@ -24,8 +23,9 @@ static void* set_coordinates(GEOSContextHandle_t, GEOSGeometry*, PyArrayObject*,
 position `cursor` in the array `out`. Increases the cursor correspondingly.
 Returns 0 on error, 1 on success */
 static char get_coordinates_simple(GEOSContextHandle_t ctx, GEOSGeometry* geom, int type,
-                                   PyArrayObject* out, npy_intp* cursor, int include_z) {
-  unsigned int n, dims;
+                                   PyArrayObject* out, npy_intp* cursor,
+                                   int include_z, int include_m) {
+  unsigned int n;
   double *buf;
   const GEOSCoordSequence* seq;
   char is_empty;
@@ -50,9 +50,8 @@ static char get_coordinates_simple(GEOSContextHandle_t ctx, GEOSGeometry* geom, 
     return 0;
   }
 
-  dims = (include_z) ? 3 : 2;
   buf = PyArray_GETPTR2(out, *cursor, 0);
-  if (!coordseq_to_buffer(ctx, seq, buf, n, dims)) {
+  if (!coordseq_to_buffer(ctx, seq, buf, n, include_z, include_m)) {
     return 0;
   }
   *cursor += n;
@@ -64,7 +63,8 @@ static char get_coordinates_simple(GEOSContextHandle_t ctx, GEOSGeometry* geom, 
 ring (exterior ring, interior ring 1, ..., interior ring N).
 Returns 0 on error, 1 on success */
 static char get_coordinates_polygon(GEOSContextHandle_t ctx, GEOSGeometry* geom,
-                                    PyArrayObject* out, npy_intp* cursor, int include_z) {
+                                    PyArrayObject* out, npy_intp* cursor,
+                                    int include_z, int include_m) {
   int n, i;
   GEOSGeometry* ring;
 
@@ -72,7 +72,8 @@ static char get_coordinates_polygon(GEOSContextHandle_t ctx, GEOSGeometry* geom,
   if (ring == NULL) {
     return 0;
   }
-  if (!get_coordinates_simple(ctx, ring, GEOS_LINEARRING, out, cursor, include_z)) {
+  if (!get_coordinates_simple(ctx, ring, GEOS_LINEARRING, out, cursor,
+                              include_z, include_m)) {
     return 0;
   }
 
@@ -85,7 +86,8 @@ static char get_coordinates_polygon(GEOSContextHandle_t ctx, GEOSGeometry* geom,
     if (ring == NULL) {
       return 0;
     }
-    if (!get_coordinates_simple(ctx, ring, GEOS_LINEARRING, out, cursor, include_z)) {
+    if (!get_coordinates_simple(ctx, ring, GEOS_LINEARRING, out, cursor,
+                                include_z, include_m)) {
       return 0;
     }
   }
@@ -97,7 +99,7 @@ subgeometry. The call to `get_coordinates` is a recursive call so that nested
 collections are allowed. Returns 0 on error, 1 on success */
 static char get_coordinates_collection(GEOSContextHandle_t ctx, GEOSGeometry* geom,
                                        PyArrayObject* out, npy_intp* cursor,
-                                       int include_z) {
+                                       int include_z, int include_m) {
   int n, i;
   GEOSGeometry* sub_geom;
 
@@ -110,7 +112,7 @@ static char get_coordinates_collection(GEOSContextHandle_t ctx, GEOSGeometry* ge
     if (sub_geom == NULL) {
       return 0;
     }
-    if (!get_coordinates(ctx, sub_geom, out, cursor, include_z)) {
+    if (!get_coordinates(ctx, sub_geom, out, cursor, include_z, include_m)) {
       return 0;
     }
   }
@@ -121,14 +123,15 @@ static char get_coordinates_collection(GEOSContextHandle_t ctx, GEOSGeometry* ge
 array `out`. The value of the cursor is increased correspondingly. Returns 0
 on error, 1 on success*/
 static char get_coordinates(GEOSContextHandle_t ctx, GEOSGeometry* geom,
-                            PyArrayObject* out, npy_intp* cursor, int include_z) {
+                            PyArrayObject* out, npy_intp* cursor,
+                            int include_z, int include_m) {
   int type = GEOSGeomTypeId_r(ctx, geom);
   if ((type == 0) || (type == 1) || (type == 2)) {
-    return get_coordinates_simple(ctx, geom, type, out, cursor, include_z);
+    return get_coordinates_simple(ctx, geom, type, out, cursor, include_z, include_m);
   } else if (type == 3) {
-    return get_coordinates_polygon(ctx, geom, out, cursor, include_z);
+    return get_coordinates_polygon(ctx, geom, out, cursor, include_z, include_m);
   } else if ((type >= 4) && (type <= 7)) {
-    return get_coordinates_collection(ctx, geom, out, cursor, include_z);
+    return get_coordinates_collection(ctx, geom, out, cursor, include_z, include_m);
   } else {
     return 0;
   }
@@ -371,7 +374,7 @@ npy_intp CountCoords(PyArrayObject* arr) {
       result = -1;
       goto finish;
     }
-    /* skip incase obj was None */
+    /* skip in case obj was None */
     if (geom == NULL) {
       continue;
     }
@@ -391,7 +394,7 @@ finish:
   return result;
 }
 
-PyObject* GetCoords(PyArrayObject* arr, int include_z, int return_index) {
+PyObject* GetCoords(PyArrayObject* arr, int include_z, int include_m, int return_index) {
   npy_intp coord_dim;
   NpyIter* iter;
   NpyIter_IterNextFunc* iternext;
@@ -406,11 +409,7 @@ PyObject* GetCoords(PyArrayObject* arr, int include_z, int return_index) {
   if (size == -1) {
     return NULL;
   }
-  if (include_z) {
-    coord_dim = 3;
-  } else {
-    coord_dim = 2;
-  }
+  coord_dim = 2 + include_z + include_m;
   npy_intp dims[2] = {size, coord_dim};
   PyArrayObject* result = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_DOUBLE);
   if (result == NULL) {
@@ -478,7 +477,7 @@ PyObject* GetCoords(PyArrayObject* arr, int include_z, int return_index) {
     first to the last coordinate belonging to this geometry later */
     i = cursor;
     /* get the coordinates (updates "cursor") */
-    if (!get_coordinates(ctx, geom, result, &cursor, include_z)) {
+    if (!get_coordinates(ctx, geom, result, &cursor, include_z, include_m)) {
       errstate = PGERR_GEOS_EXCEPTION;
       goto finish;
     }
@@ -519,7 +518,7 @@ PyObject* SetCoords(PyArrayObject* geoms, PyArrayObject* coords) {
   PyObject* new_obj;
   GEOSGeometry *geom, *new_geom;
 
-  /* SetCoords acts implace: if the array is zero-sized, just return the
+  /* SetCoords acts in-place: if the array is zero-sized, just return the
   same object */
   if (PyArray_SIZE(geoms) == 0) {
     Py_INCREF((PyObject*)geoms);
@@ -609,9 +608,10 @@ PyObject* PyCountCoords(PyObject* self, PyObject* args) {
 PyObject* PyGetCoords(PyObject* self, PyObject* args) {
   PyObject* arr;
   int include_z;
+  int include_m;
   int return_index;
 
-  if (!PyArg_ParseTuple(args, "Opp", &arr, &include_z, &return_index)) {
+  if (!PyArg_ParseTuple(args, "Oppp", &arr, &include_z, &include_m, &return_index)) {
     return NULL;
   }
   if (!PyArray_Check(arr)) {
@@ -622,7 +622,7 @@ PyObject* PyGetCoords(PyObject* self, PyObject* args) {
     PyErr_SetString(PyExc_TypeError, "Array should be of object dtype");
     return NULL;
   }
-  return GetCoords((PyArrayObject*)arr, include_z, return_index);
+  return GetCoords((PyArrayObject*)arr, include_z, include_m, return_index);
 }
 
 PyObject* PySetCoords(PyObject* self, PyObject* args) {

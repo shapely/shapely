@@ -195,7 +195,7 @@ def test_linestrings_allow_nan(coordinates):
         ([[1, 1], [1, float("nan")], [2, 2]], [0, 0, 0], [lstrs([[1, 1], [2, 2]])]),
     ],
 )
-def test_linestrings_skip_nan(coordinates, indices, expected):
+def test_linestrings_handle_nan_skip(coordinates, indices, expected):
     actual = shapely.linestrings(
         np.array(coordinates, dtype=float),
         indices=np.array(indices, dtype=np.intp),
@@ -204,7 +204,7 @@ def test_linestrings_skip_nan(coordinates, indices, expected):
     assert_geometries_equal(actual, expected)
 
 
-def test_linestrings_skip_nan_invalid():
+def test_linestrings_handle_nan_skip_invalid():
     # the NaN makes the linestring too short
     with pytest.raises(shapely.GEOSException):
         shapely.linestrings(
@@ -212,14 +212,14 @@ def test_linestrings_skip_nan_invalid():
         )
 
 
-def test_linestrings_skip_nan_only_nan():
+def test_linestrings_handle_nan_skip_only_nan():
     actual = shapely.linestrings(
         np.full((3, 2), fill_value=np.nan), indices=[0, 0, 0], handle_nan="skip"
     )
     assert actual[0].is_empty
 
 
-def test_linestrings_error_nan():
+def test_linestrings_handle_nan_error():
     with pytest.raises(ValueError, match=".*NaN.*"):
         shapely.linestrings(
             [[0, 0], [float("nan"), 0], [1, 1]], indices=[0, 0, 0], handle_nan="error"
@@ -315,7 +315,7 @@ def test_linearrings_allow_nan(coordinates):
         [[2, float("nan")], [1, 1], [2, 1], [2, 2]],
     ],
 )
-def test_linearrings_skip_nan(coordinates):
+def test_linearrings_handle_nan_skip(coordinates):
     actual = shapely.linearrings(
         np.array(coordinates, dtype=np.float64),
         indices=np.zeros(len(coordinates), dtype=np.intp),
@@ -324,7 +324,7 @@ def test_linearrings_skip_nan(coordinates):
     assert_geometries_equal(actual, shapely.linearrings(coordinates, handle_nan="skip"))
 
 
-def test_linearrings_skip_nan_invalid():
+def test_linearrings_handle_nan_skip_invalid():
     # the NaN makes the linearring too short
     with pytest.raises(ValueError):
         shapely.linearrings(
@@ -332,7 +332,7 @@ def test_linearrings_skip_nan_invalid():
         )
 
 
-def test_linearrings_skip_nan_only_nan():
+def test_linearrings_handle_nan_skip_only_nan():
     actual = shapely.linearrings(
         np.full((5, 2), fill_value=np.nan), indices=[0] * 5, handle_nan="skip"
     )
@@ -340,7 +340,7 @@ def test_linearrings_skip_nan_only_nan():
     assert actual[0].is_empty
 
 
-def test_linearrings_error_nan():
+def test_linearrings_handle_nan_error():
     with pytest.raises(ValueError, match=".*NaN.*"):
         shapely.linearrings(
             [[1, 1], [2, 1], [2, 2], [2, float("nan")], [1, 1]],
@@ -527,3 +527,59 @@ def test_multipolygons():
 def test_incompatible_types(geometries, func):
     with pytest.raises(TypeError):
         func(geometries, indices=[0])
+
+
+def test_points_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `points` is deprecated"
+    ):
+        shapely.points([[0, 1], [2, 3]], None, None, [0, 1])
+
+
+def test_linestrings_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `linestrings` is deprecated"
+    ):
+        shapely.linestrings([[0, 1], [2, 3], [4, 5], [6, 7]], None, None, [0, 0, 1, 1])
+
+
+def test_linearrings_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `linearrings` is deprecated"
+    ):
+        shapely.linearrings([[0, 1], [1, 1], [1, 0]], None, None, [0, 0, 0])
+
+
+def test_polygons_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `polygons` is deprecated"
+    ):
+        shapely.polygons([linear_ring, linear_ring], None, [0, 1])
+
+
+def test_multipoints_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `multipoints` is deprecated"
+    ):
+        shapely.multipoints([point, point], [0, 1])
+
+
+def test_multilinestrings_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `multilinestrings` is deprecated"
+    ):
+        shapely.multilinestrings([line_string, line_string], [0, 1])
+
+
+def test_multipolygons_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `multipolygons` is deprecated"
+    ):
+        shapely.multipolygons([polygon, polygon], [0, 1])
+
+
+def test_geometrycollections_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `geometrycollections` is deprecated"
+    ):
+        shapely.geometrycollections([point, polygon], [0, 1])

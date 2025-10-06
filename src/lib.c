@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include <Python.h>
 
@@ -23,7 +22,7 @@ static PyMethodDef GeosModule[] = {
     {"count_coordinates", PyCountCoords, METH_VARARGS,
      "Counts the total amount of coordinates in a array with geometry objects"},
     {"get_coordinates", PyGetCoords, METH_VARARGS,
-     "Gets the coordinates as an (N, 2) shaped ndarray of floats"},
+     "Gets the coordinates as an (N, 2), (N, 3), or (N, 4) shaped ndarray of floats"},
     {"set_coordinates", PySetCoords, METH_VARARGS,
      "Sets coordinates to a geometry array"},
     {"_setup_signal_checks", PySetupSignalChecks, METH_VARARGS,
@@ -43,6 +42,11 @@ PyMODINIT_FUNC PyInit_lib(void) {
   if (!m) {
     return NULL;
   }
+
+  /* Work with freethreaded Python */
+  #ifdef Py_GIL_DISABLED
+    PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
+  #endif
 
   if (init_geos(m) < 0) {
     return NULL;

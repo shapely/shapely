@@ -53,8 +53,8 @@ or WKB (Well-Known Binary) representation:
   >>> from_wkb(b"\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?")
   <POINT (1 1)>
 
-A more efficient way of constructing geometries is by making use of the (vectorized)
-functions described in :ref:`ref-creation`.
+A more efficient way of constructing geometries is by making use of the
+(vectorized) functions described in :ref:`ref-creation`.
 
 Pickling
 ~~~~~~~~
@@ -84,7 +84,7 @@ Therefore, geometries are equal if and only if their WKB representations are equ
   >>> point_1 = Point(5.2, 52.1)
   >>> point_2 = Point(1, 1)
   >>> point_3 = Point(5.2, 52.1)
-  >>> {point_1, point_2, point_3}
+  >>> {point_1, point_2, point_3}  # doctest: +SKIP
   {<POINT (1 1)>, <POINT (5.2 52.1)>}
 
 .. warning:: Due to limitations of WKB, linearrings will equal linestrings if they contain the exact same points.
@@ -113,9 +113,9 @@ The most convenient is to use ``.wkb_hex`` and ``.wkt`` properties.
   >>> from shapely import Point, to_wkb, to_wkt, to_geojson
   >>> pt = Point(-169.910918, -18.997564)
   >>> pt.wkb_hex
-  0101000000CF6A813D263D65C0BDAAB35A60FF32C0
+  '0101000000CF6A813D263D65C0BDAAB35A60FF32C0'
   >>> pt.wkt
-  POINT (-169.910918 -18.997564)
+  'POINT (-169.910918 -18.997564)'
 
 More output options can be found using using :func:`~shapely.to_wkb`,
 :func:`~shapely.to_wkt`, and :func:`~shapely.to_geojson` functions.
@@ -123,9 +123,9 @@ More output options can be found using using :func:`~shapely.to_wkb`,
 .. code:: python
 
   >>> to_wkb(pt, hex=True, byte_order=0)
-  0000000001C0653D263D816ACFC032FF605AB3AABD
+  '0000000001C0653D263D816ACFC032FF605AB3AABD'
   >>> to_wkt(pt, rounding_precision=3)
-  POINT (-169.911 -18.998)
+  'POINT (-169.911 -18.998)'
   >>> print(to_geojson(pt, indent=2))
   {
     "type": "Point",
@@ -158,18 +158,67 @@ Semantic for format specification
 
 Format types ``'f'`` and ``'F'`` are to use a fixed-point notation, which is
 activated by setting GEOS' trim option off.
-The upper case variant converts ``nan`` to ``NAN`` and ``inf`` to ``INF``.
 
-Format types ``'g'`` and ``'G'`` are to use a "general format",
+Format types ``'g'`` (default) and ``'G'`` are to use a "general format",
 where unnecessary digits are trimmed. This notation is activated by setting
-GEOS' trim option on. The upper case variant is similar to
-``'F'``, and may also display an upper-case ``"E"`` if scientific notation
-is required. Note that this representation may be different for GEOS 3.10.0
-and later, which does not use scientific notation.
+GEOS' trim option on. This option sometimes enables
+:ref:`scientific-formatting`.
 
-For numeric outputs ``'f'`` and ``'g'``, the precision is optional, and if not
+For numeric outputs ``[fFgG]``, the precision is optional, and if not
 specified, rounding precision will be disabled showing full precision.
 
 Format types ``'x'`` and ``'X'`` show a hex-encoded string representation of
-WKB or Well-Known Binary, with the case of the output matched the
-case of the format type character.
+WKB or Well-Known Binary.
+
+The upper case letter variant converts all non-numeric values to uppercase,
+e.g. ``nan`` to ``NAN``, or ``e`` to ``E``.
+
+.. _scientific-formatting:
+
+Scientific formatting
+---------------------
+
+WKT outputs may sometimes use scientific formatting, depending on the GEOS
+version, coordinate value and WKT writer options. GEOS versions 3.10 to 3.12
+never use scientific formatting (only showing positional), while older and
+newer versions may use scientific formatting for large and small coordinate
+values (e.g. ``POINT (1.234e+18 1.234e-11)``).
+
+Scientific formatting can always be disabled by setting ``trim=False`` for
+:func:`~shapely.to_wkt` or other WKT writer methods,
+which sets the WKT writer to use fixed-precision number formatting.
+
+.. _canonical-form:
+
+Canonical form
+--------------
+When operations are applied on geometries the result is returned according to
+some conventions.
+
+In most cases, geometries will be returned in "mild" canonical form. There is
+no goal to keep this form stable, so it is expected to change in future
+versions of GEOS:
+
+- the coordinates of exterior rings follow a clockwise orientation and interior
+  rings have a counter-clockwise orientation. This is the opposite of the OGC
+  specifications because the choice was made before this was included in the
+  standard.
+- the starting point of rings can be changed in the output, but the exact order
+  is undefined and should not be relied upon
+- the order of geometry types in a collection can be changed, but the order is
+  undefined
+
+When :func:`~shapely.normalize` is used, the "strict" canonical form is
+applied. This type of normalization is meant to be stable, so changes to it
+will be avoided if possible:
+
+- the coordinates of exterior rings follow a clockwise orientation and interior
+  rings have a counter-clockwise orientation
+- the starting point of rings is lower left
+- elements in collections are ordered by geometry type: by descending dimension
+  and multi-types first (MultiPolygon, Polygon, MultiLineString, LineString,
+  MultiPoint, Point). Multiple elements from the same type are ordered from
+  right to left and from top to bottom.
+
+It is important to note that input geometries do not have to follow these
+conventions.

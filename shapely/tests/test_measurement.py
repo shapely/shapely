@@ -247,7 +247,7 @@ def test_frechet_distance(geom1, geom2, expected):
         (
             shapely.linestrings([[0, 0], [100, 0]]),
             shapely.linestrings([[0, 0], [50, 50], [100, 0]]),
-            0.001,
+            0.002,
             50,
         )
     ],

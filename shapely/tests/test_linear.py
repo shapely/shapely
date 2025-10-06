@@ -56,9 +56,6 @@ def test_line_interpolate_point_float_array():
     ],
 )
 def test_line_interpolate_point_empty(geom, normalized):
-    # These geometries segfault in some versions of GEOS (in 3.8.0, still
-    # some of them segfault). Instead, we patched this to return POINT EMPTY.
-    # This matches GEOS 3.8.0 behavior on simple empty geometries.
     assert_geometries_equal(
         shapely.line_interpolate_point(geom, 0.2, normalized=normalized), empty_point
     )
@@ -91,6 +88,14 @@ def test_line_interpolate_point_none():
 
 def test_line_interpolate_point_nan():
     assert shapely.line_interpolate_point(line_string, np.nan) is None
+
+
+def test_line_interpolate_point_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `normalized` for `line_interpolate_point` "
+        "is deprecated"
+    ):
+        shapely.line_interpolate_point(line_string, 0, False)
 
 
 def test_line_locate_point_geom_array():
@@ -128,6 +133,13 @@ def test_line_locate_point_invalid_geometry(normalized):
 
     with pytest.raises(shapely.GEOSException):
         shapely.line_locate_point(polygon, point, normalized=normalized)
+
+
+def test_line_locate_point_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `normalized` for `line_locate_point` is deprecated"
+    ):
+        shapely.line_locate_point(line_string, point, False)
 
 
 def test_line_merge_geom_array():
@@ -178,7 +190,7 @@ def test_shared_paths_non_linestring():
 
 
 def _prepare_input(geometry, prepare):
-    """Prepare without modifying inplace"""
+    """Prepare without modifying in-place"""
     if prepare:
         geometry = shapely.transform(geometry, lambda x: x)  # makes a copy
         shapely.prepare(geometry)

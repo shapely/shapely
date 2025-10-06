@@ -16,7 +16,7 @@ def test_from_coordinate_sequence():
     assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
 
 
-def test_from_coordinate_sequence_3D():
+def test_from_coordinate_sequence_z():
     line = LineString([(1.0, 2.0, 3.0), (3.0, 4.0, 5.0)])
     assert line.has_z
     assert line.coords[:] == [(1.0, 2.0, 3.0), (3.0, 4.0, 5.0)]
@@ -103,7 +103,9 @@ def test_numpy_object_array():
 @pytest.mark.filterwarnings("ignore:Creating an ndarray from ragged nested sequences:")
 def test_from_invalid_dim():
     # TODO(shapely-2.0) better error message?
-    # pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
+    # pytest.raises(
+    #     ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"
+    # ):
     with pytest.raises(shapely.GEOSException):
         LineString([(1, 2)])
 
@@ -132,7 +134,6 @@ def test_from_single_coordinate():
 
 class TestLineString:
     def test_linestring(self):
-
         # From coordinate tuples
         line = LineString([(1.0, 2.0), (3.0, 4.0)])
         assert len(line.coords) == 2
@@ -211,3 +212,21 @@ def test_linestring_array_coercion():
     assert arr.size == 1
     assert arr.dtype == np.dtype("object")
     assert arr.item() == line
+
+
+def test_offset_curve_deprecate_positional():
+    line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
+    with pytest.deprecated_call(
+        match="positional argument `quad_segs` for `offset_curve` is deprecated"
+    ):
+        line_string.offset_curve(1.0, 8)
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs` and `join_style` "
+        "for `offset_curve` are deprecated"
+    ):
+        line_string.offset_curve(1.0, 8, "round")
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs`, `join_style`, and `mitre_limit` "
+        "for `offset_curve` are deprecated"
+    ):
+        line_string.offset_curve(1.0, 8, "round", 5.0)

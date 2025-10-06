@@ -20,6 +20,7 @@ def geometrycollection_geojson():
     "geom",
     [
         GeometryCollection(),
+        GeometryCollection([]),
         shape({"type": "GeometryCollection", "geometries": []}),
         wkt.loads("GEOMETRYCOLLECTION EMPTY"),
     ],
@@ -52,6 +53,13 @@ def test_child_with_deleted_parent():
 
     # access geometry, this should not seg fault as 1.2.15 did
     assert child.wkt is not None
+
+
+def test_from_numpy_array():
+    geoms = np.array([Point(0, 0), LineString([(1, 1), (2, 2)])])
+    geom = GeometryCollection(geoms)
+    assert len(geom.geoms) == 2
+    np.testing.assert_array_equal(geoms, geom.geoms)
 
 
 def test_from_geojson(geometrycollection_geojson):

@@ -1,7 +1,15 @@
 import pytest
 from numpy.testing import assert_allclose
 
-from shapely import box, get_coordinates, LineString, MultiLineString, Point
+from shapely import (
+    LineString,
+    MultiLineString,
+    MultiPolygon,
+    Point,
+    box,
+    get_coordinates,
+)
+from shapely.ops import orient
 from shapely.plotting import patch_from_polygon, plot_line, plot_points, plot_polygon
 
 pytest.importorskip("matplotlib")
@@ -48,7 +56,7 @@ def test_plot_polygon_with_interior():
     poly = box(0, 0, 1, 1).difference(box(0.2, 0.2, 0.5, 0.5))
     artist, _ = plot_polygon(poly)
     plot_coords = artist.get_path().vertices
-    assert_allclose(plot_coords, get_coordinates(poly))
+    assert_allclose(plot_coords, get_coordinates(orient(poly)))
 
 
 def test_plot_multipolygon():
@@ -56,6 +64,16 @@ def test_plot_multipolygon():
     artist, _ = plot_polygon(poly)
     plot_coords = artist.get_path().vertices
     assert_allclose(plot_coords, get_coordinates(poly))
+
+
+def test_plot_multipolygon_with_interior():
+    poly1 = box(0, 0, 1, 1).difference(box(0.2, 0.2, 0.5, 0.5))
+    poly2 = box(3, 3, 6, 6).difference(box(4, 4, 5, 5))
+    poly = MultiPolygon([poly1, poly2])
+
+    artist, _ = plot_polygon(poly)
+    plot_coords = artist.get_path().vertices
+    assert_allclose(plot_coords, get_coordinates(orient(poly)))
 
 
 def test_plot_line():
@@ -96,7 +114,7 @@ def test_plot_points():
 
 
 def equal_color(actual, expected, alpha=None):
-    import matplotlib.colors as colors
+    from matplotlib import colors
 
     conv = colors.colorConverter
 

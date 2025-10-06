@@ -14,7 +14,7 @@ Therefore, everybody using PyGEOS is highly recommended to migrate to Shapely
 
 Generally speaking, this should be a smooth experience because all
 functionality of PyGEOS was added to Shapely. All vectorized functions
-availabe in ``pygeos`` have been added to the top-level ``shapely`` module,
+available in ``pygeos`` have been added to the top-level ``shapely`` module,
 with only minor differences (see below). Migrating from PyGEOS to Shapely 2.0
 can thus be done by replacing the ``pygeos`` import and module calls::
 
@@ -84,7 +84,9 @@ Other differences
   functions was renamed to ``quad_segs``.
 - The ``preserve_topology`` keyword of ``simplify()`` now defaults to
   ``True`` instead of ``False``.
-- The behaviour of ``union_all()`` / ``intersection_all()`` / ``symmetric_difference_all``
-  was changed to return an empty GeometryCollection for an empty or all-None
-  sequence as input (instead of returning None).
-- The ``radius`` keyword of the ``buffer()`` funtion was renamed to ``distance``.
+- The behaviour of ``union_all()`` / ``intersection_all()`` /
+  ``symmetric_difference_all`` was changed to return an empty
+  GeometryCollection for an empty or all-None sequence as input (instead of
+  returning None).
+- The ``radius`` keyword of the ``buffer()`` function was renamed to
+  ``distance``.

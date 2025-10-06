@@ -1,5 +1,5 @@
-"""Test locale independence of WKT
-"""
+"""Test locale independence of WKT"""
+
 import locale
 import sys
 import unittest
@@ -20,7 +20,7 @@ do_test_locale = False
 
 
 def setUpModule():
-    global do_test_locale
+    global do_test_locale  # noqa: PLW0603
     for name in test_locales:
         try:
             test_locale = test_locales[name]
@@ -34,19 +34,13 @@ def setUpModule():
 
 
 def tearDownModule():
-    if sys.platform == "win32" or sys.version_info[0:2] >= (3, 11):
-        locale.setlocale(locale.LC_ALL, "")
-    else:
-        # Deprecated since version 3.11, will be removed in version 3.13
-        locale.resetlocale()
+    locale.setlocale(locale.LC_ALL, "")
 
 
 class LocaleTestCase(unittest.TestCase):
-
     # @unittest.skipIf(not do_test_locale, 'test locale not found')
 
     def test_wkt_locale(self):
-
         # Test reading and writing
         p = loads("POINT (0.0 0.0)")
         assert p.x == 0.0

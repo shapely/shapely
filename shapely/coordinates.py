@@ -1,23 +1,35 @@
-from typing import Optional
+"""Methods that operate on the coordinates of geometries."""
 
 import numpy as np
 
 import shapely
 from shapely import GeometryType, lib
+from shapely.decorators import deprecate_positional
 
 __all__ = [
-    "transform",
     "count_coordinates",
     "get_coordinates",
     "set_coordinates",
+    "transform",
     "transform_resize",
 ]
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0: only supported XY and XYZ geometries
+#   transform(geometry, transformation, include_z=False)
+# shapely 2.1: shows deprecation warning about positional 'include_z' arg
+#   transform(geometry, transformation, include_z=False, *, interleaved=True)
+# shapely 2.2(?): enforce keyword-only arguments after 'transformation'
+#   transform(geometry, transformation, *, include_z=False, interleaved=True)
+
+
+@deprecate_positional(["include_z"], category=DeprecationWarning)
 def transform(
     geometry,
     transformation,
-    include_z: Optional[bool] = False,
+    include_z: bool | None = False,
+    *,
     interleaved: bool = True,
 ):
     """Apply a transformation to the coordinates in a geometry or geometry array.
@@ -35,6 +47,7 @@ def transform(
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to transform.
     transformation : function
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
         another (N, 2) or (N, 3) ndarray of float64.
@@ -55,6 +68,16 @@ def transform(
         of a single one. The return value must be a tuple of (x, y and optional z).
 
 
+        .. versionadded:: 2.1.0
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``include_z`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     See Also
     --------
     has_z : Returns a copy of a geometry array with a function applied to its
@@ -63,34 +86,37 @@ def transform(
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
-    >>> transform(Point(0, 0), lambda x: x + 1)
+    >>> shapely.transform(Point(0, 0), lambda x: x + 1)
     <POINT (1 1)>
-    >>> transform(LineString([(2, 2), (4, 4)]), lambda x: x * [2, 3])
+    >>> shapely.transform(LineString([(2, 2), (4, 4)]), lambda x: x * [2, 3])
     <LINESTRING (4 6, 8 12)>
-    >>> transform(None, lambda x: x) is None
+    >>> shapely.transform(None, lambda x: x) is None
     True
-    >>> transform([Point(0, 0), None], lambda x: x).tolist()
+    >>> shapely.transform([Point(0, 0), None], lambda x: x).tolist()
     [<POINT (0 0)>, None]
 
     The presence of a third dimension can be automatically detected, or
     controlled explicitly:
 
-    >>> transform(Point(0, 0, 0), lambda x: x + 1)
+    >>> shapely.transform(Point(0, 0, 0), lambda x: x + 1)
     <POINT (1 1)>
-    >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=True)
+    >>> shapely.transform(Point(0, 0, 0), lambda x: x + 1, include_z=True)
     <POINT Z (1 1 1)>
-    >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=None)
+    >>> shapely.transform(Point(0, 0, 0), lambda x: x + 1, include_z=None)
     <POINT Z (1 1 1)>
 
     With interleaved=False, the call signature of the transformation is different:
 
-    >>> transform(LineString([(1, 2), (3, 4)]), lambda x, y: (x + 1, y), interleaved=False)
+    >>> shapely.transform(LineString([(1, 2), (3, 4)]), lambda x, y: (x + 1, y), \
+interleaved=False)
     <LINESTRING (2 2, 4 4)>
 
     Or with a z coordinate:
 
-    >>> transform(Point(0, 0, 0), lambda x, y, z: (x + 1, y, z + 2), interleaved=False, include_z=True)
+    >>> shapely.transform(Point(0, 0, 0), lambda x, y, z: (x + 1, y, z + 2), \
+interleaved=False, include_z=True)
     <POINT Z (1 0 2)>
 
     Using pyproj >= 2.1, the following example will reproject Shapely geometries
@@ -98,21 +124,27 @@ def transform(
 
     >>> from pyproj import Transformer
     >>> transformer = Transformer.from_crs(4326, 32618, always_xy=True)
-    >>> transform(Point(-75, 50), transformer.transform, interleaved=False)
+    >>> shapely.transform(Point(-75, 50), transformer.transform, interleaved=False)
     <POINT (500000 5538630.703)>
+
     """
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
     if include_z is None:
         has_z = shapely.has_z(geometry_arr)
         result = np.empty_like(geometry_arr)
         result[has_z] = transform(
-            geometry_arr[has_z], transformation, True, interleaved
+            geometry_arr[has_z], transformation, include_z=True, interleaved=interleaved
         )
         result[~has_z] = transform(
-            geometry_arr[~has_z], transformation, False, interleaved
+            geometry_arr[~has_z],
+            transformation,
+            include_z=False,
+            interleaved=interleaved,
         )
     else:
-        coordinates = lib.get_coordinates(geometry_arr, include_z, False)
+        # TODO: expose include_m
+        include_m = False
+        coordinates = lib.get_coordinates(geometry_arr, include_z, include_m, False)
         if interleaved:
             new_coordinates = transformation(coordinates)
         else:
@@ -122,7 +154,8 @@ def transform(
         # check the array to yield understandable error messages
         if not isinstance(new_coordinates, np.ndarray) or new_coordinates.ndim != 2:
             raise ValueError(
-                "The provided transformation did not return a two-dimensional numpy array"
+                "The provided transformation did not return a two-dimensional numpy "
+                "array"
             )
         if new_coordinates.dtype != np.float64:
             raise ValueError(
@@ -142,13 +175,12 @@ def transform(
 
 
 def transform_resize(
-    geom: Optional[shapely.Geometry],
+    geom: shapely.Geometry | None,
     transformation,
-    include_z: Optional[bool] = False,
+    include_z: bool | None = False,
     interleaved: bool = True,
 ):
-    """Apply a function to the coordinates in a geometry, optionally
-    changing the number of coordinate pairs.
+    """Apply a transformation a geometry that changes the number of coordinates.
 
     The transformation function is applied per coordinate sequence. For polygons this
     means: per ring. For collections this means: per element.
@@ -194,12 +226,14 @@ def transform_resize(
 
     Reduce a linestring to only its first 2 points:
 
-    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda coords: coords[:2])
+    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]),
+    lambda coords: coords[:2])
     <LINESTRING (2 2, 4 4)>
 
     The same with a function that accepts separate x, y arrays:
 
-    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda x, y: (x[:2], y[:2]), interleaved=False)
+    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]),
+    lambda x, y: (x[:2], y[:2]), interleaved=False)
     <LINESTRING (2 2, 4 4)>
     """
     if geom is None:
@@ -219,7 +253,7 @@ def transform_resize(
         if interleaved:
             return transformation(coords)
         else:
-            return zip(*transformation(*coords.T))
+            return zip(*transformation(*coords.T), strict=False)
 
     geom_type = shapely.get_type_id(geom)
     if geom_type in (
@@ -230,7 +264,7 @@ def transform_resize(
         return type(geom)(_transform_internal(geom))
     elif geom_type == GeometryType.POLYGON:
         shell = type(geom.exterior)(_transform_internal(geom.exterior))
-        holes = list(type(ring)(_transform_internal(ring)) for ring in geom.interiors)
+        holes = [type(ring)(_transform_internal(ring)) for ring in geom.interiors]
         return type(geom)(shell, holes)
     elif geom_type in (
         GeometryType.MULTIPOINT,
@@ -251,72 +285,111 @@ def transform_resize(
 
 
 def count_coordinates(geometry):
-    """Counts the number of coordinate pairs in a geometry array.
+    """Count the number of coordinate pairs in a geometry array.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to count the coordinates of.
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
-    >>> count_coordinates(Point(0, 0))
+    >>> shapely.count_coordinates(Point(0, 0))
     1
-    >>> count_coordinates(LineString([(2, 2), (4, 2)]))
+    >>> shapely.count_coordinates(LineString([(2, 2), (4, 2)]))
     2
-    >>> count_coordinates(None)
+    >>> shapely.count_coordinates(None)
     0
-    >>> count_coordinates([Point(0, 0), None])
+    >>> shapely.count_coordinates([Point(0, 0), None])
     1
+
     """
     return lib.count_coordinates(np.asarray(geometry, dtype=np.object_))
 
 
-def get_coordinates(geometry, include_z=False, return_index=False):
-    """Gets coordinates from a geometry array as an array of floats.
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0: only supported XY and XYZ geometries
+#   get_coordinates(geometry, include_z=False, return_index=False)
+# shapely 2.1: shows deprecation warning about positional 'include_z' and 'return_index'
+#   get_coordinates(geometry, include_z=False, return_index=False, *, include_m=False)
+# shapely 2.2(?): enforce keyword-only arguments after 'geometry'
+#   get_coordinates(geometry, *, include_z=False, include_m=False, return_index=False)
+
+
+@deprecate_positional(["include_z", "return_index"], category=DeprecationWarning)
+def get_coordinates(geometry, include_z=False, return_index=False, *, include_m=False):
+    """Get coordinates from a geometry array as an array of floats.
 
     The shape of the returned array is (N, 2), with N being the number of
-    coordinate pairs. With the default of ``include_z=False``, three-dimensional
-    data is ignored. When specifying ``include_z=True``, the shape of the
-    returned array is (N, 3).
+    coordinate pairs. The shape of the data may also be (N, 3) or (N, 4),
+    depending on ``include_z`` and ``include_m`` options.
 
     Parameters
     ----------
     geometry : Geometry or array_like
-    include_z : bool, default False
-        If, True include the third dimension in the output. If a geometry
-        has no third dimension, the z-coordinates will be NaN.
+        Geometry or geometries to get the coordinates of.
+    include_z, include_m : bool, default False
+        If both are False, return XY (2D) geometries.
+        If both are True, return XYZM (4D) geometries.
+        If either are True, return XYZ or XYM (3D) geometries.
+        If a geometry has no Z or M dimension, extra coordinate data will be NaN.
+
+        .. versionadded:: 2.1.0
+            The ``include_m`` parameter was added to support XYM (3D) and
+            XYZM (4D) geometries available with GEOS 3.12.0 or later.
+            With older GEOS versions, M dimension coordinates will be NaN.
+
     return_index : bool, default False
         If True, also return the index of each returned geometry as a separate
         ndarray of integers. For multidimensional arrays, this indexes into the
         flattened array (in C contiguous order).
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``include_z`` or ``return_index`` are
+        specified as positional arguments. In a future release, these will
+        need to be specified as keyword arguments.
+
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
-    >>> get_coordinates(Point(0, 0)).tolist()
-    [[0.0, 0.0]]
-    >>> get_coordinates(LineString([(2, 2), (4, 4)])).tolist()
+    >>> shapely.get_coordinates(Point(1, 2)).tolist()
+    [[1.0, 2.0]]
+    >>> shapely.get_coordinates(LineString([(2, 2), (4, 4)])).tolist()
     [[2.0, 2.0], [4.0, 4.0]]
-    >>> get_coordinates(None)
+    >>> shapely.get_coordinates(None)
     array([], shape=(0, 2), dtype=float64)
 
     By default the third dimension is ignored:
 
-    >>> get_coordinates(Point(0, 0, 0)).tolist()
-    [[0.0, 0.0]]
-    >>> get_coordinates(Point(0, 0, 0), include_z=True).tolist()
-    [[0.0, 0.0, 0.0]]
+    >>> shapely.get_coordinates(Point(1, 2, 3)).tolist()
+    [[1.0, 2.0]]
+    >>> shapely.get_coordinates(Point(1, 2, 3), include_z=True).tolist()
+    [[1.0, 2.0, 3.0]]
 
-    When return_index=True, indexes are returned also:
+    If geometries don't have Z or M dimension, these values will be NaN:
+
+    >>> pt = Point(1, 2)
+    >>> shapely.get_coordinates(pt, include_z=True).tolist()
+    [[1.0, 2.0, nan]]
+    >>> shapely.get_coordinates(pt, include_z=True, include_m=True).tolist()
+    [[1.0, 2.0, nan, nan]]
+
+    When ``return_index=True``, indexes are returned also:
 
     >>> geometries = [LineString([(2, 2), (4, 4)]), Point(0, 0)]
-    >>> coordinates, index = get_coordinates(geometries, return_index=True)
+    >>> coordinates, index = shapely.get_coordinates(geometries, return_index=True)
     >>> coordinates.tolist(), index.tolist()
     ([[2.0, 2.0], [4.0, 4.0], [0.0, 0.0]], [0, 0, 1])
+
     """
     return lib.get_coordinates(
-        np.asarray(geometry, dtype=np.object_), include_z, return_index
+        np.asarray(geometry, dtype=np.object_), include_z, include_m, return_index
     )
 
 
@@ -337,7 +410,9 @@ def set_coordinates(geometry, coordinates):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to set the coordinates of.
     coordinates: array_like
+        An array of coordinates to set.
 
     See Also
     --------
@@ -346,28 +421,32 @@ def set_coordinates(geometry, coordinates):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
-    >>> set_coordinates(Point(0, 0), [[1, 1]])
+    >>> shapely.set_coordinates(Point(0, 0), [[1, 1]])
     <POINT (1 1)>
-    >>> set_coordinates([Point(0, 0), LineString([(0, 0), (0, 0)])], [[1, 2], [3, 4], [5, 6]]).tolist()
+    >>> shapely.set_coordinates(
+    ...     [Point(0, 0), LineString([(0, 0), (0, 0)])],
+    ...     [[1, 2], [3, 4], [5, 6]]
+    ... ).tolist()
     [<POINT (1 2)>, <LINESTRING (3 4, 5 6)>]
-    >>> set_coordinates([None, Point(0, 0)], [[1, 2]]).tolist()
+    >>> shapely.set_coordinates([None, Point(0, 0)], [[1, 2]]).tolist()
     [None, <POINT (1 2)>]
 
     Third dimension of input geometry is discarded if coordinates array does
     not include one:
 
-    >>> set_coordinates(Point(0, 0, 0), [[1, 1]])
+    >>> shapely.set_coordinates(Point(0, 0, 0), [[1, 1]])
     <POINT (1 1)>
-    >>> set_coordinates(Point(0, 0, 0), [[1, 1, 1]])
+    >>> shapely.set_coordinates(Point(0, 0, 0), [[1, 1, 1]])
     <POINT Z (1 1 1)>
+
     """
     geometry_arr = np.asarray(geometry, dtype=np.object_)
     coordinates = np.atleast_2d(np.asarray(coordinates)).astype(np.float64)
     if coordinates.ndim != 2:
         raise ValueError(
-            "The coordinate array should have dimension of 2 "
-            f"(has {coordinates.ndim})"
+            f"The coordinate array should have dimension of 2 (has {coordinates.ndim})"
         )
     n_coords = lib.count_coordinates(geometry_arr)
     if (coordinates.shape[0] != n_coords) or (coordinates.shape[1] not in {2, 3}):

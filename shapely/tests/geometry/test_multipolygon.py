@@ -8,6 +8,11 @@ from shapely.tests.geometry.test_multi import MultiGeometryTestCase
 
 class TestMultiPolygon(MultiGeometryTestCase):
     def test_multipolygon(self):
+        # Empty
+        geom = MultiPolygon([])
+        assert geom.is_empty
+        assert len(geom.geoms) == 0
+
         # From coordinate tuples
         coords = [
             (
@@ -62,6 +67,19 @@ class TestMultiPolygon(MultiGeometryTestCase):
             ]
         ]
 
+        # None and empty polygons are dropped
+        geom_from_list_with_empty = MultiPolygon([p, None, Polygon()])
+        assert geom_from_list_with_empty == geom
+
+        # Or from a list of multiple polygons
+        geom_multiple_from_list = MultiPolygon([p, p])
+        assert len(geom_multiple_from_list.geoms) == 2
+        assert all(p == geom.geoms[0] for p in geom_multiple_from_list.geoms)
+
+        # Or from a np.array of polygons
+        geom_multiple_from_array = MultiPolygon(np.array([p, p]))
+        assert geom_multiple_from_array == geom_multiple_from_list
+
         # Or from another multi-polygon
         geom2 = MultiPolygon(geom)
         assert len(geom2.geoms) == 1
@@ -108,6 +126,7 @@ class TestMultiPolygon(MultiGeometryTestCase):
 
 def test_fail_list_of_multipolygons():
     """A list of multipolygons is not a valid multipolygon ctor argument"""
+    poly = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])
     multi = MultiPolygon(
         [
             (
@@ -118,6 +137,9 @@ def test_fail_list_of_multipolygons():
     )
     with pytest.raises(ValueError):
         MultiPolygon([multi])
+
+    with pytest.raises(ValueError):
+        MultiPolygon([poly, multi])
 
 
 def test_numpy_object_array():

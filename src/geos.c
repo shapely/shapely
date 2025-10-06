@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include "geos.h"
 
@@ -40,8 +39,7 @@ void destroy_geom_arr(void* context, GEOSGeometry** array, int length) {
   }
 }
 
-/* These functions are used to workaround two GEOS issues (in WKB writer for
- * GEOS < 3.9, in WKT writer for GEOS < 3.9 and in GeoJSON writer for GEOS 3.10.0):
+/* These functions are used to workaround issues in GeoJSON writer for GEOS 3.10.0:
  * - POINT EMPTY was not handled correctly (we do it ourselves)
  * - MULTIPOINT (EMPTY) resulted in segfault (we check for it and raise)
  */
@@ -272,45 +270,142 @@ GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx, GEOSGeometry
   return result;
 }
 
-/* Checks whether the geometry is a multipoint with an empty point in it
+/* Checks whether the geometry contains a coordinate greater than 1E+100
  *
- * According to https://github.com/libgeos/geos/issues/305, this check is not
- * necessary for GEOS 3.7.3, 3.8.2, or 3.9. When these versions are out, we
- * should add version conditionals and test.
+ * See also:
  *
- * The return value is one of:
- * - PGERR_SUCCESS
- * - PGERR_MULTIPOINT_WITH_POINT_EMPTY
- * - PGERR_GEOS_EXCEPTION
+ * https://github.com/shapely/shapely/issues/1903
  */
-char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
-  char geom_type, is_empty;
+char get_zmax(GEOSContextHandle_t, const GEOSGeometry*, double*);
+char get_zmax_simple(GEOSContextHandle_t, const GEOSGeometry*, double*);
+char get_zmax_polygon(GEOSContextHandle_t, const GEOSGeometry*, double*);
+char get_zmax_collection(GEOSContextHandle_t, const GEOSGeometry*, double*);
 
-  geom_type = GEOSGeomTypeId_r(ctx, geom);
-  if (geom_type == -1) {
-    return PGERR_GEOS_EXCEPTION;
-  }
-  if (geom_type != GEOS_MULTIPOINT) {
-    return PGERR_SUCCESS;
-  }
-
-  is_empty = multipoint_has_point_empty(ctx, geom);
-  if (is_empty == 0) {
-    return PGERR_SUCCESS;
-  } else if (is_empty == 1) {
-    return PGERR_MULTIPOINT_WITH_POINT_EMPTY;
+char get_zmax(GEOSContextHandle_t ctx, const GEOSGeometry* geom, double* zmax) {
+  int type = GEOSGeomTypeId_r(ctx, geom);
+  if ((type == 0) || (type == 1) || (type == 2)) {
+    return get_zmax_simple(ctx, geom, zmax);
+  } else if (type == 3) {
+    return get_zmax_polygon(ctx, geom, zmax);
+  } else if ((type >= 4) && (type <= 7)) {
+    return get_zmax_collection(ctx, geom, zmax);
   } else {
-    return PGERR_GEOS_EXCEPTION;
+    return 0;
   }
 }
 
-#if GEOS_SINCE_3_9_0
+char get_zmax_simple(GEOSContextHandle_t ctx, const GEOSGeometry* geom, double* zmax) {
+  const GEOSCoordSequence* seq;
+  unsigned int n, i;
+  double coord;
+
+  seq = GEOSGeom_getCoordSeq_r(ctx, geom);
+  if (seq == NULL) {
+    return 0;
+  }
+  if (GEOSCoordSeq_getSize_r(ctx, seq, &n) == 0) {
+    return 0;
+  }
+
+  for (i = 0; i < n; i++) {
+    if (!GEOSCoordSeq_getZ_r(ctx, seq, i, &coord)) {
+      return 0;
+    }
+    if (npy_isfinite(coord) && (coord > *zmax)) {
+      *zmax = coord;
+    }
+  }
+  return 1;
+}
+
+char get_zmax_polygon(GEOSContextHandle_t ctx, const GEOSGeometry* geom, double* zmax) {
+  const GEOSGeometry* ring;
+  int n, i;
+
+  ring = GEOSGetExteriorRing_r(ctx, geom);
+  if (ring == NULL) {
+    return 0;
+  }
+  if (!get_zmax_simple(ctx, ring, zmax)) {
+    return 0;
+  }
+  n = GEOSGetNumInteriorRings_r(ctx, geom);
+  if (n == -1) {
+    return 0;
+  }
+
+  for (i = 0; i < n; i++) {
+    ring = GEOSGetInteriorRingN_r(ctx, geom, i);
+    if (ring == NULL) {
+      return 0;
+    }
+    if (!get_zmax_simple(ctx, ring, zmax)) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+char get_zmax_collection(GEOSContextHandle_t ctx, const GEOSGeometry* geom,
+                         double* zmax) {
+  const GEOSGeometry* elem;
+  int n, i;
+
+  n = GEOSGetNumGeometries_r(ctx, geom);
+  if (n == -1) {
+    return 0;
+  }
+
+  for (i = 0; i < n; i++) {
+    elem = GEOSGetGeometryN_r(ctx, geom, i);
+    if (elem == NULL) {
+      return 0;
+    }
+    if (!get_zmax(ctx, elem, zmax)) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+#if !GEOS_SINCE_3_13_0
+char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* geom,
+                                  int dimension) {
+  double xmax = 0.0;
+  double ymax = 0.0;
+  double zmax = 0.0;
+
+  if (GEOSisEmpty_r(ctx, geom)) {
+    return PGERR_SUCCESS;
+  }
+
+  // use max coordinates to check if any coordinate is too large
+  if (!(GEOSGeom_getXMax_r(ctx, geom, &xmax) && GEOSGeom_getYMax_r(ctx, geom, &ymax))) {
+    return PGERR_GEOS_EXCEPTION;
+  }
+
+  if ((dimension > 2) && GEOSHasZ_r(ctx, geom)) {
+    if (!get_zmax(ctx, geom, &zmax)) {
+      return PGERR_GEOS_EXCEPTION;
+    }
+  }
+
+  if ((npy_isfinite(xmax) && (xmax > 1E100)) || (npy_isfinite(ymax) && (ymax > 1E100)) ||
+      (npy_isfinite(zmax) && (zmax > 1E100))) {
+    return PGERR_COORD_OUT_OF_BOUNDS;
+  }
+
+  return PGERR_SUCCESS;
+}
+#endif  // !GEOS_SINCE_3_13_0
+
+#if !GEOS_SINCE_3_12_0
 
 /* Checks whether the geometry is a 3D empty geometry and, if so, create the WKT string
  *
- * GEOS 3.9.* is able to distiguish 2D and 3D simple geometries (non-collections). But the
- * but the WKT serialization never writes a 3D empty geometry. This function fixes that.
- * It only makes sense to use this for GEOS versions >= 3.9.
+ * GEOS 3.9.* is able to distinguish 2D and 3D simple geometries (non-collections). But
+ * the WKT serialization never writes a 3D empty geometry. This function fixes that.
+ * It only makes sense to use this for GEOS versions >= 3.9 && < 3.12.
  *
  * Pending GEOS ticket: https://trac.osgeo.org/geos/ticket/1129
  *
@@ -370,7 +465,7 @@ char wkt_empty_3d_geometry(GEOSContextHandle_t ctx, GEOSGeometry* geom, char** w
   return PGERR_SUCCESS;
 }
 
-#endif  // GEOS_SINCE_3_9_0
+#endif  // !GEOS_SINCE_3_12_0
 
 /* GEOSInterpolate_r and GEOSInterpolateNormalized_r segfault on empty
  * geometries and also on collections with the first geometry empty.
@@ -380,9 +475,6 @@ char wkt_empty_3d_geometry(GEOSContextHandle_t ctx, GEOSGeometry* geom, char** w
  * - PGERR_EMPTY_GEOMETRY on empty linear geometries
  * - PGERR_EXCEPTIONS on GEOS exceptions
  * - PGERR_SUCCESS on a non-empty and linear geometry
- *
- * Note that GEOS 3.8 fixed this situation for empty LINESTRING/LINEARRING,
- * but it still segfaults on other empty geometries.
  */
 char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
   char type;
@@ -576,25 +668,11 @@ GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, doub
  */
 GEOSGeometry* PyGEOS_create3DEmptyPoint(GEOSContextHandle_t ctx) {
   GEOSGeometry* geom;
-#if GEOS_SINCE_3_8_0
-  coord_seq = GEOSCoordSeq_create_r(ctx, 0, 3);
+  GEOSCoordSequence* coord_seq = GEOSCoordSeq_create_r(ctx, 0, 3);
   if (coord_seq == NULL) {
     return NULL;
   }
   geom = GEOSGeom_createPoint_r(ctx, coord_seq);
-#else  // GEOS_SINCE_3_8_0
-  const char* wkt = "POINT Z EMPTY";
-
-  GEOSWKTReader* reader;
-
-  reader = GEOSWKTReader_create_r(ctx);
-  if (reader == NULL) {
-    return NULL;
-  }
-  geom = GEOSWKTReader_read_r(ctx, reader, wkt);
-  GEOSWKTReader_destroy_r(ctx, reader);
-
-#endif  // GEOS_SINCE_3_8_0
   return geom;
 }
 
@@ -612,15 +690,13 @@ GEOSGeometry* PyGEOS_create3DEmptyPoint(GEOSContextHandle_t ctx) {
  * GEOSGeometry* on success (owned by caller) or NULL on failure
  */
 GEOSGeometry* PyGEOS_createPoint(GEOSContextHandle_t ctx, double x, double y, double* z) {
-#if GEOS_SINCE_3_8_0
   if (z == NULL) {
     // There is no 3D equivalent for GEOSGeom_createPointFromXY_r
     // instead, it is constructed from a coord seq.
     return GEOSGeom_createPointFromXY_r(ctx, x, y);
   }
-#endif
 
-  // Fallback point construction (3D or GEOS < 3.8.0)
+  // Fallback point construction (3D)
   GEOSCoordSequence* coord_seq = NULL;
 
   coord_seq = GEOSCoordSeq_create_r(ctx, 1, z == NULL ? 2 : 3);
@@ -705,20 +781,6 @@ GEOSGeometry* force_dims_simple(GEOSContextHandle_t ctx, GEOSGeometry* geom, int
   unsigned int actual_dims, n, i, j;
   double coord;
   const GEOSCoordSequence* seq = GEOSGeom_getCoordSeq_r(ctx, geom);
-
-/* Special case for POINT EMPTY (on GEOS < 3.8, point coordinate list cannot be 0-length)
- */
-#if !GEOS_SINCE_3_8_0
-  if ((type == 0) && (GEOSisEmpty_r(ctx, geom) == 1)) {
-    if (dims == 2) {
-      return GEOSGeom_createEmptyPoint_r(ctx);
-    } else if (dims == 3) {
-      return PyGEOS_create3DEmptyPoint(ctx);
-    } else {
-      return NULL;
-    }
-  }
-#endif  // !GEOS_SINCE_3_8_0
 
   /* Investigate the coordinate sequence, return when already of correct dimensionality */
   if (GEOSCoordSeq_getDimensions_r(ctx, seq, &actual_dims) == 0) {
@@ -996,8 +1058,7 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
                                            unsigned int size, unsigned int dims,
                                            char is_ring, int handle_nan, npy_intp cs1,
                                            npy_intp cs2, GEOSCoordSequence** coord_seq) {
-  char* cp1;
-  unsigned int i, j, first_i, last_i, actual_size;
+  unsigned int first_i, last_i, actual_size;
   double coord;
   char errstate;
   char ring_closure = 0;
@@ -1036,10 +1097,9 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
     }
   }
 
-#if GEOS_SINCE_3_10_0
   if ((!ring_closure) && ((last_i - first_i + 1) == actual_size)) {
     /* Initialize cp1 so that it points to the first coordinate (possibly skipping NaN)*/
-    cp1 = (char*)buf + cs1 * first_i;
+    char* cp1 = (char*)buf + cs1 * first_i;
     if ((cs1 == dims * 8) && (cs2 == 8)) {
       /* C-contiguous memory */
       int hasZ = dims == 3;
@@ -1055,8 +1115,6 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
       return (*coord_seq != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
     }
   }
-
-#endif
 
   *coord_seq = GEOSCoordSeq_create_r(ctx, actual_size + ring_closure, dims);
   if (*coord_seq == NULL) {
@@ -1074,7 +1132,7 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
   }
   /* add the closing coordinate if necessary */
   if (ring_closure) {
-    for (j = 0; j < dims; j++) {
+    for (unsigned int j = 0; j < dims; j++) {
       coord = *(double*)((char*)buf + first_i * cs1 + j * cs2);
       if (!GEOSCoordSeq_setOrdinate_r(ctx, *coord_seq, actual_size, j, coord)) {
         GEOSCoordSeq_destroy_r(ctx, *coord_seq);
@@ -1088,32 +1146,13 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
 /* Copy coordinates of a GEOSCoordSequence to an array
  *
  * Note: this function assumes that the buffer is from a C-contiguous array,
- * and that the dimension of the buffer is only 2D or 3D.
+ * and that the dimension of the buffer can be 2, 3 or 4.
  *
  * Returns 0 on error, 1 on success.
  */
 int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
-                       double* buf, unsigned int size, unsigned int dims) {
-#if GEOS_SINCE_3_10_0
+                       double* buf, unsigned int size, int has_z, int has_m) {
 
-  int hasZ = dims == 3;
-  return GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq, buf, hasZ, 0);
+  return GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq, buf, has_z, has_m);
 
-#else
-
-  char *cp1, *cp2;
-  unsigned int i, j;
-
-  cp1 = (char*)buf;
-  for (i = 0; i < size; i++, cp1 += 8 * dims) {
-    cp2 = cp1;
-    for (j = 0; j < dims; j++, cp2 += 8) {
-      if (!GEOSCoordSeq_getOrdinate_r(ctx, coord_seq, i, j, (double*)cp2)) {
-        return 0;
-      }
-    }
-  }
-  return 1;
-
-#endif
 }

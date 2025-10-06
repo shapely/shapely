@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+import shapely
 from shapely import MultiPoint, Point
 from shapely.errors import EmptyPartError
 from shapely.geometry.base import dump_coords
@@ -9,7 +10,6 @@ from shapely.tests.geometry.test_multi import MultiGeometryTestCase
 
 class TestMultiPoint(MultiGeometryTestCase):
     def test_multipoint(self):
-
         # From coordinate tuples
         geom = MultiPoint([(1.0, 2.0), (3.0, 4.0)])
         assert len(geom.geoms) == 2
@@ -53,7 +53,22 @@ class TestMultiPoint(MultiGeometryTestCase):
     def test_create_multi_with_empty_component(self):
         msg = "Can't create MultiPoint with empty component"
         with pytest.raises(EmptyPartError, match=msg):
-            MultiPoint([Point(0, 0), Point()]).wkt
+            MultiPoint([Point(0, 0), Point()])
+
+        if shapely.geos_version < (3, 13, 0):
+            # for older GEOS, Point(NaN, NaN) is considered empty
+            with pytest.raises(EmptyPartError, match=msg):
+                MultiPoint([(0, 0), (np.nan, np.nan)])
+
+            with pytest.raises(EmptyPartError, match=msg):
+                MultiPoint(np.array([(0, 0), (np.nan, np.nan)]))
+
+        else:
+            result = MultiPoint([(0, 0), (np.nan, np.nan)])
+            expected = shapely.multipoints(
+                shapely.points([(0, 0), (np.nan, np.nan)], handle_nan="allow")
+            )
+            assert result == expected
 
 
 def test_multipoint_array_coercion():

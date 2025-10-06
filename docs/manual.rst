@@ -264,11 +264,11 @@ General Attributes and Methods
 
 .. code-block:: pycon
 
-  >>> donut = Point(0, 0).buffer(2.0).difference(Point(0, 0).buffer(1.0))
-  >>> donut.centroid
+  >>> diamond = Point(0, 0).buffer(2.0, 1).difference(Point(0, 0).buffer(1.0, 1))
+  >>> diamond.centroid
   <POINT (0 0)>
-  >>> donut.representative_point()
-  <POINT (1.498 0.049)>
+  >>> diamond.representative_point()
+  <POINT (-1 0.5)>
 
 .. _points:
 
@@ -302,7 +302,7 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   >>> point.bounds
   (0.0, 0.0, 0.0, 0.0)
 
-Coordinate values are accessed via `coords`, `x`, `y`, and `z` properties.
+Coordinate values are accessed via `coords`, `x`, `y`, `z`, and `m` properties.
 
 .. code-block:: pycon
 
@@ -320,8 +320,9 @@ Coordinates may also be sliced. `New in version 1.2.14`.
   >>> point.coords[:]
   [(0.0, 0.0)]
 
-The `Point` constructor also accepts another `Point` instance, thereby making
-a copy.
+When a `Point` instance is passed to the `Point` constructor, it returns a
+reference to the passed instance. It does not make a copy, as geometry objects
+are immutable.
 
 .. code-block:: pycon
 
@@ -349,7 +350,8 @@ Figure 1. A simple `LineString` on the left, a complex `LineString` on the
 right. The (`MultiPoint`) boundary of each is shown in black, the other points
 that describe the lines are shown in grey.
 
-A `LineString` has zero area and non-zero length.
+A `LineString` has zero area and non-zero length if it isn't
+:ref:`empty <empties>`.
 
 .. code-block:: pycon
 
@@ -385,8 +387,8 @@ Coordinates may also be sliced. `New in version 1.2.14`.
   >>> line.coords[1:]
   [(1.0, 1.0)]
 
-The constructor also accepts another `LineString` instance, thereby making a
-copy.
+When the constructor is passed another `LineString` instance, a reference to
+the instance is returned.
 
 .. code-block:: pycon
 
@@ -429,7 +431,8 @@ grey. A ring's boundary is `empty`.
    Shapely will not prevent the creation of such rings, but exceptions will be
    raised when they are operated on.
 
-A `LinearRing` has zero area and non-zero length.
+A `LinearRing` has zero area and non-zero length if it isn't
+:ref:`empty <empties>`.
 
 .. code-block:: pycon
 
@@ -457,14 +460,15 @@ Defining coordinate values are accessed via the `coords` property.
   [(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
 
 The `LinearRing` constructor also accepts another `LineString` or `LinearRing`
-instance, thereby making a copy.
+instance, returning a new `LinearRing` instance or a reference to the passed
+instance, respectively.
 
 .. code-block:: pycon
 
   >>> LinearRing(ring)
   <LINEARRING (0 0, 1 1, 1 0, 0 0)>
 
-As with `LineString`, a sequence of `Point` instances is not a valid
+As with `LineString`, a sequence of `Point` instances is a valid
 constructor parameter.
 
 .. _polygons:
@@ -482,7 +486,8 @@ Polygons
 
 Rings of a `valid` `Polygon` may not cross each other, but may touch at a
 single point only.  Again, Shapely will not prevent the creation of invalid
-features, but exceptions will be raised when they are operated on.
+features, but when they are operated on the results might be wrong or
+exceptions might be raised.
 
 .. plot:: code/polygon.py
 
@@ -497,7 +502,8 @@ Figure 4. On the left, a `Polygon` that is `invalid` because its exterior and
 interior rings touch along a line, and on the right, a `Polygon` that is
 `invalid` because its interior rings touch along a line.
 
-A `Polygon` has non-zero area and non-zero length.
+A `Polygon` has non-zero area and non-zero length if it isn't
+:ref:`empty <empties>`.
 
 .. code-block:: pycon
 
@@ -566,10 +572,11 @@ To obtain a polygon with a known orientation, use
 
 .. function:: shapely.geometry.polygon.orient(polygon, sign=1.0)
 
-  Returns a properly oriented copy of the given polygon. The signed area of the
-  result will have the given sign. A sign of 1.0 means that the coordinates of
-  the product's exterior ring will be oriented counter-clockwise and the interior
-  rings (holes) will be oriented clockwise.
+  Returns a new `Polygon` instance with the coordinates of the given polygon in
+  proper orientation. The signed area of the result will have the given sign. A
+  sign of 1.0 means that the coordinates of the product's exterior ring will be
+  oriented counter-clockwise and the interior rings (holes) will be oriented
+  clockwise.
 
   `New in version 1.2.10`.
 
@@ -673,7 +680,8 @@ Figure 6. On the left, a `simple`, disconnected `MultiLineString`, and on the
 right, a non-simple `MultiLineString`. The points defining the objects are
 shown in gray, the boundaries of the objects in black.
 
-A `MultiLineString` has zero area and non-zero length.
+A `MultiLineString` has zero area and non-zero length if it isn't
+:ref:`empty <empties>`.
 
 .. code-block:: pycon
 
@@ -826,9 +834,9 @@ sequences are stored on their component geometries.
 Linear Referencing Methods
 --------------------------
 
-It can be useful to specify position along linear features such as `LineStrings`
-and `MultiLineStrings` with a 1-dimensional referencing system. Shapely
-supports linear referencing based on length or distance, evaluating the
+It can be useful to specify position along linear features such as
+`LineStrings` and `MultiLineStrings` with a 1-dimensional referencing system.
+Shapely supports linear referencing based on length or distance, evaluating the
 distance along a geometric object to the projection of a given point, or the
 point at a given distance along the object.
 
@@ -914,14 +922,29 @@ example will be shown for each.
 
 .. attribute:: object.has_z
 
-  Returns ``True`` if the feature has not only `x` and `y`, but also `z`
-  coordinates for 3D (or so-called, 2.5D) geometries.
+  Returns ``True`` if the feature has `z` coordinates, either with XYZ or XYZM
+  coordinate types.
 
 .. code-block:: pycon
 
   >>> Point(0, 0).has_z
   False
   >>> Point(0, 0, 0).has_z
+  True
+
+.. attribute:: object.has_m
+
+  Returns ``True`` if the feature has `m` coordinates, either with XYM or XYZM
+  coordinate types.
+
+  `New in version 2.1 with GEOS 3.12`.
+
+.. code-block:: pycon
+
+  >>> Point(0, 0, 0).has_m
+  False
+  >>> from shapely import from_wkt
+  >>> from_wkt("POINT M (0 0 0)").has_m
   True
 
 .. attribute:: object.is_ccw
@@ -1008,14 +1031,10 @@ Operations on non-simple `LineStrings` are fully supported by Shapely.
 
   Returns ``True`` if a feature is "valid" in the sense of [1]_.
 
-.. note::
-
-   The validity test is meaningful only for `Polygons` and `MultiPolygons`.
-   ``True`` is always returned for other types of geometries.
-
 A valid `Polygon` may not possess any overlapping exterior or interior rings. A
-valid `MultiPolygon` may not collect any overlapping polygons. Operations on
-invalid features may fail.
+valid `MultiPolygon` may not collect any overlapping polygons. A valid `LineString`
+must have non-zero length if it isn't :ref:`empty <empties>`. Operations on invalid
+features may fail.
 
 .. code-block:: pycon
 
@@ -1134,8 +1153,8 @@ differently.
   and at least one point of the interior of `other` lies in the interior of
   `object`.
 
-This predicate applies to all types, and is inverse to :meth:`~object.within`. The
-expression ``a.contains(b) == b.within(a)`` always evaluates to ``True``.
+This predicate applies to all types, and is inverse to :meth:`~object.within`.
+The expression ``a.contains(b) == b.within(a)`` always evaluates to ``True``.
 
 .. code-block:: pycon
 
@@ -1208,7 +1227,8 @@ A line does not cross a point that it contains.
   >>> Point(0, 0).disjoint(Point(1, 1))
   True
 
-This predicate applies to all types and is the inverse of :meth:`~object.intersects`.
+This predicate applies to all types and is the inverse of
+:meth:`~object.intersects`.
 
 .. method:: object.intersects(other)
 
@@ -1220,9 +1240,9 @@ interior point in common.
 
 .. method:: object.overlaps(other)
 
-  Returns ``True`` if the geometries have more than one but not all points in common,
-  have the same dimension, and the intersection of the interiors of the geometries
-  has the same dimension as the geometries themselves.
+  Returns ``True`` if the geometries have more than one but not all points in
+  common, have the same dimension, and the intersection of the interiors of the
+  geometries has the same dimension as the geometries themselves.
 
 .. method:: object.touches(other)
 
@@ -1246,10 +1266,10 @@ example, the following lines touch at ``(1, 1)``, but do not overlap.
 
 This applies to all types and is the inverse of :meth:`~object.contains`.
 
-Used in a ``sorted()`` `key`, :meth:`~object.within` makes it easy to spatially sort
-objects. Let's say we have 4 stereotypic features: a point that is contained by
-a polygon which is itself contained by another polygon, and a free spirited
-point contained by none
+Used in a ``sorted()`` `key`, :meth:`~object.within` makes it easy to spatially
+sort objects. Let's say we have 4 stereotypic features: a point that is
+contained by a polygon which is itself contained by another polygon, and a free
+spirited point contained by none
 
 .. code-block:: pycon
 
@@ -1265,40 +1285,13 @@ and that copies of these are collected into a list
   >>> features = [c, a, d, b, c]
 
 that we'd prefer to have ordered as ``[d, c, c, b, a]`` in reverse containment
-order. As explained in the Python `Sorting HowTo`_, we can define a key
-function that operates on each list element and returns a value for comparison.
-Our key function will be a wrapper class that implements ``__lt__()`` using
-Shapely's binary :meth:`~object.within` predicate.
-
-.. code-block:: python
-
-  >>> class Within:
-  ...     def __init__(self, o):
-  ...         self.o = o
-  ...     def __lt__(self, other):
-  ...         return self.o.within(other.o)
-
-As the howto says, the `less than` comparison is guaranteed to be used in
-sorting. That's what we'll rely on to spatially sort. Trying it out on features
-`d` and `c`, we see that it works.
-
-.. code-block:: pycon
-
-  >>> Within(d) < Within(c)
-  False
-
-It also works on the list of features, producing the order we want.
-
-.. code-block:: pycon
-
-  >>> [d, c, c, b, a] == sorted(features, key=Within, reverse=True)
-  True
+order.
 
 DE-9IM Relationships
 --------------------
 
-The :meth:`~object.relate` method tests all the DE-9IM [4]_ relationships between
-objects, of which the named relationship predicates above are a subset.
+The :meth:`~object.relate` method tests all the DE-9IM [4]_ relationships
+between objects, of which the named relationship predicates above are a subset.
 
 .. method:: object.relate(other)
 
@@ -1306,8 +1299,8 @@ objects, of which the named relationship predicates above are a subset.
     between an object's `interior`, `boundary`, `exterior` and those of another
     geometric object.
 
-The named relationship predicates (:meth:`~object.contains`, etc.) are typically
-implemented as wrappers around :meth:`~object.relate`.
+The named relationship predicates (:meth:`~object.contains`, etc.) are
+typically implemented as wrappers around :meth:`~object.relate`.
 
 Two different points have mainly ``F`` (false) values in their matrix; the
 intersection of their `external` sets (the 9th element) is a ``2`` dimensional
@@ -1333,11 +1326,12 @@ elements.
     Returns True if the DE-9IM string code for the relationship between the
     geometries satisfies the pattern, otherwise False.
 
-The :meth:`~object.relate_pattern` compares the DE-9IM code string for two geometries
-against a specified pattern. If the string matches the pattern then ``True`` is
-returned, otherwise ``False``. The pattern specified can be an exact match
-(``0``, ``1`` or ``2``), a boolean match (``T`` or ``F``), or a wildcard
-(``*``). For example, the pattern for the `within` predicate is ``T*****FF*``.
+The :meth:`~object.relate_pattern` compares the DE-9IM code string for two
+geometries against a specified pattern. If the string matches the pattern then
+``True`` is returned, otherwise ``False``. The pattern specified can be an
+exact match (``0``, ``1`` or ``2``), a boolean match (``T`` or ``F``), or a
+wildcard (``*``). For example, the pattern for the `within` predicate is
+``T*****FF*``.
 
 .. code-block:: pycon
 
@@ -1449,7 +1443,7 @@ Figure 8. Differences between two approximately circular polygons.
   Shapely can not represent the difference between an object and a lower
   dimensional object (such as the difference between a polygon and a line or
   point) as a single object, and in these cases the difference method returns a
-  copy of the object named ``self``.
+  deep copy of the object named ``self``.
 
 .. method:: object.intersection(other)
 
@@ -1514,7 +1508,8 @@ boundaries.
   of many objects. See :func:`shapely.unary_union` for a more effective
   method.
 
-Several of these set-theoretic methods can be invoked using overloaded operators:
+Several of these set-theoretic methods can be invoked using overloaded
+operators:
 
 - `intersection` can be accessed with and, `&`
 - `union` can be accessed with or, `|`
@@ -1636,16 +1631,17 @@ The side used is determined by the sign of the buffer distance:
 
 .. plot:: code/buffer_single_side.py
 
-Figure 10. Single sided buffer of 0.5 left hand (left) and of 0.3 right hand (right).
+Figure 10. Single sided buffer of 0.5 left hand (left) and of 0.3 right hand
+(right).
 
 The single-sided buffer of point geometries is the same as the regular buffer.
 The End Cap Style for single-sided buffers is always ignored, and forced to
 the equivalent of `BufferCapStyle.flat`.
 
-Passed a `distance` of 0, :meth:`~object.buffer` can sometimes be used to "clean" self-touching
-or self-crossing polygons such as the classic "bowtie". Users have reported
-that very small distance values sometimes produce cleaner results than 0. Your
-mileage may vary when cleaning surfaces.
+Passed a `distance` of 0, :meth:`~object.buffer` can sometimes be used to
+"clean" self-touching or self-crossing polygons such as the classic "bowtie".
+Users have reported that very small distance values sometimes produce cleaner
+results than 0. Your mileage may vary when cleaning surfaces.
 
 .. code-block:: pycon
 
@@ -1703,8 +1699,8 @@ Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
   Returns the general minimum bounding rectangle that contains the object.
   Unlike envelope this rectangle is not constrained to be parallel to the
-  coordinate axes. If the convex hull of the object is a degenerate (line or point)
-  this degenerate is returned.
+  coordinate axes. If the convex hull of the object is a degenerate (line or
+  point) this degenerate is returned.
 
   `New in Shapely 1.6.0`
 
@@ -1728,8 +1724,8 @@ linestring feature (right).
   Older alternative method to the :meth:`~object.offset_curve` method, but uses
   `resolution` instead of `quad_segs` and a `side` keyword ('left' or
   'right') instead of sign of the distance. This method is kept for backwards
-  compatibility for now, but is is recommended to use :meth:`~object.offset_curve`
-  instead.
+  compatibility for now, but is is recommended to use
+  :meth:`~object.offset_curve` instead.
 
 .. method:: object.offset_curve(distance, quad_segs=16, join_style=1, mitre_limit=5.0)
 
@@ -1738,9 +1734,10 @@ linestring feature (right).
 
   The `distance` parameter must be a float value.
 
-  The side is determined by the sign of the `distance` parameter (negative for right
-  side offset, positive for left side offset). Left and right are determined
-  by following the direction of the given geometric points of the LineString.
+  The side is determined by the sign of the `distance` parameter (negative for
+  right side offset, positive for left side offset). Left and right are
+  determined by following the direction of the given geometric points of the
+  LineString.
 
   Note: the behaviour regarding orientation of the resulting line depends
   on the GEOS version. With GEOS < 3.11, the line retains the same
@@ -1752,15 +1749,15 @@ linestring feature (right).
   The resolution of the offset around each vertex of the object is
   parameterized as in the :meth:`~object.buffer` method (using `quad_segs`).
 
-  The `join_style` is for outside corners between line segments. Accepted integer
-  values are 1 (round), 2 (mitre), and 3 (bevel). See also
+  The `join_style` is for outside corners between line segments. Accepted
+  integer values are 1 (round), 2 (mitre), and 3 (bevel). See also
   :data:`shapely.BufferJoinStyle`.
 
   Severely mitered corners can be controlled by the `mitre_limit` parameter
   (spelled in British English, en-gb). The corners of a parallel line will
-  be further from the original than most places with the mitre join style. The
-  ratio of this further distance to the specified `distance` is the miter ratio.
-  Corners with a ratio which exceed the limit will be beveled.
+  be further from the original than most places with the mitre join style.
+  The ratio of this further distance to the specified `distance` is the miter
+  ratio. Corners with a ratio which exceed the limit will be beveled.
 
   .. note::
 
@@ -2033,7 +2030,8 @@ preserved or supported by 3D affine transformations.
 Other Transformations
 =====================
 
-Shapely supports map projections and other arbitrary transformations of geometric objects.
+Shapely supports map projections and other arbitrary transformations of
+geometric objects.
 
 .. function:: shapely.ops.transform(func, geom)
 
@@ -2082,8 +2080,10 @@ If using `pyproj>=2.1.0`, the preferred method to project geometries is:
     project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
     utm_point = transform(project, wgs84_pt)
 
-It is important to note that in the example above, the `always_xy` kwarg is required as Shapely only supports coordinates in X,Y
-order, and in PROJ 6 the WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the expected Lon/Lat.
+It is important to note that in the example above, the `always_xy` kwarg is
+required as Shapely only supports coordinates in X,Y order, and in PROJ 6 the
+WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the
+expected Lon/Lat.
 
 If using `pyproj < 2.1`, then the canonical example is:
 
@@ -2119,36 +2119,34 @@ Other Operations
 Merging Linear Features
 -----------------------
 
-Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`
-using functions in the :mod:`shapely.ops` module.
+Sequences of touching lines can be merged into `MultiLineStrings` or
+`Polygons`.
 
-.. function:: shapely.ops.polygonize(lines)
+.. function:: shapely.polygonize(lines)
 
   Returns an iterator over polygons constructed from the input `lines`.
 
-  As with the :class:`MultiLineString` constructor, the input elements may be
-  any line-like object.
+  The source should be a sequence of LineString objects.
 
   .. code-block:: pycon
 
-    >>> from shapely.ops import polygonize
+    >>> from shapely import polygonize
     >>> lines = [
-    ...     ((0, 0), (1, 1)),
-    ...     ((0, 0), (0, 1)),
-    ...     ((0, 1), (1, 1)),
-    ...     ((1, 1), (1, 0)),
-    ...     ((1, 0), (0, 0))
+    ...     LineString([(0, 0), (1, 1)]),
+    ...     LineString([(0, 0), (0, 1)]),
+    ...     LineString([(0, 1), (1, 1)]),
+    ...     LineString([(1, 1), (1, 0)]),
+    ...     LineString([(1, 0), (0, 0)]),
     ...     ]
-    >>> list(polygonize(lines))
+    >>> list(polygonize(lines).geoms)
     [<POLYGON ((0 0, 1 1, 1 0, 0 0))>, <POLYGON ((1 1, 0 0, 0 1, 1 1))>]
 
-.. function:: shapely.ops.polygonize_full(lines)
+.. function:: shapely.polygonize_full(lines)
 
   Creates polygons from a source of lines, returning the polygons
   and leftover geometries.
 
-  The source may be a MultiLineString, a sequence of LineString objects,
-  or a sequence of objects than can be adapted to LineStrings.
+  The source should be a sequence of LineString objects.
 
   Returns a tuple of objects: (polygons, cut edges, dangles, invalid ring
   lines). Each are a geometry collection.
@@ -2162,15 +2160,15 @@ using functions in the :mod:`shapely.ops` module.
 
   .. code-block:: pycon
 
-    >>> from shapely.ops import polygonize_full
+    >>> from shapely import polygonize_full
     >>> lines = [
-    ...     ((0, 0), (1, 1)),
-    ...     ((0, 0), (0, 1)),
-    ...     ((0, 1), (1, 1)),
-    ...     ((1, 1), (1, 0)),
-    ...     ((1, 0), (0, 0)),
-    ...     ((5, 5), (6, 6)),
-    ...     ((1, 1), (100, 100)),
+    ...     LineString([(0, 0), (1, 1)]),
+    ...     LineString([(0, 0), (0, 1)]),
+    ...     LineString([(0, 1), (1, 1)]),
+    ...     LineString([(1, 1), (1, 0)]),
+    ...     LineString([(1, 0), (0, 0)]),
+    ...     LineString([(5, 5), (6, 6)]),
+    ...     LineString([(1, 1), (100, 100)]),
     ...     ]
     >>> result, cuts, dangles, invalids = polygonize_full(lines)
     >>> len(result.geoms)
@@ -2180,20 +2178,17 @@ using functions in the :mod:`shapely.ops` module.
     >>> list(dangles.geoms)
     [<LINESTRING (1 1, 100 100)>, <LINESTRING (5 5, 6 6)>]
 
-.. function:: shapely.ops.linemerge(lines)
+.. function:: shapely.line_merge(multilinestring)
 
-  Returns a `LineString` or `MultiLineString` representing the merger of all
-  contiguous elements of `lines`.
-
-  As with :func:`shapely.ops.polygonize`, the input elements may be any
-  line-like object.
+  Returns `LineString(s)` or `MultiLineString(s)` representing the merger of
+  all contiguous elements of the input `MultiLineString(s)`.
 
 .. code-block:: python
 
-    >>> from shapely.ops import linemerge
-    >>> linemerge(lines)
+    >>> from shapely import line_merge
+    >>> line_merge(MultiLineString(lines))
     <MULTILINESTRING ((1 1, 1 0, 0 0), (0 0, 1 1), (0 0, 0 1, 1 1), (1 1, 100 10...>
-    >>> list(linemerge(lines).geoms)
+    >>> list(line_merge(MultiLineString(lines)).geoms)
     [<LINESTRING (1 1, 1 0, 0 0)>,
      <LINESTRING (0 0, 1 1)>,
      <LINESTRING (0 0, 0 1, 1 1)>,
@@ -2202,10 +2197,10 @@ using functions in the :mod:`shapely.ops` module.
 
 Efficient Rectangle Clipping
 ----------------------------
-The :func:`~shapely.ops.clip_by_rect` function in `shapely.ops` returns the
-portion of a geometry within a rectangle.
+The :func:`~shapely.clip_by_rect` function returns the portion of a geometry
+within a rectangle.
 
-.. function:: shapely.ops.clip_by_rect(geom, xmin, ymin, xmax, ymax)
+.. function:: shapely.clip_by_rect(geom, xmin, ymin, xmax, ymax)
 
     The geometry is clipped in a fast but possibly dirty way. The output is
     not guaranteed to be valid. No exceptions will be raised for topological
@@ -2215,7 +2210,7 @@ portion of a geometry within a rectangle.
 
 .. code-block:: python
 
-  >>> from shapely.ops import clip_by_rect
+  >>> from shapely import clip_by_rect
   >>> polygon = Polygon(
   ...     shell=[(0, 0), (0, 30), (30, 30), (30, 0), (0, 0)],
   ...     holes=[[(10, 10), (20, 10), (20, 20), (10, 20), (10, 10)]],
@@ -2227,12 +2222,12 @@ portion of a geometry within a rectangle.
 Efficient Unions
 ----------------
 
-The :func:`~shapely.ops.unary_union` function in `shapely.ops` is more
-efficient than accumulating with :meth:`~object.union`.
+The :func:`~shapely.unary_union` function is more efficient than accumulating
+with :meth:`~object.union`.
 
 .. plot:: code/unary_union.py
 
-.. function:: shapely.ops.unary_union(geoms)
+.. function:: shapely.unary_union(geoms)
 
   Returns a representation of the union of the given geometric objects.
 
@@ -2241,7 +2236,7 @@ efficient than accumulating with :meth:`~object.union`.
 
   .. code-block:: pycon
 
-    >>> from shapely.ops import unary_union
+    >>> from shapely import unary_union
     >>> polygons = [Point(i, 0).buffer(0.7) for i in range(5)]
     >>> unary_union(polygons)
     <POLYGON ((0.444 -0.541, 0.389 -0.582, 0.33 -0.617, 0.268 -0.647, 0.203 -0.6...>
@@ -2262,24 +2257,15 @@ efficient than accumulating with :meth:`~object.union`.
     >>> unary_union(m).is_valid
     True
 
-.. function:: shapely.ops.cascaded_union(geoms)
-
-  Returns a representation of the union of the given geometric objects.
-
-  .. note::
-
-     In 1.8.0 :func:`shapely.ops.cascaded_union` is deprecated, as it was
-     superseded by :func:`shapely.ops.unary_union`.
-
 Delaunay triangulation
 ----------------------
 
-The :func:`~shapely.ops.triangulate` function in `shapely.ops` calculates a
-Delaunay triangulation from a collection of points.
+The :func:`~shapely.delaunay_triangles` function calculates a Delaunay
+triangulation from a collection of points.
 
 .. plot:: code/triangulate.py
 
-.. function:: shapely.ops.triangulate(geom, tolerance=0.0, edges=False)
+.. function:: shapely.delaunay_triangles(geom, tolerance=0.0, edges=False)
 
    Returns a Delaunay triangulation of the vertices of the input geometry.
 
@@ -2287,8 +2273,8 @@ Delaunay triangulation from a collection of points.
    used as the points of the triangulation.
 
    The `tolerance` keyword argument sets the snapping tolerance used to improve
-   the robustness of the triangulation computation. A tolerance of 0.0 specifies
-   that no snapping will take place.
+   the robustness of the triangulation computation. A tolerance of 0.0
+   specifies that no snapping will take place.
 
    If the `edges` keyword argument is `False` a list of `Polygon` triangles
    will be returned. Otherwise a list of `LineString` edges is returned.
@@ -2297,9 +2283,9 @@ Delaunay triangulation from a collection of points.
 
 .. code-block:: pycon
 
-  >>> from shapely.ops import triangulate
+  >>> from shapely import delaunay_triangles
   >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
-  >>> triangulate(points)
+  >>> list(delaunay_triangles(points).geoms)
   [<POLYGON ((0 2, 0 0, 1 1, 0 2))>,
    <POLYGON ((0 2, 1 1, 2 2, 0 2))>,
    <POLYGON ((2 2, 1 1, 3 1, 2 2))>,
@@ -2310,12 +2296,12 @@ Delaunay triangulation from a collection of points.
 Voronoi Diagram
 ---------------
 
-The :func:`~shapely.ops.voronoi_diagram` function in `shapely.ops` constructs a
-Voronoi diagram from a collection points, or the vertices of any geometry.
+The :func:`~shapely.voronoi_polygons` function constructs a Voronoi diagram
+from a collection points, or the vertices of any geometry.
 
 .. plot:: code/voronoi_diagram.py
 
-.. function:: shapely.ops.voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False)
+.. function:: shapely.voronoi_polygons(geom, envelope=None, tolerance=0.0, edges=False)
 
    Constructs a Voronoi diagram from the vertices of the input geometry.
 
@@ -2340,9 +2326,9 @@ Voronoi diagram from a collection points, or the vertices of any geometry.
 
 .. code-block:: pycon
 
-  >>> from shapely.ops import voronoi_diagram
+  >>> from shapely import voronoi_polygons
   >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
-  >>> regions = voronoi_diagram(points)
+  >>> regions = voronoi_polygons(points)
   >>> list(regions.geoms)
   [<POLYGON ((2 1, 2 0.5, 0.5 0.5, 0 1, 1 2, 2 1))>,
    <POLYGON ((6 -3, 3.75 -3, 2 0.5, 2 1, 6 5, 6 -3))>,
@@ -2352,40 +2338,41 @@ Voronoi diagram from a collection points, or the vertices of any geometry.
    <POLYGON ((6 5, 2 1, 1 2, 1 5, 6 5))>]
 
 
-Nearest points
---------------
+Nearest points/shortest line
+----------------------------
 
-The :func:`~shapely.ops.nearest_points` function in `shapely.ops` calculates
-the nearest points in a pair of geometries.
+The :func:`~shapely.shortest_line` function calculates the shortest line
+between a pair of geometries.
 
-.. function:: shapely.ops.nearest_points(geom1, geom2)
+.. function:: shapely.shortest_line(geom1, geom2)
 
-   Returns a tuple of the nearest points in the input geometries. The points are
-   returned in the same order as the input geometries.
+   Returns a tuple of the shortest line between the input geometries. The
+   points are returned in the same order as the input geometries.
 
-   `New in version 1.4.0`.
+   `New in version 2.0`.
 
 .. code-block:: pycon
 
-  >>> from shapely.ops import nearest_points
+  >>> from shapely import shortest_line
   >>> triangle = Polygon([(0, 0), (1, 0), (0.5, 1), (0, 0)])
   >>> square = Polygon([(0, 2), (1, 2), (1, 3), (0, 3), (0, 2)])
-  >>> list(nearest_points(triangle, square))
-  [<POINT (0.5 1)>, <POINT (0.5 2)>]
+  >>> shortest_line(triangle, square)
+  <LINESTRING (0.5 1, 0.5 2)>
 
 
-Note that the nearest points may not be existing vertices in the geometries.
+Note that the shortest line may not connect to vertices of the input
+geometries.
 
 Snapping
 --------
 
-The :func:`~shapely.ops.snap` function in `shapely.ops` snaps the vertices in
-one geometry to the vertices in a second geometry with a given tolerance.
+The :func:`~shapely.snap` snaps the vertices in one geometry to the vertices in
+a second geometry with a given tolerance.
 
-.. function:: shapely.ops.snap(geom1, geom2, tolerance)
+.. function:: shapely.snap(geom1, geom2, tolerance)
 
-   Snaps vertices in `geom1` to vertices in the `geom2`. A copy of the snapped
-   geometry is returned. The input geometries are not modified.
+   Snaps vertices in `geom1` to vertices in the `geom2`. A new instance of type
+   `geom1` is returned. The input geometries are not modified.
 
    The `tolerance` argument specifies the minimum distance between vertices for
    them to be snapped.
@@ -2394,7 +2381,7 @@ one geometry to the vertices in a second geometry with a given tolerance.
 
 .. code-block:: pycon
 
-  >>> from shapely.ops import snap
+  >>> from shapely import snap
   >>> square = Polygon([(1,1), (2, 1), (2, 2), (1, 2), (1, 1)])
   >>> line = LineString([(0,0), (0.8, 0.8), (1.8, 0.95), (2.6, 0.5)])
   >>> result = snap(line, square, 0.5)
@@ -2404,10 +2391,10 @@ one geometry to the vertices in a second geometry with a given tolerance.
 Shared paths
 ------------
 
-The :func:`~shapely.ops.shared_paths` function in `shapely.ops` finds the shared
-paths between two linear geometries.
+The :func:`~shapely.shared_paths` function finds the shared paths between two
+linear geometries.
 
-.. function:: shapely.ops.shared_paths(geom1, geom2)
+.. function:: shapely.shared_paths(geom1, geom2)
 
    Finds the shared paths between `geom1` and `geom2`, where both geometries
    are `LineStrings`.
@@ -2421,7 +2408,7 @@ paths between two linear geometries.
 
 .. code-block:: pycon
 
-  >>> from shapely.ops import shared_paths
+  >>> from shapely import shared_paths
   >>> g1 = LineString([(0, 0), (10, 0), (10, 5), (20, 5)])
   >>> g2 = LineString([(5, 0), (30, 0), (30, 5), (0, 5)])
   >>> forward, backward = shared_paths(g1, g2).geoms
@@ -2433,24 +2420,29 @@ paths between two linear geometries.
 Splitting
 ---------
 
-The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by another geometry.
+The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by
+another geometry.
 
 .. function:: shapely.ops.split(geom, splitter)
 
-   Splits a geometry by another geometry and returns a collection of geometries. This function is the theoretical
-   opposite of the union of the split geometry parts. If the splitter does not split the geometry, a  collection with a single geometry equal to the input geometry is returned.
+   Splits a geometry by another geometry and returns a collection of
+   geometries. This function is the theoretical opposite of the union of the
+   split geometry parts. If the splitter does not split the geometry, a
+   collection with a single geometry equal to the input geometry is returned.
 
    The function supports:
 
-   * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or (Multi)Polygon boundary
+   * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or
+     (Multi)Polygon boundary
 
    * Splitting a (Multi)Polygon by a LineString
 
-   It may be convenient to snap the splitter with low tolerance to the geometry. For example in the case of splitting a line by a point, the point must be exactly on the line, for the line to be correctly split.
-   When splitting a line by a polygon, the boundary of the polygon is used for the operation.
-   When splitting a line by another line, a ValueError is raised if the two overlap at some segment.
-
-   `New in version 1.6.0`
+   It may be convenient to snap the splitter with low tolerance to the
+   geometry. For example in the case of splitting a line by a point, the point
+   must be exactly on the line, for the line to be correctly split. When
+   splitting a line by a polygon, the boundary of the polygon is used for the
+   operation. When splitting a line by another line, a ValueError is raised if
+   the two overlap at some segment.
 
 .. code-block:: pycon
 
@@ -2464,8 +2456,8 @@ The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by an
 Substring
 ---------
 
-The :func:`~shapely.ops.substring` function in :mod:`shapely.ops` returns a line segment
-between specified distances along a `LineString`.
+The :func:`~shapely.ops.substring` function in :mod:`shapely.ops` returns a
+line segment between specified distances along a `LineString`.
 
 .. function:: shapely.ops.substring(geom, start_dist, end_dist[, normalized=False])
 
@@ -2599,7 +2591,6 @@ be parsed out.
 .. plot:: code/make_valid_geometrycollection.py
 
   `New in version 1.8`
-  `Requires GEOS > 3.8`
 
 The Shapely version, GEOS library version, and GEOS C API version are
 accessible via ``shapely.__version__``, ``shapely.geos_version_string``, and
@@ -2635,9 +2626,9 @@ Polylabel
   >>> from shapely.ops import polylabel
   >>> polygon = LineString([(0, 0), (50, 200), (100, 100), (20, 50),
   ... (-100, -20), (-150, -200)]).buffer(100)
-  >>> label = polylabel(polygon, tolerance=10)
+  >>> label = polylabel(polygon, tolerance=0.001)
   >>> label
-  <POINT (59.356 121.839)>
+  <POINT (59.733 111.33)>
 
 STR-packed R-tree
 =================
@@ -2736,7 +2727,7 @@ while this is not the case for `dumps()`, though it can be replicated by setting
 
 .. code-block:: pycon
 
-  >>> from shapely import wkb
+  >>> from shapely import wkb, Point
   >>> pt = Point(0, 0)
   >>> wkb.dumps(pt)
   b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -2758,14 +2749,13 @@ All of Shapely's geometry types are supported by these functions.
 
 .. code-block:: pycon
 
-  >>> from shapely import wkt
+  >>> from shapely import wkt, Point
   >>> pt = Point(0, 0)
-  >>> thewkt = wkt.dumps(pt)
-  >>> thewkt
+  >>> wkt.dumps(pt)
   'POINT (0.0000000000000000 0.0000000000000000)'
   >>> pt.wkt
   'POINT (0 0)'
-  >>> wkt.dumps(pt, trim=True)
+  >>> wkt.loads(pt.wkt).wkt
   'POINT (0 0)'
 
 .. _array-interface:
