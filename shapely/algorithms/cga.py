@@ -29,7 +29,7 @@ def _reverse_conditioned(rings, condition):
 def _orient_polygon(geometry, exterior_cw=False):
     if geometry is None:
         return None
-    if geometry.geom_type in ["MultiPolygon", "GeometryCollection"]:
+    if geometry.geom_type in {"MultiPolygon", "GeometryCollection"}:
         return geometry.__class__(
             [_orient_polygon(geom, exterior_cw) for geom in geometry.geoms]
         )

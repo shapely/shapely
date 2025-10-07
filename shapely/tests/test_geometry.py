@@ -364,7 +364,7 @@ def test_get_parts_None(geom):
 
 @pytest.mark.parametrize("geom", ["foo", ["foo"], 42])
 def test_get_parts_invalid_geometry(geom):
-    with pytest.raises(TypeError, match="One of the arguments is of incorrect type."):
+    with pytest.raises(TypeError, match="One of the arguments is of incorrect type"):
         shapely.get_parts(geom)
 
 

@@ -58,7 +58,7 @@ def dump_coords(geom):
         raise ValueError(
             "Must be instance of a geometry class; found " + geom.__class__.__name__
         )
-    elif geom.geom_type in ("Point", "LineString", "LinearRing"):
+    elif geom.geom_type in {"Point", "LineString", "LinearRing"}:
         return geom.coords[:]
     elif geom.geom_type == "Polygon":
         return geom.exterior.coords[:] + [i.coords[:] for i in geom.interiors]
@@ -122,14 +122,10 @@ class BaseGeometry(shapely.Geometry):
         """Return True if the geometry is not empty, else False."""
         return self.is_empty is False
 
-    def __nonzero__(self):
-        """Return True if the geometry is not empty, else False."""
-        return self.__bool__()
-
     def __format__(self, format_spec):
         """Format a geometry using a format specification."""
         # bypass regexp for simple cases
-        if format_spec == "":
+        if not format_spec:
             return shapely.to_wkt(self, rounding_precision=-1)
         elif format_spec == "x":
             return shapely.to_wkb(self, hex=True).lower()
@@ -157,11 +153,11 @@ class BaseGeometry(shapely.Geometry):
         if not fmt_code:
             fmt_code = "g"
 
-        if fmt_code in ("g", "G"):
+        if fmt_code in {"g", "G"}:
             res = shapely.to_wkt(self, rounding_precision=prec, trim=True)
-        elif fmt_code in ("f", "F"):
+        elif fmt_code in {"f", "F"}:
             res = shapely.to_wkt(self, rounding_precision=prec, trim=False)
-        elif fmt_code in ("x", "X"):
+        elif fmt_code in {"x", "X"}:
             raise ValueError("hex representation does not specify precision")
         else:
             raise NotImplementedError(f"unhandled fmt_code: {fmt_code}")

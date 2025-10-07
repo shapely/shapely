@@ -1,20 +1,20 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.11
+    rev: v0.14.0
     hooks:
       # Run the linter
-      - id: ruff
+      - id: ruff-check
         args: [ --fix ]
       # Run the formatter
       - id: ruff-format
   - repo: https://github.com/PyCQA/doc8
-    rev: v1.1.2
+    rev: v2.0.0
     hooks:
       - id: doc8
   - repo: https://github.com/citation-file-format/cffconvert
