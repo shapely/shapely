@@ -38,7 +38,7 @@ class SvgTestCase(unittest.TestCase):
             if kwrds:
                 fname += "_" + ",".join(str(k) + "=" + str(kwrds[k]) for k in kwrds)
             svg_path = os.path.join(svg_output_dir, fname + ".svg")
-            with open(svg_path, "w") as fp:
+            with open(svg_path, "w", encoding="utf-8") as fp:
                 fp.write(doc.toprettyxml())
         assert svg_elem == expected
 

@@ -172,7 +172,7 @@ def assert_geometries_equal(
         raise AssertionError(msg)
 
 
-## BELOW A COPY FROM numpy.testing._private.utils (numpy version 1.20.2)
+# BELOW A COPY FROM numpy.testing._private.utils (numpy version 1.20.2)
 
 
 def build_err_msg(
