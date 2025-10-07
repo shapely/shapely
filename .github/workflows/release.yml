@@ -145,16 +145,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2022
+          - os: windows-2025
             arch: x86
             msvc_arch: x86
-          - os: windows-2022
+          - os: windows-2025
             arch: AMD64
             msvc_arch: x64
-          - os: macos-13
+          - os: windows-11-arm
+            arch: ARM64
+            msvc_arch: ARM64
+          - os: macos-15-intel
             arch: x86_64
             cmake_osx_architectures: x86_64
-          - os: macos-14
+          - os: macos-15
             arch: arm64
             cmake_osx_architectures: arm64
 
