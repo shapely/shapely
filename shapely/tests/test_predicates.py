@@ -84,7 +84,7 @@ def test_unary_with_kwargs(func):
 
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
 def test_unary_missing(func):
-    if func in (shapely.is_valid_input, shapely.is_missing):
+    if func in {shapely.is_valid_input, shapely.is_missing}:
         assert func(None)
     else:
         assert not func(None)

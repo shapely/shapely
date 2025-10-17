@@ -120,9 +120,9 @@ def test_dump_load_binary(some_point, tmpdir):
 
 def test_dump_load_hex(some_point, tmpdir):
     file = tmpdir.join("test.wkb")
-    with open(file, "w") as file_pointer:
+    with open(file, "w", encoding="utf-8") as file_pointer:
         dump(some_point, file_pointer, hex=True)
-    with open(file) as file_pointer:
+    with open(file, encoding="utf-8") as file_pointer:
         restored = load(file_pointer, hex=True)
 
     assert some_point == restored
@@ -133,7 +133,7 @@ def test_dump_load_hex(some_point, tmpdir):
 def test_dump_hex_load_binary(some_point, tmpdir):
     """Asserts that reading a binary file as text (hex mode) fails."""
     file = tmpdir.join("test.wkb")
-    with open(file, "w") as file_pointer:
+    with open(file, "w", encoding="utf-8") as file_pointer:
         dump(some_point, file_pointer, hex=True)
 
     with pytest.raises(TypeError):
@@ -156,7 +156,7 @@ def test_dump_binary_load_hex(some_point, tmpdir):
         return
 
     with pytest.raises((UnicodeEncodeError, UnicodeDecodeError)):
-        with open(file) as file_pointer:
+        with open(file, encoding="utf-8") as file_pointer:
             load(file_pointer, hex=True)
 
 

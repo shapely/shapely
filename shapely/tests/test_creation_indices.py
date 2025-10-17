@@ -220,7 +220,7 @@ def test_linestrings_handle_nan_skip_only_nan():
 
 
 def test_linestrings_handle_nan_error():
-    with pytest.raises(ValueError, match=".*NaN.*"):
+    with pytest.raises(ValueError, match=r".*NaN.*"):
         shapely.linestrings(
             [[0, 0], [float("nan"), 0], [1, 1]], indices=[0, 0, 0], handle_nan="error"
         )
@@ -341,7 +341,7 @@ def test_linearrings_handle_nan_skip_only_nan():
 
 
 def test_linearrings_handle_nan_error():
-    with pytest.raises(ValueError, match=".*NaN.*"):
+    with pytest.raises(ValueError, match=r".*NaN.*"):
         shapely.linearrings(
             [[1, 1], [2, 1], [2, 2], [2, float("nan")], [1, 1]],
             indices=[0, 0, 0, 0, 0],
