@@ -26,53 +26,10 @@ static int GetX(void* context, void* a, double* b) {
     return GEOSGeomGetX_r(context, a, b);
   }
 }
-static void* get_x_data[1] = {GetX};
 
 typedef int FuncGEOS_Y_d(void* context, void* a, double* b);
 
-// Core function that can be used by both ufunc and scalar implementations
-// Takes any GEOS function with signature: int func(context, geom, double*)
-// Returns errstate (PGERR_SUCCESS on success)
-static char core_Y_d_operation(GEOSContextHandle_t ctx, FuncGEOS_Y_d* func, GeometryObject* geom_obj, double* result) {
-  GEOSGeometry* geom = NULL;
-
-  // Extract geometry from GeometryObject
-  if (!get_geom(geom_obj, &geom)) {
-    return PGERR_NOT_A_GEOMETRY;
-  }
-
-  // Handle NULL geometry case
-  if (geom == NULL) {
-    *result = NPY_NAN;
-    return PGERR_SUCCESS;
-  }
-
-  // Call the GEOS function
-  if (func(ctx, geom, result) == 0) {
-    return PGERR_GEOS_EXCEPTION;
-  }
-
-  return PGERR_SUCCESS;
-}
-static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
-static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_Y_d* func = (FuncGEOS_Y_d*)data;
-
-  GEOS_INIT_THREADS;
-
-  UNARY_LOOP {
-    // Use the core function for the actual operation
-    errstate = core_Y_d_operation(ctx, func, *(GeometryObject**)ip1, (double*)op1);
-    if (errstate != PGERR_SUCCESS) {
-      goto finish;
-    }
-  }
-
-finish:
-  GEOS_FINISH_THREADS;
-}
-static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
-
+static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data);
 
 PyObject* PyGetX1(PyObject* self, PyObject* obj) {
   double result = NPY_NAN;
@@ -87,7 +44,7 @@ PyObject* PyGetX1(PyObject* self, PyObject* obj) {
   npy_intp steps[2] = {sizeof(PyObject*), sizeof(double)};
 
   // Call Y_d_func with GetX function
-  Y_d_func(args, dimensions, steps, get_x_data[0]);
+  Y_d_func(args, dimensions, steps, (void*)GetX);
 
   // Check if we have a Python exception set by Y_d_func
   if (PyErr_Occurred()) {
@@ -98,7 +55,7 @@ PyObject* PyGetX1(PyObject* self, PyObject* obj) {
 }
 
 PyObject* PyGetX2(PyObject* self, PyObject* obj) {
-  FuncGEOS_Y_d* func = (FuncGEOS_Y_d*)get_x_data[0];
+  FuncGEOS_Y_d* func = (FuncGEOS_Y_d*)GetX;
   GEOSGeometry* in1 = NULL;
   double result = NPY_NAN;
 
@@ -113,7 +70,7 @@ PyObject* PyGetX2(PyObject* self, PyObject* obj) {
     result = NPY_NAN;
   } else {
     /* let the GEOS function set result; return on error */
-    if (func(ctx, in1, &result) == 0) {
+    if (GetX(ctx, in1, &result) == 0) {
       errstate = PGERR_GEOS_EXCEPTION;
       goto finish;
     }
@@ -208,17 +165,59 @@ PyObject* PyGetX5(PyObject* self, PyObject* obj) {
   return PyFloat_FromDouble(result);
 }
 
-PyObject* PyGetX6(PyObject* self, PyObject* obj) {
+// ATTEMPT FOR GENERIC SCALAR FUNCTION FOR ANY Y->d GEOS FUNCTION
+
+// Core function that can be used by both ufunc and scalar implementations
+static char core_Y_d_operation(GEOSContextHandle_t ctx, FuncGEOS_Y_d* func, GeometryObject* geom_obj, double* result) {
+  GEOSGeometry* geom = NULL;
+
+  // Extract geometry from GeometryObject
+  if (!get_geom(geom_obj, &geom)) {
+    return PGERR_NOT_A_GEOMETRY;
+  }
+
+  // Handle NULL geometry case
+  if (geom == NULL) {
+    *result = NPY_NAN;
+    return PGERR_SUCCESS;
+  }
+
+  // Call the GEOS function
+  if (func(ctx, geom, result) == 0) {
+    return PGERR_GEOS_EXCEPTION;
+  }
+
+  return PGERR_SUCCESS;
+}
+
+// The ufunc rebased on the new core function
+static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
+static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
+  FuncGEOS_Y_d* func = (FuncGEOS_Y_d*)data;
+
+  GEOS_INIT_THREADS;
+
+  UNARY_LOOP {
+    errstate = core_Y_d_operation(ctx, func, *(GeometryObject**)ip1, (double*)op1);
+    if (errstate != PGERR_SUCCESS) {
+      goto finish;
+    }
+  }
+
+finish:
+  GEOS_FINISH_THREADS;
+}
+static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
+
+// Generic scalar function wrapper for any Y->d GEOS function
+static PyObject* Py_Y_d_Scalar(PyObject* self, PyObject* obj, FuncGEOS_Y_d* func) {
   double result = NPY_NAN;
   char errstate = PGERR_SUCCESS;
   char* last_error = geos_last_error;
   char* last_warning = geos_last_warning;
-  FuncGEOS_Y_d* func = (FuncGEOS_Y_d*)get_x_data[0];
 
-  // Use the core function with existing global context
   errstate = core_Y_d_operation(geos_context[0], func, (GeometryObject*)obj, &result);
 
-  // Handle errors using the standard GEOS_HANDLE_ERR macro
   GEOS_HANDLE_ERR;
 
   if (errstate != PGERR_SUCCESS) {
@@ -228,6 +227,26 @@ PyObject* PyGetX6(PyObject* self, PyObject* obj) {
   return PyFloat_FromDouble(result);
 }
 
+// Macro to define actual python function (scalar)
+#define DEFINE_Y_d(func_name) \
+  static PyObject* Py##func_name##_Scalar(PyObject* self, PyObject* obj) { \
+    return Py_Y_d_Scalar(self, obj, (FuncGEOS_Y_d*)func_name); \
+  }
+
+// Macro to init both ufunc and scalar function
+#define INIT_Y_d(func_name, py_name) do { \
+    static void* func_name##_FuncData[1] = {func_name}; \
+    ufunc = PyUFunc_FromFuncAndData(Y_d_funcs, func_name##_FuncData, Y_d_dtypes, 1, 1, 1, \
+                                    PyUFunc_None, #py_name, "", 0); \
+    PyDict_SetItemString(d, #py_name, ufunc); \
+    static PyMethodDef Py##func_name##_Scalar_Def = {#py_name "_scalar", Py##func_name##_Scalar, METH_O, #py_name " scalar implementation"}; \
+    PyObject* Py##func_name##_Scalar_Func = PyCFunction_NewEx(&Py##func_name##_Scalar_Def, NULL, NULL); \
+    PyDict_SetItemString(d, #py_name "_scalar", Py##func_name##_Scalar_Func); \
+} while(0)
+
+// GetX scalar function wrapper using macro (NB: first time we reference GetX)
+DEFINE_Y_d(GetX);
+DEFINE_Y_d(GEOSBuildArea_r);  // another one for the sake of demonstration
 
 static PyMethodDef GetXMethods[] = {
     {"get_x_1", PyGetX1, METH_O,
@@ -240,17 +259,12 @@ static PyMethodDef GetXMethods[] = {
      ""},
     {"get_x_5", PyGetX5, METH_O,
      ""},
-    {"get_x_6", PyGetX6, METH_O,
-     ""},
     {NULL, NULL, 0, NULL}};
 
 
 int init_ufuncs_Y_d(PyObject* m, PyObject* d) {
   PyObject* ufunc;
 
-  ufunc = PyUFunc_FromFuncAndData(Y_d_funcs, get_x_data, Y_d_dtypes, 1, 1, 1,
-                                  PyUFunc_None, "get_x", "", 0);
-  PyDict_SetItemString(d, "get_x_ufunc", ufunc);
 
   // Attach PyGetX1, PyGetX2, PyGetX3, PyGetX4, and PyGetX5 to module
   PyObject* get_x1 = PyCFunction_NewEx(&GetXMethods[0], NULL, NULL);
@@ -268,8 +282,9 @@ int init_ufuncs_Y_d(PyObject* m, PyObject* d) {
   PyObject* get_x5 = PyCFunction_NewEx(&GetXMethods[4], NULL, NULL);
   PyDict_SetItemString(d, "get_x_5", get_x5);
 
-  PyObject* get_x6 = PyCFunction_NewEx(&GetXMethods[5], NULL, NULL);
-  PyDict_SetItemString(d, "get_x_6", get_x6);
+  // Initialize GetX ufunc and scalar using macro
+  INIT_Y_d(GetX, get_x_test);
+  INIT_Y_d(GEOSBuildArea_r, area_test);
 
   return 0;
 }
