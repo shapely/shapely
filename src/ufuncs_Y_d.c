@@ -122,6 +122,55 @@ PyObject* PyGetX3(PyObject* self, PyObject* obj) {
   GEOSGeometry* geom = NULL;
   double result = NPY_NAN;
 
+  if (!get_geom((GeometryObject*)obj, &geom)) {
+    PyErr_SetString(PyExc_TypeError, "Could not get geometry from object");
+    return NULL;
+  }
+
+  if (geom != NULL) {
+    if (GetX(global_ctx, geom, &result) == 0) {
+      PyErr_SetString(PyExc_RuntimeError, "GEOS error getting X coordinate");
+      return NULL;
+    }
+  }
+
+  return PyFloat_FromDouble(result);
+}
+
+PyObject* PyGetX4(PyObject* self, PyObject* obj) {
+  GEOSGeometry* geom = NULL;
+  double result = NPY_NAN;
+  GEOSContextHandle_t ctx;
+
+  if (!get_geom((GeometryObject*)obj, &geom)) {
+    PyErr_SetString(PyExc_TypeError, "Could not get geometry from object");
+    return NULL;
+  }
+
+  if (geom != NULL) {
+    // Initialize GEOS context in function (performance test)
+    ctx = GEOS_init_r();
+    if (ctx == NULL) {
+      PyErr_SetString(PyExc_RuntimeError, "Could not initialize GEOS context");
+      return NULL;
+    }
+
+    if (GetX(ctx, geom, &result) == 0) {
+      GEOS_finish_r(ctx);
+      PyErr_SetString(PyExc_RuntimeError, "GEOS error getting X coordinate");
+      return NULL;
+    }
+
+    GEOS_finish_r(ctx);
+  }
+
+  return PyFloat_FromDouble(result);
+}
+
+PyObject* PyGetX5(PyObject* self, PyObject* obj) {
+  GEOSGeometry* geom = NULL;
+  double result = NPY_NAN;
+
   // Use get_geom to extract geometry
   if (!get_geom((GeometryObject*)obj, &geom)) {
     PyErr_SetString(PyExc_TypeError, "Could not get geometry from object");
@@ -130,7 +179,15 @@ PyObject* PyGetX3(PyObject* self, PyObject* obj) {
 
   // Handle NULL geometry case
   if (geom != NULL) {
+    // Release GIL for GEOS operation (performance test)
+    Py_BEGIN_ALLOW_THREADS
     if (GetX(global_ctx, geom, &result) == 0) {
+      result = NPY_NAN; // Signal error but can't set Python exception here
+    }
+    Py_END_ALLOW_THREADS
+
+    // Check for error after reacquiring GIL
+    if (result == NPY_NAN && geom != NULL) {
       PyErr_SetString(PyExc_RuntimeError, "GEOS error getting X coordinate");
       return NULL;
     }
@@ -146,6 +203,10 @@ static PyMethodDef GetXMethods[] = {
     {"get_x_2", PyGetX2, METH_O,
      ""},
     {"get_x_3", PyGetX3, METH_O,
+     ""},
+    {"get_x_4", PyGetX4, METH_O,
+     ""},
+    {"get_x_5", PyGetX5, METH_O,
      ""},
     {NULL, NULL, 0, NULL}};
 
@@ -164,7 +225,7 @@ int init_ufuncs_Y_d(PyObject* m, PyObject* d) {
                                   PyUFunc_None, "get_x", "", 0);
   PyDict_SetItemString(d, "get_x_ufunc", ufunc);
 
-  // Attach PyGetX1, PyGetX2, and PyGetX3 to module (using METH_O for single object arg)
+  // Attach PyGetX1, PyGetX2, PyGetX3, PyGetX4, and PyGetX5 to module
   PyObject* get_x1 = PyCFunction_NewEx(&GetXMethods[0], NULL, NULL);
   PyDict_SetItemString(d, "get_x_1", get_x1);
 
@@ -173,6 +234,12 @@ int init_ufuncs_Y_d(PyObject* m, PyObject* d) {
 
   PyObject* get_x3 = PyCFunction_NewEx(&GetXMethods[2], NULL, NULL);
   PyDict_SetItemString(d, "get_x_3", get_x3);
+
+  PyObject* get_x4 = PyCFunction_NewEx(&GetXMethods[3], NULL, NULL);
+  PyDict_SetItemString(d, "get_x_4", get_x4);
+
+  PyObject* get_x5 = PyCFunction_NewEx(&GetXMethods[4], NULL, NULL);
+  PyDict_SetItemString(d, "get_x_5", get_x5);
 
   return 0;
 }
