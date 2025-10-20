@@ -162,6 +162,7 @@ else:
                 "src/pygeos.c",
                 "src/strtree.c",
                 "src/ufuncs.c",
+                "src/ufuncs_Y_d.c",
                 "src/vector.c",
             ],
             **ext_options,
