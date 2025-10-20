@@ -17,6 +17,9 @@
 #include "pygeom.h"
 #include "ufuncs.h"
 
+// Stuff copied over from ufuncs.c
+typedef int FuncGEOS_Y_d(void* context, void* a, double* b);
+static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data);
 static int GetX(void* context, void* a, double* b) {
   char typ = GEOSGeomTypeId_r(context, a);
   if (typ != 0) {
@@ -27,9 +30,8 @@ static int GetX(void* context, void* a, double* b) {
   }
 }
 
-typedef int FuncGEOS_Y_d(void* context, void* a, double* b);
-
-static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data);
+// Below are 5 different implementations of PyGetX, each with different performance characteristics.
+// They are intended for performance comparison purposes.
 
 PyObject* PyGetX1(PyObject* self, PyObject* obj) {
   double result = NPY_NAN;
@@ -165,7 +167,7 @@ PyObject* PyGetX5(PyObject* self, PyObject* obj) {
   return PyFloat_FromDouble(result);
 }
 
-// ATTEMPT FOR GENERIC SCALAR FUNCTION FOR ANY Y->d GEOS FUNCTION
+// Below an attempt to make ufunc and scalar implementations, reusing code as much as possible
 
 // Core function that can be used by both ufunc and scalar implementations
 static char core_Y_d_operation(GEOSContextHandle_t ctx, FuncGEOS_Y_d* func, GeometryObject* geom_obj, double* result) {
