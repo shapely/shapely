@@ -82,9 +82,44 @@ PyObject* PyGetX1(PyObject* self, PyObject* obj) {
   return PyFloat_FromDouble(result);
 }
 
+PyObject* PyGetX2(PyObject* self, PyObject* obj) {
+  FuncGEOS_Y_d* func = (FuncGEOS_Y_d*)get_x_data[0];
+  GEOSGeometry* in1 = NULL;
+  double result = NPY_NAN;
+
+  GEOS_INIT_THREADS;
+
+  /* get the geometry: return on error */
+  if (!get_geom((GeometryObject*)obj, &in1)) {
+    errstate = PGERR_NOT_A_GEOMETRY;
+    goto finish;
+  }
+  if (in1 == NULL) {
+    result = NPY_NAN;
+  } else {
+    /* let the GEOS function set result; return on error */
+    if (func(ctx, in1, &result) == 0) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+  }
+
+finish:
+  GEOS_FINISH_THREADS;
+
+  /* Return NULL on error, otherwise return the value */
+  if (errstate != PGERR_SUCCESS) {
+    return NULL;
+  }
+
+  return PyFloat_FromDouble(result);
+}
+
 
 static PyMethodDef GetXMethods[] = {
     {"get_x_1", PyGetX1, METH_O,
+     ""},
+    {"get_x_2", PyGetX2, METH_O,
      ""},
     {NULL, NULL, 0, NULL}};
 
@@ -96,7 +131,10 @@ int init_ufuncs_Y_d(PyObject* m, PyObject* d) {
                                   PyUFunc_None, "get_x", "", 0);
   PyDict_SetItemString(d, "get_x_ufunc", ufunc);
 
-  // Attach PyGetX1 to module (using METH_O for single object arg)
-  PyObject* get_x1 = PyCFunction_NewEx(GetXMethods, NULL, NULL);
+  // Attach PyGetX1 and PyGetX2 to module (using METH_O for single object arg)
+  PyObject* get_x1 = PyCFunction_NewEx(&GetXMethods[0], NULL, NULL);
   PyDict_SetItemString(d, "get_x_1", get_x1);
+
+  PyObject* get_x2 = PyCFunction_NewEx(&GetXMethods[1], NULL, NULL);
+  PyDict_SetItemString(d, "get_x_2", get_x2);
 }
