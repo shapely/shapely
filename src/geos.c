@@ -14,6 +14,10 @@ void* geos_context[1] = {NULL};
 /* This initializes a globally accessible GEOSException object */
 PyObject* geos_exception[1] = {NULL};
 
+/* Global error and warning buffers for use with the global GEOS context */
+char geos_last_error[1024] = "";
+char geos_last_warning[1024] = "";
+
 int init_geos(PyObject* m) {
   PyObject* base_class = PyErr_NewException("shapely.errors.ShapelyError", NULL, NULL);
   PyModule_AddObject(m, "ShapelyError", base_class);
@@ -22,9 +26,8 @@ int init_geos(PyObject* m) {
   PyModule_AddObject(m, "GEOSException", geos_exception[0]);
 
   void* context_handle = GEOS_init_r();
-  // TODO: the error handling is not yet set up for the global context (it is right now
-  // only used where error handling is not used)
-  // GEOSContext_setErrorMessageHandler_r(context_handle, geos_error_handler, last_error);
+  GEOSContext_setErrorMessageHandler_r(context_handle, geos_error_handler, geos_last_error);
+  GEOSContext_setNoticeMessageHandler_r(context_handle, geos_error_handler, geos_last_warning);
   geos_context[0] = context_handle;
 
   return 0;

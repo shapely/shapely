@@ -171,6 +171,8 @@ enum ShapelyErrorCode {
 
 extern void* geos_context[1];
 extern PyObject* geos_exception[1];
+extern char geos_last_error[1024];
+extern char geos_last_warning[1024];
 
 extern void geos_error_handler(const char* message, void* userdata);
 extern void destroy_geom_arr(void* context, GEOSGeometry** array, int length);
