@@ -28,6 +28,9 @@ static int GetX(void* context, void* a, double* b) {
 }
 static void* get_x_data[1] = {GetX};
 
+// Global GEOS context for maximum performance (no initialization overhead)
+static GEOSContextHandle_t global_ctx = NULL;
+
 typedef int FuncGEOS_Y_d(void* context, void* a, double* b);
 static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
 static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
@@ -115,11 +118,34 @@ finish:
   return PyFloat_FromDouble(result);
 }
 
+PyObject* PyGetX3(PyObject* self, PyObject* obj) {
+  GEOSGeometry* geom = NULL;
+  double result = NPY_NAN;
+
+  // Use get_geom to extract geometry
+  if (!get_geom((GeometryObject*)obj, &geom)) {
+    PyErr_SetString(PyExc_TypeError, "Could not get geometry from object");
+    return NULL;
+  }
+
+  // Handle NULL geometry case
+  if (geom != NULL) {
+    if (GetX(global_ctx, geom, &result) == 0) {
+      PyErr_SetString(PyExc_RuntimeError, "GEOS error getting X coordinate");
+      return NULL;
+    }
+  }
+
+  return PyFloat_FromDouble(result);
+}
+
 
 static PyMethodDef GetXMethods[] = {
     {"get_x_1", PyGetX1, METH_O,
      ""},
     {"get_x_2", PyGetX2, METH_O,
+     ""},
+    {"get_x_3", PyGetX3, METH_O,
      ""},
     {NULL, NULL, 0, NULL}};
 
@@ -127,14 +153,26 @@ static PyMethodDef GetXMethods[] = {
 int init_ufuncs_Y_d(PyObject* m, PyObject* d) {
   PyObject* ufunc;
 
+  // Initialize global GEOS context for PyGetX3
+  global_ctx = GEOS_init_r();
+  if (global_ctx == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "Could not initialize global GEOS context");
+    return -1;
+  }
+
   ufunc = PyUFunc_FromFuncAndData(Y_d_funcs, get_x_data, Y_d_dtypes, 1, 1, 1,
                                   PyUFunc_None, "get_x", "", 0);
   PyDict_SetItemString(d, "get_x_ufunc", ufunc);
 
-  // Attach PyGetX1 and PyGetX2 to module (using METH_O for single object arg)
+  // Attach PyGetX1, PyGetX2, and PyGetX3 to module (using METH_O for single object arg)
   PyObject* get_x1 = PyCFunction_NewEx(&GetXMethods[0], NULL, NULL);
   PyDict_SetItemString(d, "get_x_1", get_x1);
 
   PyObject* get_x2 = PyCFunction_NewEx(&GetXMethods[1], NULL, NULL);
   PyDict_SetItemString(d, "get_x_2", get_x2);
+
+  PyObject* get_x3 = PyCFunction_NewEx(&GetXMethods[2], NULL, NULL);
+  PyDict_SetItemString(d, "get_x_3", get_x3);
+
+  return 0;
 }
