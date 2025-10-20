@@ -58,10 +58,45 @@ finish:
 }
 static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
 
+
+PyObject* PyGetX1(PyObject* self, PyObject* obj) {
+  double result = NPY_NAN;
+
+  // Set up arguments for Y_d_func to simulate scalar operation
+  char* input_ptr = (char*)&obj;
+  char* output_ptr = (char*)&result;
+  char* args[2] = {input_ptr, output_ptr};
+
+  // Single element operation
+  npy_intp dimensions[1] = {1};
+  npy_intp steps[2] = {sizeof(PyObject*), sizeof(double)};
+
+  // Call Y_d_func with GetX function
+  Y_d_func(args, dimensions, steps, get_x_data[0]);
+
+  // Check if we have a Python exception set by Y_d_func
+  if (PyErr_Occurred()) {
+    return NULL;
+  }
+
+  return PyFloat_FromDouble(result);
+}
+
+
+static PyMethodDef GetXMethods[] = {
+    {"get_x_1", PyGetX1, METH_O,
+     ""},
+    {NULL, NULL, 0, NULL}};
+
+
 int init_ufuncs_Y_d(PyObject* m, PyObject* d) {
   PyObject* ufunc;
 
   ufunc = PyUFunc_FromFuncAndData(Y_d_funcs, get_x_data, Y_d_dtypes, 1, 1, 1,
                                   PyUFunc_None, "get_x", "", 0);
   PyDict_SetItemString(d, "get_x_ufunc", ufunc);
+
+  // Attach PyGetX1 to module (using METH_O for single object arg)
+  PyObject* get_x1 = PyCFunction_NewEx(GetXMethods, NULL, NULL);
+  PyDict_SetItemString(d, "get_x_1", get_x1);
 }
