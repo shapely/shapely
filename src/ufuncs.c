@@ -15,20 +15,7 @@
 #include "geos.h"
 #include "pygeos.h"
 #include "pygeom.h"
-
-/* This initializes a global value for interrupt checking */
-int check_signals_interval[1] = {10000};
-unsigned long main_thread_id[1] = {0};
-
-PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
-
-  if (!PyArg_ParseTuple(args, "ik", check_signals_interval, main_thread_id)) {
-    return NULL;
-  }
-
-  Py_INCREF(Py_None);
-  return Py_None;
-}
+#include "signal_checks.h"
 
 #define OUTPUT_Y                                         \
   PyObject* ret = GeometryObject_FromGEOS(ret_ptr, ctx); \
@@ -69,22 +56,6 @@ PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
     if (PyErr_CheckSignals() == -1) {               \
       errstate = PGERR_PYSIGNAL;                    \
     };                                              \
-  }
-
-/* This version of CHECK_SIGNALS is to be used in a context without GIL
- * the GIL is only acquired if the current thread is the main thread (else,
- * signals won't be set anyway)
- */
-
-#define CHECK_SIGNALS_THREADS(I)                            \
-  if (((I + 1) % check_signals_interval[0]) == 0) {         \
-    if (PyThread_get_thread_ident() == main_thread_id[0]) { \
-      Py_BLOCK_THREADS;                                     \
-      if (PyErr_CheckSignals() == -1) {                     \
-        errstate = PGERR_PYSIGNAL;                          \
-      }                                                     \
-      Py_UNBLOCK_THREADS;                                   \
-    }                                                       \
   }
 
 static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,

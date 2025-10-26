@@ -15,6 +15,7 @@
 #include "geos.h"
 #include "pygeos.h"
 #include "pygeom.h"
+#include "signal_checks.h"
 
 /* ========================================================================
  * GEOS WRAPPER FUNCTIONS
@@ -217,6 +218,10 @@ static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* st
   // The UNARY_LOOP macro unpacks args, dimensions, and steps and iterates through input/output arrays
   // ip1 points to current input element, op1 points to current output element
   UNARY_LOOP {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
     errstate = core_Y_d_operation(ctx, func, *(PyObject**)ip1, (double*)op1);
     if (errstate != PGERR_SUCCESS) {
       goto finish;

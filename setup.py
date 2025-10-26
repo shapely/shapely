@@ -160,6 +160,7 @@ else:
                 "src/lib.c",
                 "src/pygeom.c",
                 "src/pygeos.c",
+                "src/signal_checks.c",
                 "src/strtree.c",
                 "src/ufuncs.c",
                 "src/geos_funcs_Y_d.c",
