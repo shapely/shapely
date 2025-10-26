@@ -4001,15 +4001,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y_reduce(intersection_all);
   DEFINE_Y_Y_reduce(symmetric_difference_all);
 
-  DEFINE_Y_d(get_precision);
-  DEFINE_Y_d(get_x);
-  DEFINE_Y_d(get_y);
-  DEFINE_Y_d(get_z);
-  DEFINE_Y_d(area);
-  DEFINE_Y_d(length);
-  DEFINE_Y_d(minimum_clearance);
-  DEFINE_Y_d(minimum_bounding_radius);
-
   DEFINE_Y_i(get_type_id);
   DEFINE_Y_i(get_dimensions);
   DEFINE_Y_i(get_coordinate_dimension);
@@ -4081,7 +4072,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(coverage_simplify, 3);
   DEFINE_Y_Y(disjoint_subset_union);
   DEFINE_Y_b(has_m);
-  DEFINE_Y_d(get_m);
   DEFINE_Yi_Y(orient_polygons);
 #endif
 

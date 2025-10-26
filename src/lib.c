@@ -16,7 +16,7 @@
 #include "pygeom.h"
 #include "strtree.h"
 #include "ufuncs.h"
-#include "ufuncs_Y_d.h"
+#include "geos_funcs_Y_d.h"
 
 /* This tells Python what methods this module has. */
 static PyMethodDef GeosModule[] = {
@@ -93,7 +93,7 @@ PyMODINIT_FUNC PyInit_lib(void) {
     return NULL;
   };
 
-  if (init_ufuncs_Y_d(m, d) < 0) {
+  if (init_geos_funcs_Y_d(m, d) < 0) {
     return NULL;
   };
 

@@ -88,20 +88,20 @@ class Point(BaseGeometry):
     @property
     def x(self):
         """Return x coordinate."""
-        return float(shapely.get_x(self))
+        return shapely.lib.get_x_scalar(self)
 
     @property
     def y(self):
         """Return y coordinate."""
-        return float(shapely.get_y(self))
+        return shapely.lib.get_y_scalar(self)
 
     @property
     def z(self):
         """Return z coordinate."""
-        z = shapely.get_z(self)
+        z = shapely.lib.get_z_scalar(self)
         if np.isnan(z) and not shapely.has_z(self):
             raise DimensionError("This point has no z coordinate.")
-        return float(z)
+        return z
 
     @property
     def m(self):
@@ -112,7 +112,7 @@ class Point(BaseGeometry):
         """
         if not shapely.has_m(self):
             raise DimensionError("This point has no m coordinate.")
-        return float(shapely.get_m(self))
+        return shapely.lib.get_m_scalar(self)
 
     @property
     def __geo_interface__(self):
