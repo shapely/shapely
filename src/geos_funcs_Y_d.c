@@ -122,7 +122,7 @@ static int GEOSMinimumBoundingRadius(GEOSContextHandle_t context, const GEOSGeom
  * This is shared between both ufunc and scalar implementations to avoid code duplication.
  *
  * Parameters:
- *   ctx: GEOS context handle for thread-safe operations
+ *   context: GEOS context handle for thread-safe operations
  *   func: Function pointer to the specific GEOS operation to perform
  *   geom_obj: Shapely geometry object (Python wrapper around GEOSGeometry)
  *   result: Pointer where the computed double result will be stored
@@ -130,7 +130,7 @@ static int GEOSMinimumBoundingRadius(GEOSContextHandle_t context, const GEOSGeom
  * Returns:
  *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)
  */
-static char core_Y_d_operation(GEOSContextHandle_t ctx, FuncGEOS_Y_d* func,
+static char core_Y_d_operation(GEOSContextHandle_t context, FuncGEOS_Y_d* func,
                                PyObject* geom_obj, double* result) {
   const GEOSGeometry* geom;
 
@@ -147,7 +147,7 @@ static char core_Y_d_operation(GEOSContextHandle_t ctx, FuncGEOS_Y_d* func,
 
   // Call the specific GEOS function (e.g., GEOSArea_r, GEOSLength_r, etc.)
   // GEOS functions return 0 on error, 1 on success
-  if (func(ctx, geom, result) == 0) {
+  if (func(context, geom, result) == 0) {
     return PGERR_GEOS_EXCEPTION;
   }
 
@@ -176,21 +176,19 @@ static char core_Y_d_operation(GEOSContextHandle_t ctx, FuncGEOS_Y_d* func,
  */
 static PyObject* Py_Y_d_Scalar(PyObject* self, PyObject* obj, FuncGEOS_Y_d* func) {
   double result = NPY_NAN;
-  char errstate = PGERR_SUCCESS;
 
-  // These pointers allow the GEOS_HANDLE_ERR macro to access error messages
-  char* last_error = geos_last_error;      // Global error message buffer
-  char* last_warning = geos_last_warning;  // Global warning message buffer
+  // Initialize GEOS context for thread-safe operations
+  GEOS_INIT;
 
   // Perform the actual GEOS operation using shared core logic
-  errstate = core_Y_d_operation(geos_context[0], func, obj, &result);
+  errstate = core_Y_d_operation(ctx, func, obj, &result);
 
-  // Handle any errors or warnings that occurred during the operation
-  // This macro checks errstate and sets appropriate Python exceptions
-  GEOS_HANDLE_ERR;
+  // Finish the GEOS context and handle any errors that occurred during
+  // the operation. This macro sets appropriate Python exceptions.
+  GEOS_FINISH;
 
   if (errstate != PGERR_SUCCESS) {
-    return NULL;  // Python exception was set by GEOS_HANDLE_ERR
+    return NULL;  // Python exception was set by GEOS_FINISH
   }
 
   return PyFloat_FromDouble(result);

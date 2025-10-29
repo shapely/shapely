@@ -71,9 +71,10 @@ enum ShapelyErrorCode {
 
 // Define how the states are handled by CPython
 #define GEOS_HANDLE_ERR                                                                  \
+  /* The warnings are unused currently (the NoticeHandler is not set up)                 \
   if (last_warning[0] != 0) {                                                            \
     PyErr_WarnEx(PyExc_Warning, last_warning, 0);                                        \
-  }                                                                                      \
+  } */                                                                                      \
   switch (errstate) {                                                                    \
     case PGERR_SUCCESS:                                                                  \
       break;                                                                             \
@@ -137,14 +138,12 @@ enum ShapelyErrorCode {
                    "Pygeos ufunc returned with unknown error state code %d.", errstate); \
       break;                                                                             \
   }                                                                                      \
-  last_warning[0] = '\0';                                                                \
-  last_error[0] = '\0';
 
 // Define initialization / finalization macros
 #define _GEOS_INIT_DEF           \
   char errstate = PGERR_SUCCESS; \
   char last_error[1024] = "";    \
-  char last_warning[1024] = "";  \
+  /* char last_warning[1024] = ""; */ \
   GEOSContextHandle_t ctx
 
 #define _GEOS_INIT     \
@@ -173,8 +172,6 @@ enum ShapelyErrorCode {
 
 extern void* geos_context[1];
 extern PyObject* geos_exception[1];
-extern char geos_last_error[1024];
-extern char geos_last_warning[1024];
 
 extern void geos_error_handler(const char* message, void* userdata);
 extern void destroy_geom_arr(void* context, GEOSGeometry** array, int length);
