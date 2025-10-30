@@ -32,6 +32,7 @@ __all__ = [
     "minimum_bounding_circle",
     "minimum_clearance_line",
     "minimum_rotated_rectangle",
+    "minimum_width",
     "node",
     "normalize",
     "offset_curve",
@@ -1427,6 +1428,45 @@ def minimum_bounding_circle(geometry, **kwargs):
 
     """
     return lib.minimum_bounding_circle(geometry, **kwargs)
+
+
+@multithreading_enabled
+def minimum_width(geometry, **kwargs):
+    """Compute the minimum width (minimum diameter) of a geometry.
+
+    The minimum width is defined as the width of the smallest band that
+    contains the geometry, where a band is a strip of the plane defined
+    by two parallel lines. This is also known as the minimum diameter.
+
+    This function always returns a LineString representing the minimum
+    width line segment, including for degenerate cases, such as
+    LineStrings or Points. (In these cases, the minimum width is a
+    zero-length LineString).
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        Geometry or geometries for which to compute the minimum width.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Examples
+    --------
+    >>> import shapely
+    >>> from shapely import Point, LineString, Polygon
+    >>> polygon = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    >>> shapely.minimum_width(polygon)
+    <LINESTRING (0 0, 1 0)>
+    >>> line = LineString([(0, 0), (3, 4)])
+    >>> shapely.minimum_width(line)
+    <LINESTRING (0 0, 0 0)>
+
+    See Also
+    --------
+    minimum_rotated_rectangle, oriented_envelope
+
+    """
+    return lib.minimum_width(geometry, **kwargs)
 
 
 @multithreading_enabled
