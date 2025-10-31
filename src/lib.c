@@ -48,7 +48,7 @@ PyMODINIT_FUNC PyInit_lib(void) {
     PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
   #endif
 
-  if (init_geos(m) < 0) {
+  if (init_shapely(m) < 0) {
     return NULL;
   };
 
