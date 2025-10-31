@@ -139,38 +139,40 @@ enum ShapelyErrorCode {
   }
 
 // Define initialization / finalization macros
-#define _GEOS_INIT_DEF           \
+#define GEOS_INIT           \
   char errstate = PGERR_SUCCESS; \
-  char last_error[1024] = "";    \
-  char last_warning[1024] = "";  \
-  GEOSContextHandle_t ctx
-
-#define _GEOS_INIT     \
-  ctx = GEOS_init_r(); \
-  GEOSContext_setErrorMessageHandler_r(ctx, geos_error_handler, last_error)
-
-#define GEOS_INIT \
-  _GEOS_INIT_DEF; \
-  _GEOS_INIT
+  ThreadLocalGEOS* _tl_geos = get_threadlocal_geos(); \
+  char* last_error = _tl_geos->last_error;   \
+  char* last_warning = _tl_geos->last_warning; \
+  GEOSContextHandle_t ctx = _tl_geos->context
 
 #define GEOS_INIT_THREADS \
-  _GEOS_INIT_DEF;         \
-  Py_BEGIN_ALLOW_THREADS _GEOS_INIT
+  GEOS_INIT;         \
+  Py_BEGIN_ALLOW_THREADS
 
 #define GEOS_FINISH   \
-  GEOS_finish_r(ctx); \
   GEOS_HANDLE_ERR
 
 #define GEOS_FINISH_THREADS \
-  GEOS_finish_r(ctx);       \
   Py_END_ALLOW_THREADS GEOS_HANDLE_ERR
+
+
 
 #define GEOS_SINCE_3_11_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 11))
 #define GEOS_SINCE_3_12_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 12))
 #define GEOS_SINCE_3_13_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 13))
 
-extern void* geos_context[1];
 extern PyObject* geos_exception[1];
+
+/* Threadlocal GEOS context support */
+typedef struct {
+  GEOSContextHandle_t context;
+  char last_error[1024];
+  char last_warning[1024];
+} ThreadLocalGEOS;
+
+extern GEOSContextHandle_t get_geos_threadlocal_context(void);
+extern ThreadLocalGEOS* get_threadlocal_geos(void);
 
 extern void geos_error_handler(const char* message, void* userdata);
 extern void destroy_geom_arr(void* context, GEOSGeometry** array, int length);
@@ -186,7 +188,7 @@ extern char wkt_empty_3d_geometry(GEOSContextHandle_t ctx, GEOSGeometry* geom,
 #endif  // !GEOS_SINCE_3_12_0
 extern char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 
-extern int init_geos(PyObject* m);
+extern int init_shapely(PyObject* m);
 
 int get_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom, double* xmin, double* ymin,
                double* xmax, double* ymax);

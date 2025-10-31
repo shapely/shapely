@@ -7,28 +7,110 @@
 #include <numpy/npy_math.h>
 #include <structmember.h>
 
-/* This initializes a globally accessible GEOS Context, only to be used when holding the
- * GIL */
-void* geos_context[1] = {NULL};
+
 
 /* This initializes a globally accessible GEOSException object */
 PyObject* geos_exception[1] = {NULL};
 
-int init_geos(PyObject* m) {
+/* Threadlocal GEOS context support */
+PyObject* geos_threadlocal_key = NULL;
+
+/* Destructor function to clean up threadlocal GEOS context and buffers when thread terminates */
+static void threadlocal_geos_destructor(PyObject* capsule) {
+  ThreadLocalGEOS* tl_geos = PyCapsule_GetPointer(capsule, "threadlocal_geos");
+  if (tl_geos != NULL) {
+    if (tl_geos->context != NULL) {
+      GEOS_finish_r(tl_geos->context);
+    }
+    free(tl_geos);
+  }
+}
+
+int init_shapely(PyObject* m) {
   PyObject* base_class = PyErr_NewException("shapely.errors.ShapelyError", NULL, NULL);
   PyModule_AddObject(m, "ShapelyError", base_class);
   geos_exception[0] =
       PyErr_NewException("shapely.errors.GEOSException", base_class, NULL);
   PyModule_AddObject(m, "GEOSException", geos_exception[0]);
 
-  void* context_handle = GEOS_init_r();
-  // TODO: the error handling is not yet set up for the global context (it is right now
-  // only used where error handling is not used)
-  // GEOSContext_setErrorMessageHandler_r(context_handle, geos_error_handler, last_error);
-  geos_context[0] = context_handle;
-
+  // Create unique key for threadlocal storage (only needs to be done once globally)
+  if (geos_threadlocal_key == NULL) {
+    geos_threadlocal_key = PyUnicode_FromString("__shapely_geos_threadlocal__");
+    if (geos_threadlocal_key == NULL) {
+      return -1;
+    }
+  }
   return 0;
 }
+
+/* Threadlocal GEOS management functions */
+ThreadLocalGEOS* get_threadlocal_geos(void) {
+  if (geos_threadlocal_key == NULL) {
+    return NULL;
+  }
+
+  PyObject* thread_dict = PyThreadState_GetDict();
+  if (thread_dict == NULL) {
+    return NULL;
+  }
+
+  PyObject* geos_capsule = PyDict_GetItem(thread_dict, geos_threadlocal_key);
+  if (geos_capsule == NULL) {
+    // Create new threadlocal GEOS for this thread
+    ThreadLocalGEOS* tl_geos = malloc(sizeof(ThreadLocalGEOS));
+    if (tl_geos == NULL) {
+      return NULL;
+    }
+
+    // Initialize GEOS context
+    tl_geos->context = GEOS_init_r();
+    if (tl_geos->context == NULL) {
+      free(tl_geos);
+      return NULL;
+    }
+
+    // Initialize buffers
+    tl_geos->last_error[0] = '\0';
+    tl_geos->last_warning[0] = '\0';
+
+    // Set up error handler
+    GEOSContext_setErrorMessageHandler_r(tl_geos->context, geos_error_handler, tl_geos->last_error);
+
+    // Create capsule with destructor
+    geos_capsule = PyCapsule_New(tl_geos, "threadlocal_geos", threadlocal_geos_destructor);
+    if (geos_capsule == NULL) {
+      GEOS_finish_r(tl_geos->context);
+      free(tl_geos);
+      return NULL;
+    }
+
+    // Store in thread-local storage
+    if (PyDict_SetItem(thread_dict, geos_threadlocal_key, geos_capsule) < 0) {
+      Py_DECREF(geos_capsule);
+      return NULL;
+    }
+
+    Py_DECREF(geos_capsule);
+    return tl_geos;
+  }
+
+  ThreadLocalGEOS* tl_geos = PyCapsule_GetPointer(geos_capsule, "threadlocal_geos");
+  if (tl_geos != NULL) {
+    // Every time the GEOS threadlocal context is called, error buffers should be cleared
+    // because else errors from previous calls may still be there.
+    tl_geos->last_error[0] = '\0';
+    tl_geos->last_warning[0] = '\0';
+  }
+  return tl_geos;
+}
+
+/* Threadlocal GEOS context management functions */
+GEOSContextHandle_t get_geos_threadlocal_context(void) {
+  ThreadLocalGEOS* tl_geos = get_threadlocal_geos();
+  return (tl_geos != NULL) ? tl_geos->context : NULL;
+}
+
+
 
 void destroy_geom_arr(void* context, GEOSGeometry** array, int length) {
   int i;
