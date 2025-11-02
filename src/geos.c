@@ -7,6 +7,7 @@
 #include <numpy/npy_math.h>
 #include <structmember.h>
 
+
 /* Threadlocal GEOS context support - private to this file */
 typedef struct {
   GEOSContextHandle_t context;
