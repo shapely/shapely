@@ -29,8 +29,7 @@ Typical PyGEOS pattern in a function that uses GEOS:
 // GEOS_INIT will do three things:
 // 1. Make the GEOS context available in the variable ``ctx``
 // 2. Initialize a variable ``errstate`` to PGERR_SUCCESS.
-// 3. Set up GEOS error and warning buffers, respectively ``last_error`` and
-``last_warning``
+// 3. Make GEOS error message buffer available in the variable ``last_error``
 
 GEOS_INIT;   // or GEOS_INIT_THREADS if you use no CPython calls
 
@@ -71,9 +70,6 @@ enum ShapelyErrorCode {
 
 // Define how the states are handled by CPython
 #define GEOS_HANDLE_ERR                                                                  \
-  if (last_warning[0] != 0) {                                                            \
-    PyErr_WarnEx(PyExc_Warning, last_warning, 0);                                        \
-  }                                                                                      \
   switch (errstate) {                                                                    \
     case PGERR_SUCCESS:                                                                  \
       break;                                                                             \
@@ -143,7 +139,6 @@ enum ShapelyErrorCode {
   char errstate = PGERR_SUCCESS; \
   ThreadLocalGEOS* _tl_geos = get_threadlocal_geos(); \
   char* last_error = _tl_geos->last_error;   \
-  char* last_warning = _tl_geos->last_warning; \
   GEOSContextHandle_t ctx = _tl_geos->context
 
 #define GEOS_INIT_THREADS \
@@ -168,7 +163,6 @@ extern PyObject* geos_exception[1];
 typedef struct {
   GEOSContextHandle_t context;
   char last_error[1024];
-  char last_warning[1024];
 } ThreadLocalGEOS;
 
 extern GEOSContextHandle_t get_geos_threadlocal_context(void);

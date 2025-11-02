@@ -471,8 +471,9 @@ static void is_prepared_func(char** args, const npy_intp* dimensions, const npy_
                              void* data) {
   GEOSGeometry* in1 = NULL;
   GEOSPreparedGeometry* in1_prepared = NULL;
+  char errstate = PGERR_SUCCESS;
 
-  GEOS_INIT_THREADS;
+  Py_BEGIN_ALLOW_THREADS;
 
   UNARY_LOOP {
     CHECK_SIGNALS_THREADS(i);
@@ -487,7 +488,7 @@ static void is_prepared_func(char** args, const npy_intp* dimensions, const npy_
     *(npy_bool*)op1 = (in1_prepared != NULL);
   }
 
-  GEOS_FINISH_THREADS;
+  Py_END_ALLOW_THREADS;
 }
 static PyUFuncGenericFunction is_prepared_funcs[1] = {&is_prepared_func};
 
