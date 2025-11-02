@@ -137,9 +137,8 @@ enum ShapelyErrorCode {
 // Define initialization / finalization macros
 #define GEOS_INIT           \
   char errstate = PGERR_SUCCESS; \
-  ThreadLocalGEOS* _tl_geos = get_threadlocal_geos(); \
-  char* last_error = _tl_geos->last_error;   \
-  GEOSContextHandle_t ctx = _tl_geos->context
+  char* last_error = init_geos_error_buffer(); \
+  GEOSContextHandle_t ctx = init_geos_context()
 
 #define GEOS_INIT_THREADS \
   GEOS_INIT;         \
@@ -160,13 +159,8 @@ enum ShapelyErrorCode {
 extern PyObject* geos_exception[1];
 
 /* Threadlocal GEOS context support */
-typedef struct {
-  GEOSContextHandle_t context;
-  char last_error[1024];
-} ThreadLocalGEOS;
-
-extern GEOSContextHandle_t get_geos_threadlocal_context(void);
-extern ThreadLocalGEOS* get_threadlocal_geos(void);
+extern GEOSContextHandle_t init_geos_context(void);
+extern char* init_geos_error_buffer(void);
 
 extern void geos_error_handler(const char* message, void* userdata);
 extern void destroy_geom_arr(void* context, GEOSGeometry** array, int length);

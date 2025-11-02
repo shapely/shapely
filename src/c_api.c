@@ -29,3 +29,11 @@ extern int PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf
   return coordseq_from_buffer(ctx, buf, size, dims, is_ring, handle_nan, dims * 8, 8,
                               coord_seq);
 }
+
+extern GEOSContextHandle_t PyGEOS_InitGEOSContext(void) {
+  return init_geos_context();
+}
+
+extern char* PyGEOS_InitGEOSErrorBuffer(void) {
+  return init_geos_error_buffer();
+}

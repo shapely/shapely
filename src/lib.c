@@ -96,6 +96,8 @@ PyMODINIT_FUNC PyInit_lib(void) {
   PyGEOS_API[PyGEOS_CreateGeometry_NUM] = (void*)PyGEOS_CreateGeometry;
   PyGEOS_API[PyGEOS_GetGEOSGeometry_NUM] = (void*)PyGEOS_GetGEOSGeometry;
   PyGEOS_API[PyGEOS_CoordSeq_FromBuffer_NUM] = (void*)PyGEOS_CoordSeq_FromBuffer;
+  PyGEOS_API[PyGEOS_InitGEOSContext_NUM] = (void*)PyGEOS_InitGEOSContext;
+  PyGEOS_API[PyGEOS_InitGEOSErrorBuffer_NUM] = (void*)PyGEOS_InitGEOSErrorBuffer;
 
   /* Create a Capsule containing the API pointer array's address */
   c_api_object = PyCapsule_New((void*)PyGEOS_API, "shapely.lib._C_API", NULL);

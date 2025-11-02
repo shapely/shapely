@@ -7,7 +7,11 @@
 #include <numpy/npy_math.h>
 #include <structmember.h>
 
-
+/* Threadlocal GEOS context support - private to this file */
+typedef struct {
+  GEOSContextHandle_t context;
+  char last_error[1024];
+} ThreadLocalGEOS;
 
 /* This initializes a globally accessible GEOSException object */
 PyObject* geos_exception[1] = {NULL};
@@ -41,10 +45,30 @@ int init_shapely(PyObject* m) {
   return 0;
 }
 
-/* Threadlocal GEOS management functions */
-ThreadLocalGEOS* get_threadlocal_geos(void) {
-  ThreadLocalGEOS* tl_geos;
+ThreadLocalGEOS* _init_threadlocal_geos(PyObject* thread_dict) {
+  // Create new threadlocal GEOS for this thread
+  ThreadLocalGEOS* tl_geos = malloc(sizeof(ThreadLocalGEOS));
 
+  // Initialize GEOS context
+  tl_geos->context = GEOS_init_r();
+
+  // Initialize error message buffer
+  tl_geos->last_error[0] = '\0';
+
+  // Set up error and notice handlers
+  GEOSContext_setErrorMessageHandler_r(tl_geos->context, geos_error_handler, tl_geos->last_error);
+
+  // Create capsule (with destructor so that GEOS context is cleaned up when thread ends)
+  PyObject* geos_capsule = PyCapsule_New(tl_geos, "threadlocal_geos", threadlocal_geos_destructor);
+
+  // Store in thread-local storage
+  PyDict_SetItem(thread_dict, geos_threadlocal_key, geos_capsule);
+
+  Py_DECREF(geos_capsule);
+  return tl_geos;
+}
+
+ThreadLocalGEOS* get_threadlocal_geos(void) {
   // From Python docs: In general, there will always be an attached thread state when
   // using Python’s C API. Only in some specific cases (such as in a Py_BEGIN_ALLOW_THREADS
   // block) will the thread not have an attached thread state.
@@ -54,28 +78,10 @@ ThreadLocalGEOS* get_threadlocal_geos(void) {
   PyObject* geos_capsule = PyDict_GetItem(thread_dict, geos_threadlocal_key);
   if (geos_capsule == NULL) {
     // Create new threadlocal GEOS for this thread
-    tl_geos = malloc(sizeof(ThreadLocalGEOS));
-
-    // Initialize GEOS context
-    tl_geos->context = GEOS_init_r();
-
-    // Initialize error message buffer
-    tl_geos->last_error[0] = '\0';
-
-    // Set up error and notice handlers
-    GEOSContext_setErrorMessageHandler_r(tl_geos->context, geos_error_handler, tl_geos->last_error);
-
-    // Create capsule (with destructor so that GEOS context is cleaned up when thread ends)
-    geos_capsule = PyCapsule_New(tl_geos, "threadlocal_geos", threadlocal_geos_destructor);
-
-    // Store in thread-local storage
-    PyDict_SetItem(thread_dict, geos_threadlocal_key, geos_capsule);
-
-    Py_DECREF(geos_capsule);
-    return tl_geos;
+    return _init_threadlocal_geos(thread_dict);
   }
 
-  tl_geos = PyCapsule_GetPointer(geos_capsule, "threadlocal_geos");
+  ThreadLocalGEOS* tl_geos = PyCapsule_GetPointer(geos_capsule, "threadlocal_geos");
   // Every time the GEOS threadlocal context is called, the error message buffer should be
   // cleared because else errors from previous calls may still be there.
   tl_geos->last_error[0] = '\0';
@@ -83,10 +89,17 @@ ThreadLocalGEOS* get_threadlocal_geos(void) {
 }
 
 /* Threadlocal GEOS context management functions */
-GEOSContextHandle_t get_geos_threadlocal_context(void) {
+GEOSContextHandle_t init_geos_context(void) {
   return get_threadlocal_geos()->context;
 }
 
+char* init_geos_error_buffer(void) {
+  ThreadLocalGEOS* tl_geos;
+
+  tl_geos = get_threadlocal_geos();
+  tl_geos->last_error[0] = '\0';
+  return tl_geos->last_error;
+}
 
 
 void destroy_geom_arr(void* context, GEOSGeometry** array, int length) {

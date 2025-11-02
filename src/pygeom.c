@@ -59,7 +59,7 @@ static void GeometryObject_dealloc(GeometryObject* self) {
   }
   if (self->ptr != NULL) {
     // use threadlocal GEOS context
-    GEOSContextHandle_t ctx = get_geos_threadlocal_context();
+    GEOSContextHandle_t ctx = init_geos_context();
     GEOSGeom_destroy_r(ctx, self->ptr);
     if (self->ptr_prepared != NULL) {
       GEOSPreparedGeom_destroy_r(ctx, self->ptr_prepared);
