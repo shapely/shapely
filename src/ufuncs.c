@@ -3785,15 +3785,6 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
 int init_ufuncs(PyObject* m, PyObject* d) {
   PyObject* ufunc;
 
-  DEFINE_Y_b(is_ccw);
-  DEFINE_Y_b(is_empty);
-  DEFINE_Y_b(is_simple);
-  DEFINE_Y_b(is_geometry);
-  DEFINE_Y_b(is_ring);
-  DEFINE_Y_b(has_z);
-  DEFINE_Y_b(is_closed);
-  DEFINE_Y_b(is_valid);
-
   DEFINE_O_b(is_geometry);
   DEFINE_O_b(is_missing);
   DEFINE_O_b(is_valid_input);
@@ -3928,7 +3919,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_GENERALIZED(coverage_invalid_edges, 2, "(d),()->(d)");
   DEFINE_CUSTOM(coverage_simplify, 3);
   DEFINE_Y_Y(disjoint_subset_union);
-  DEFINE_Y_b(has_m);
   DEFINE_Yi_Y(orient_polygons);
 #endif
 
