@@ -150,7 +150,7 @@ def test_coverage_invalid_edges_gufunc():
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 @pytest.mark.parametrize("geometry", all_types)
 def test_coverage_simplify_scalars(geometry):
-    if geometry.geom_type in ("Polygon", "MultiPolygon"):
+    if geometry.geom_type in {"Polygon", "MultiPolygon"}:
         actual = shapely.coverage_simplify(geometry, 0.0)
         assert isinstance(actual, Geometry)
         assert shapely.get_type_id(actual) == shapely.get_type_id(geometry)
@@ -163,7 +163,7 @@ def test_coverage_simplify_scalars(geometry):
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 @pytest.mark.parametrize("geometry", all_types)
 def test_coverage_simplify_geom_types(geometry):
-    if geometry.geom_type in ("Polygon", "MultiPolygon"):
+    if geometry.geom_type in {"Polygon", "MultiPolygon"}:
         actual = shapely.coverage_simplify([geometry, geometry], 0.0)
         assert isinstance(actual, np.ndarray)
         assert actual.shape == (2,)
