@@ -23,7 +23,7 @@ int init_geos(PyObject* m) {
 
   void* context_handle = GEOS_init_r();
   // TODO: the error handling is not yet set up for the global context (it is right now
-  // only used where error handling is not used)
+  // only used for Geometry deallocation)
   // GEOSContext_setErrorMessageHandler_r(context_handle, geos_error_handler, last_error);
   geos_context[0] = context_handle;
 
