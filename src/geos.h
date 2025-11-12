@@ -21,33 +21,54 @@
 #pragma GCC diagnostic pop
 #endif
 
-/* Macros to setup GEOS Context and error handlers
-
-Typical PyGEOS pattern in a function that uses GEOS:
-
-
-// GEOS_INIT will do three things:
-// 1. Make the GEOS context available in the variable ``ctx``
-// 2. Initialize a variable ``errstate`` to PGERR_SUCCESS.
-// 3. Make GEOS error message buffer available in the variable ``last_error``
-
-GEOS_INIT;   // or GEOS_INIT_THREADS if you use no CPython calls
-
-
-// call a GEOS function using the context 'ctx'
-result = SomeGEOSFunc(ctx, ...);
-
-// handle an error state
-if (result == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
-
-
-// GEOS_FINISH will remove the GEOS context and set python errors in case
-// errstate != PGERR_SUCCESS.
-
-finish:
-  GEOS_FINISH;  //  or GEOS_FINISH_THREADS if you use no CPython calls
-
-*/
+/*
+ * GEOS Context Management and Error Handling Macros
+ *
+ * These macros provide a standardized way to manage GEOS contexts and handle errors
+ * in Shapely's C extension code. The GEOS context is stored in thread-local storage
+ * to ensure thread safety when multiple Python threads are using GEOS operations
+ * simultaneously.
+ *
+ * GEOS Context:
+ * - GEOS has a so-called 'reentrant' C API that allows multiple threads to use GEOS
+ *   functions simultaneously without interfering with each other, provided that each
+ *   GEOS function is called with its own GEOSContextHandle_t context handle.
+ * - Shapely creates a separate GEOS context for each Python thread, stored in thread-local
+ *   storage.
+ *
+ * Initialization and GIL Management:
+ * - The GEOS_INIT macro gets (or creates) the thread-local GEOS context for the current
+ *   thread and sets this in the local `ctx` variable.
+ * - The GEOS_INIT_THREADS does the same, but also releases the GIL allowing other Python
+ *   threads to run concurrently. GEOS_FINISH_THREADS must be used to reacquire the GIL.
+ *
+ * Finalization and Error Handling:
+ * - Errors are captured in the 'errstate' and 'last_error' variables, that are
+ *   initialized in GEOS_INIT.
+ * - Errors are converted to appropriate Python exceptions in the GEOS_FINISH macro.
+ *   This means that PyErr_SetString is called; it is up to the caller to return NULL
+ *   in that case (after GEOS_FINISH, by checking `errstate == PGERR_SUCCESS`).
+ * - In case of a GEOS error, the 'last_error' buffer is used as a temporary storage
+ *   for the error message. This buffer is reused (as threadlocal).
+ *
+ * Usage Pattern:
+ *
+ * GEOS_INIT;  // Initialize context and error handling
+ *             // Use GEOS_INIT_THREADS if no Python C API calls are made
+ *
+ * // Perform GEOS operations using the 'ctx' context handle
+ * result = GEOSGeomFromWKT_r(ctx, wkt_string);
+ * if (result == NULL) {
+ *     errstate = PGERR_GEOS_EXCEPTION;
+ *     goto finish;
+ * }
+ *
+ * // More GEOS operations...
+ *
+ * finish:
+ *   GEOS_FINISH;  // Clean up context and convert errors to Python exceptions
+ *                 // Use GEOS_FINISH_THREADS if GEOS_INIT_THREADS was used
+ */
 
 // Define the error states
 enum ShapelyErrorCode {

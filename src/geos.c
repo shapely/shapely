@@ -79,7 +79,7 @@ ThreadLocalGEOS* get_threadlocal_geos(void) {
     return _init_threadlocal_geos(thread_dict);
   }
 
-  return tl_geos = PyCapsule_GetPointer(geos_capsule, "threadlocal_geos");
+  return PyCapsule_GetPointer(geos_capsule, "threadlocal_geos");
 }
 
 /* Threadlocal GEOS context management functions */
