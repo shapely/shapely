@@ -3,6 +3,6 @@
 
 #include <Python.h>
 
-int init_geos_funcs_Y_b(PyObject* m, PyObject* d);
+extern int init_geos_funcs_Y_b(PyObject* m, PyObject* d);
 
 #endif

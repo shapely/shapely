@@ -177,14 +177,10 @@ static char core_Y_d_operation(GEOSContextHandle_t context, FuncGEOS_Y_d* func,
 static PyObject* Py_Y_d_Scalar(PyObject* self, PyObject* obj, FuncGEOS_Y_d* func) {
   double result = NPY_NAN;
 
-  // Initialize GEOS context for thread-safe operations
   GEOS_INIT;
 
-  // Perform the actual GEOS operation using shared core logic
   errstate = core_Y_d_operation(ctx, func, obj, &result);
 
-  // Finish the GEOS context and handle any errors that occurred during
-  // the operation. This macro sets appropriate Python exceptions.
   GEOS_FINISH;
 
   if (errstate != PGERR_SUCCESS) {

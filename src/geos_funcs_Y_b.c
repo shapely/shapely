@@ -25,473 +25,291 @@
  *
  * Parameters:
  *   context: GEOS context handle for thread safety
- *   a: Input geometry (GEOSGeometry*)
- *   b: Output pointer where the result char will be stored (0 = false, 1 = true)
+ *   a: Input geometry
  *
  * Returns:
- *   1 on success, 0 on error (following GEOS convention)
+ *   0 for false, 1 for true, 2 on error (following GEOS convention)
  */
-typedef int FuncGEOS_Y_b(GEOSContextHandle_t context, const GEOSGeometry* a, char* b);
+typedef char FuncGEOS_Y_b(GEOSContextHandle_t context, const GEOSGeometry* a);
 
-static int IsEmpty(GEOSContextHandle_t context, const GEOSGeometry* a, char* b) {
-  char result = GEOSisEmpty_r(context, a);
-  if (result == 2) {
-    return 0;  // Error
-  }
-  *(char*)b = result;
-  return 1;
-}
-
-static int IsSimple(GEOSContextHandle_t context, const GEOSGeometry* a, char* b) {
-  // the GEOSisSimple_r function fails on geometrycollections
-  int type = GEOSGeomTypeId_r(context, a);
+/* the GEOSisSimple_r function fails on geometrycollections */
+static char GEOSisSimpleAllTypes_r(GEOSContextHandle_t context, const GEOSGeometry* geom) {
+  int type = GEOSGeomTypeId_r(context, geom);
   if (type == -1) {
-    return 0;  // Error
-  } else if (type == 7) {  // GEOMETRYCOLLECTION
-    *(char*)b = 0;  // Not simple
-    return 1;
+    return 2;  // Predicates use a return value of 2 for errors
+  } else if (type == GEOS_GEOMETRYCOLLECTION) {
+    return 0;
   } else {
-    char result = GEOSisSimple_r(context, a);
-    if (result == 2) {
-      return 0;  // Error
-    }
-    *(char*)b = result;
-    return 1;
+    return GEOSisSimple_r(context, geom);
   }
 }
 
-static int IsRing(GEOSContextHandle_t context, const GEOSGeometry* a, char* b) {
-  char result = GEOSisRing_r(context, a);
-  if (result == 2) {
-    return 0;  // Error
-  }
-  *(char*)b = result;
-  return 1;
-}
-
-static int IsClosed(GEOSContextHandle_t context, const GEOSGeometry* a, char* b) {
-  // the GEOSisClosed_r function fails on non-linestrings
-  int type = GEOSGeomTypeId_r(context, a);
+/* the GEOSisClosed_r function fails on non-linestrings */
+static char GEOSisClosedAllTypes_r(GEOSContextHandle_t context, const GEOSGeometry* geom) {
+  int type = GEOSGeomTypeId_r(context, geom);
   if (type == -1) {
-    return 0;  // Error
-  } else if ((type == 1) || (type == 2) || (type == 5)) {  // Point, LineString, LinearRing, MultiLineString
-    char result = GEOSisClosed_r(context, a);
-    if (result == 2) {
-      return 0;  // Error
-    }
-    *(char*)b = result;
-    return 1;
+    return 2;  // Predicates use a return value of 2 for errors
+  } else if ((type == GEOS_LINESTRING) || (type == GEOS_LINEARRING) || (type == GEOS_MULTILINESTRING)) {
+    return GEOSisClosed_r(context, geom);
   } else {
-    *(char*)b = 0;  // Not closed
-    return 1;
+    return 0;
   }
 }
 
-static int IsValid(GEOSContextHandle_t context, const GEOSGeometry* a, char* b) {
-  char result = GEOSisValid_r(context, a);
-  if (result == 2) {
-    return 0;  // Error
-  }
-  *(char*)b = result;
-  return 1;
-}
-
-static int HasZ(GEOSContextHandle_t context, const GEOSGeometry* a, char* b) {
-  char result = GEOSHasZ_r(context, a);
-  if (result == 2) {
-    return 0;  // Error
-  }
-  *(char*)b = result;
-  return 1;
-}
-
-#if GEOS_SINCE_3_12_0
-static int HasM(GEOSContextHandle_t context, const GEOSGeometry* a, char* b) {
-  char result = GEOSHasM_r(context, a);
-  if (result == 2) {
-    return 0;  // Error
-  }
-  *(char*)b = result;
-  return 1;
-}
-#endif
-
-static int IsCCW(GEOSContextHandle_t context, const GEOSGeometry* a, char* b) {
+static char GEOSGeom_isCCW_r(GEOSContextHandle_t context, const GEOSGeometry* geom) {
   const GEOSCoordSequence* coord_seq;
   char is_ccw = 2;  // return value of 2 means GEOSException
   int i;
 
   // Return False for non-linear geometries
-  i = GEOSGeomTypeId_r(context, a);
+  i = GEOSGeomTypeId_r(context, geom);
   if (i == -1) {
-    return 0;  // Error
+    return 2;
   }
   if ((i != GEOS_LINEARRING) && (i != GEOS_LINESTRING)) {
-    *(char*)b = 0;  // Not CCW
-    return 1;
+    return 0;
   }
 
   // Return False for lines with fewer than 4 points
-  i = GEOSGeomGetNumPoints_r(context, a);
+  i = GEOSGeomGetNumPoints_r(context, geom);
   if (i == -1) {
-    return 0;  // Error
+    return 2;
   }
   if (i < 4) {
-    *(char*)b = 0;  // Not CCW
-    return 1;
+    return 0;
   }
 
   // Get the coordinatesequence and call isCCW()
-  coord_seq = GEOSGeom_getCoordSeq_r(context, a);
+  coord_seq = GEOSGeom_getCoordSeq_r(context, geom);
   if (coord_seq == NULL) {
-    return 0;  // Error
+    return 2;
   }
   if (!GEOSCoordSeq_isCCW_r(context, coord_seq, &is_ccw)) {
-    return 0;  // Error
+    return 2;
   }
-  *(char*)b = is_ccw;
-  return 1;
-}
-
-static int IsGeometry(GEOSContextHandle_t context, const GEOSGeometry* a, char* b) {
-  // is_geometry just checks if we have a valid geometry
-  *(char*)b = (a != NULL) ? 1 : 0;
-  return 1;
+  return is_ccw;
 }
 
 /* ========================================================================
- * UFUNC LOOPS FOR Y -> b operations
+ * CORE OPERATION LOGIC
  * ======================================================================== */
 
-/* The Y->b ufunc loop implementation is based on the existing Y_b_func in ufuncs.c,
- * but adapted to call our wrapper functions above.
+/*
+ * Core function that performs the actual GEOS operation.
+ * This is shared between both ufunc and scalar implementations to avoid code duplication.
+ *
+ * Parameters:
+ *   context: GEOS context handle for thread-safe operations
+ *   func: Function pointer to the specific GEOS operation to perform
+ *   geom_obj: Shapely geometry object (Python wrapper around GEOSGeometry)
+ *   result: Pointer where the computed char result will be stored
+ *
+ * Returns:
+ *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)
  */
-static void Y_b_ufunc_loop(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                           void* data) {
-  FuncGEOS_Y_b* func = (FuncGEOS_Y_b*)data;
-  GEOSGeometry* in1 = NULL;
-  char ret;
+static char core_Y_b_operation(GEOSContextHandle_t context, FuncGEOS_Y_b* func,
+                               PyObject* geom_obj, char* result) {
+  const GEOSGeometry* geom;
 
+  // Extract the underlying GEOS geometry from the Python geometry object
+  if (!ShapelyGetGeometry(geom_obj, &geom)) {
+    return PGERR_NOT_A_GEOMETRY;
+  }
+
+  // Handle NULL geometry case - return False as per convention for boolean operations
+  if (geom == NULL) {
+    *result = 0;  // False
+    return PGERR_SUCCESS;
+  }
+
+  // Call the specific GEOS function (e.g., GEOSisEmpty_r, GEOSisValid_r, etc.)
+  *result = func(context, (void*)geom);
+  if (*result == 2) {
+    return PGERR_GEOS_EXCEPTION;
+  }
+
+  return PGERR_SUCCESS;
+}
+
+/* ========================================================================
+ * SCALAR PYTHON FUNCTION
+ * ======================================================================== */
+
+/*
+ * Generic scalar Python function implementation for Y->b operations.
+ * This handles single geometry inputs (not arrays) and returns a Python bool.
+ * It should be registered as a METH_O method (accepting only a single argument).
+ *
+ * This function is used as a template by the DEFINE_Y_b macro to create
+ * specific scalar functions like PyIsEmpty_Scalar, PyIsValid_Scalar, etc.
+ *
+ * Parameters:
+ *   self: Module object (unused, required by Python C API)
+ *   obj: Input geometry object (should be a GeometryObject)
+ *   func: Function pointer to the specific GEOS operation
+ *
+ * Returns:
+ *   PyBool object containing the result, or NULL on error
+ */
+static PyObject* Py_Y_b_Scalar(PyObject* self, PyObject* obj, FuncGEOS_Y_b* func) {
+  char result = 0;
+
+  GEOS_INIT;
+
+  errstate = core_Y_b_operation(ctx, func, obj, &result);
+
+  GEOS_FINISH;
+
+  if (errstate != PGERR_SUCCESS) {
+    return NULL;  // Python exception was set by GEOS_FINISH
+  }
+
+  return PyBool_FromLong(result);
+}
+
+/* ========================================================================
+ * NUMPY UFUNC
+ * ======================================================================== */
+
+/*
+ * NumPy universal function implementation for Y->b operations.
+ * This handles arrays of geometries efficiently by iterating through them.
+ *
+ * Parameters:
+ *   args, dimensions, steps: Standard ufunc loop parameters (see NumPy docs)
+ *   data: User data passed from ufunc creation (contains function pointer)
+ */
+static void Y_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
+  // Extract the specific GEOS function from the user data
+  FuncGEOS_Y_b* func = (FuncGEOS_Y_b*)data;
+
+  // Initialize GEOS context with thread support (releases Python GIL)
   GEOS_INIT_THREADS;
 
+  // The UNARY_LOOP macro unpacks args, dimensions, and steps and iterates through input/output arrays
+  // ip1 points to current input element, op1 points to current output element
   UNARY_LOOP {
     CHECK_SIGNALS_THREADS(i);
     if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
-    /* get the geometry; return on error */
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
+    errstate = core_Y_b_operation(ctx, func, *(PyObject**)ip1, (char*)op1);
+    if (errstate != PGERR_SUCCESS) {
       goto finish;
     }
-    if (in1 == NULL) {
-      /* in case of a missing value: return 0 (False) */
-      ret = 0;
-    } else {
-      /* call the GEOS function */
-      if (func(geos_context[0], in1, &ret)) {
-        // Success, ret contains the result
-      } else {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-    }
-    *(npy_bool*)op1 = ret;
   }
 
 finish:
+  // Clean up GEOS context and handle any errors (reacquires Python GIL)
   GEOS_FINISH_THREADS;
 }
 
+/*
+ * Function pointer array for NumPy ufunc creation.
+ * NumPy requires this format to register different implementations
+ * for different type combinations.
+ */
+static PyUFuncGenericFunction Y_b_funcs[1] = {&Y_b_func};
+
+/*
+ * Type signature for the ufunc: takes NPY_OBJECT (geometry), returns NPY_BOOL.
+ * This tells NumPy what input and output types this ufunc supports.
+ */
+static char Y_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
+
+
 /* ========================================================================
- * SCALAR FUNCTIONS FOR DIRECT ACCESS
- * ======================================================================== */
-
-static PyObject* is_empty_scalar(PyObject* self, PyObject* args) {
-  PyObject* geom_obj;
-  if (!PyArg_ParseTuple(args, "O", &geom_obj)) {
-    return NULL;
+ * PYTHON FUNCTION DEFINITIONS
+ * ========================================================================
+ *
+ * We use a macro to define a scalar Python function for each GEOS operation.
+ *
+ * This creates a function like PyIsEmpty_Scalar that can be called from Python.
+ * The generated function signature is:
+ *   static PyObject* Py{func_name}_Scalar(PyObject* self, PyObject* obj)
+ *
+ * Example: DEFINE_Y_b(IsEmpty) creates PyIsEmpty_Scalar function
+ *
+ * Parameters:
+ *   func_name: Name of the C function that performs the GEOS operation
+ */
+#define DEFINE_Y_b(func_name) \
+  static PyObject* Py##func_name##_Scalar(PyObject* self, PyObject* obj) { \
+    return Py_Y_b_Scalar(self, obj, (FuncGEOS_Y_b*)func_name); \
   }
 
-  GeometryObject* geom = (GeometryObject*)geom_obj;
-  if (!PyObject_IsInstance(geom_obj, (PyObject*)&GeometryType)) {
-    PyErr_SetString(PyExc_TypeError, "Expected Geometry object");
-    return NULL;
-  }
-
-  if (geom->ptr == NULL) {
-    Py_RETURN_TRUE;  // NULL geometry is empty
-  }
-
-  GEOSContextHandle_t context = geos_context[0];
-  char result;
-  if (IsEmpty(context, geom->ptr, &result)) {
-    return PyBool_FromLong(result);
-  } else {
-    Py_RETURN_FALSE;  // Error -> False
-  }
-}
-
-static PyObject* is_simple_scalar(PyObject* self, PyObject* args) {
-  PyObject* geom_obj;
-  if (!PyArg_ParseTuple(args, "O", &geom_obj)) {
-    return NULL;
-  }
-
-  GeometryObject* geom = (GeometryObject*)geom_obj;
-  if (!PyObject_IsInstance(geom_obj, (PyObject*)&GeometryType)) {
-    PyErr_SetString(PyExc_TypeError, "Expected Geometry object");
-    return NULL;
-  }
-
-  if (geom->ptr == NULL) {
-    Py_RETURN_FALSE;  // NULL geometry is not simple
-  }
-
-  GEOSContextHandle_t context = geos_context[0];
-  char result;
-  if (IsSimple(context, geom->ptr, &result)) {
-    return PyBool_FromLong(result);
-  } else {
-    Py_RETURN_FALSE;  // Error -> False
-  }
-}
-
-static PyObject* is_ring_scalar(PyObject* self, PyObject* args) {
-  PyObject* geom_obj;
-  if (!PyArg_ParseTuple(args, "O", &geom_obj)) {
-    return NULL;
-  }
-
-  GeometryObject* geom = (GeometryObject*)geom_obj;
-  if (!PyObject_IsInstance(geom_obj, (PyObject*)&GeometryType)) {
-    PyErr_SetString(PyExc_TypeError, "Expected Geometry object");
-    return NULL;
-  }
-
-  if (geom->ptr == NULL) {
-    Py_RETURN_FALSE;  // NULL geometry is not a ring
-  }
-
-  GEOSContextHandle_t context = geos_context[0];
-  char result;
-  if (IsRing(context, geom->ptr, &result)) {
-    return PyBool_FromLong(result);
-  } else {
-    Py_RETURN_FALSE;  // Error -> False
-  }
-}
-
-static PyObject* is_closed_scalar(PyObject* self, PyObject* args) {
-  PyObject* geom_obj;
-  if (!PyArg_ParseTuple(args, "O", &geom_obj)) {
-    return NULL;
-  }
-
-  GeometryObject* geom = (GeometryObject*)geom_obj;
-  if (!PyObject_IsInstance(geom_obj, (PyObject*)&GeometryType)) {
-    PyErr_SetString(PyExc_TypeError, "Expected Geometry object");
-    return NULL;
-  }
-
-  if (geom->ptr == NULL) {
-    Py_RETURN_FALSE;  // NULL geometry is not closed
-  }
-
-  GEOSContextHandle_t context = geos_context[0];
-  char result;
-  if (IsClosed(context, geom->ptr, &result)) {
-    return PyBool_FromLong(result);
-  } else {
-    Py_RETURN_FALSE;  // Error -> False
-  }
-}
-
-static PyObject* is_valid_scalar(PyObject* self, PyObject* args) {
-  PyObject* geom_obj;
-  if (!PyArg_ParseTuple(args, "O", &geom_obj)) {
-    return NULL;
-  }
-
-  GeometryObject* geom = (GeometryObject*)geom_obj;
-  if (!PyObject_IsInstance(geom_obj, (PyObject*)&GeometryType)) {
-    PyErr_SetString(PyExc_TypeError, "Expected Geometry object");
-    return NULL;
-  }
-
-  if (geom->ptr == NULL) {
-    Py_RETURN_FALSE;  // NULL geometry is not valid
-  }
-
-  GEOSContextHandle_t context = geos_context[0];
-  char result;
-  if (IsValid(context, geom->ptr, &result)) {
-    return PyBool_FromLong(result);
-  } else {
-    Py_RETURN_FALSE;  // Error -> False
-  }
-}
-
-static PyObject* has_z_scalar(PyObject* self, PyObject* args) {
-  PyObject* geom_obj;
-  if (!PyArg_ParseTuple(args, "O", &geom_obj)) {
-    return NULL;
-  }
-
-  GeometryObject* geom = (GeometryObject*)geom_obj;
-  if (!PyObject_IsInstance(geom_obj, (PyObject*)&GeometryType)) {
-    PyErr_SetString(PyExc_TypeError, "Expected Geometry object");
-    return NULL;
-  }
-
-  if (geom->ptr == NULL) {
-    Py_RETURN_FALSE;  // NULL geometry has no Z
-  }
-
-  GEOSContextHandle_t context = geos_context[0];
-  char result;
-  if (HasZ(context, geom->ptr, &result)) {
-    return PyBool_FromLong(result);
-  } else {
-    Py_RETURN_FALSE;  // Error -> False
-  }
-}
+DEFINE_Y_b(GEOSGeom_isCCW_r);
+DEFINE_Y_b(GEOSisEmpty_r);
+DEFINE_Y_b(GEOSisSimpleAllTypes_r);
+DEFINE_Y_b(GEOSisRing_r);
+DEFINE_Y_b(GEOSHasZ_r);
+DEFINE_Y_b(GEOSisClosedAllTypes_r);
+DEFINE_Y_b(GEOSisValid_r);
 
 #if GEOS_SINCE_3_12_0
-static PyObject* has_m_scalar(PyObject* self, PyObject* args) {
-  PyObject* geom_obj;
-  if (!PyArg_ParseTuple(args, "O", &geom_obj)) {
-    return NULL;
-  }
-
-  GeometryObject* geom = (GeometryObject*)geom_obj;
-  if (!PyObject_IsInstance(geom_obj, (PyObject*)&GeometryType)) {
-    PyErr_SetString(PyExc_TypeError, "Expected Geometry object");
-    return NULL;
-  }
-
-  if (geom->ptr == NULL) {
-    Py_RETURN_FALSE;  // NULL geometry has no M
-  }
-
-  GEOSContextHandle_t context = geos_context[0];
-  char result;
-  if (HasM(context, geom->ptr, &result)) {
-    return PyBool_FromLong(result);
-  } else {
-    Py_RETURN_FALSE;  // Error -> False
-  }
-}
+DEFINE_Y_b(GEOSHasM_r);
 #endif
 
-static PyObject* is_ccw_scalar(PyObject* self, PyObject* args) {
-  PyObject* geom_obj;
-  if (!PyArg_ParseTuple(args, "O", &geom_obj)) {
-    return NULL;
-  }
-
-  GeometryObject* geom = (GeometryObject*)geom_obj;
-  if (!PyObject_IsInstance(geom_obj, (PyObject*)&GeometryType)) {
-    PyErr_SetString(PyExc_TypeError, "Expected Geometry object");
-    return NULL;
-  }
-
-  if (geom->ptr == NULL) {
-    Py_RETURN_FALSE;  // NULL geometry is not CCW
-  }
-
-  GEOSContextHandle_t context = geos_context[0];
-  char result;
-  if (IsCCW(context, geom->ptr, &result)) {
-    return PyBool_FromLong(result);
-  } else {
-    Py_RETURN_FALSE;  // Error -> False
-  }
-}
-
-static PyObject* is_geometry_scalar(PyObject* self, PyObject* args) {
-  PyObject* geom_obj;
-  if (!PyArg_ParseTuple(args, "O", &geom_obj)) {
-    return NULL;
-  }
-
-  GeometryObject* geom = (GeometryObject*)geom_obj;
-  if (!PyObject_IsInstance(geom_obj, (PyObject*)&GeometryType)) {
-    PyErr_SetString(PyExc_TypeError, "Expected Geometry object");
-    return NULL;
-  }
-
-  char result;
-  GEOSContextHandle_t context = geos_context[0];
-  if (IsGeometry(context, geom->ptr, &result)) {
-    return PyBool_FromLong(result);
-  } else {
-    Py_RETURN_FALSE;  // Error -> False
-  }
-}
-
-/* ========================================================================
- * UFUNC CREATION MACROS (similar to DEFINE_Y_b in ufuncs.c)
- * ======================================================================== */
-
-#define DEFINE_Y_b_UFUNC_AND_SCALAR(NAME, FUNC) \
-  static char NAME##_dtypes[2] = {NPY_OBJECT, NPY_BOOL}; \
-  static void* NAME##_data[1] = {FUNC}; \
-  static PyUFuncGenericFunction NAME##_funcs[1] = {&Y_b_ufunc_loop}; \
-  ufunc = PyUFunc_FromFuncAndData(NAME##_funcs, NAME##_data, NAME##_dtypes, 1, 1, 1, \
-                                  PyUFunc_None, #NAME, NULL, 0); \
-  PyDict_SetItemString(d, #NAME, ufunc); \
-  Py_DECREF(ufunc)
 
 /* ========================================================================
  * MODULE INITIALIZATION
  * ======================================================================== */
 
+/*
+ * We use a single macro to register both ufunc and scalar versions of a function with Python.
+ *
+ * This creates two Python-callable functions:
+ * 1. A NumPy ufunc (e.g., "is_empty") for array operations
+ * 2. A scalar function (e.g., "is_empty_scalar") for single geometry operations
+ *
+ * Parameters:
+ *   func_name: Name of the C function (e.g., IsEmpty)
+ *   py_name: Python function name (e.g., is_empty)
+ *
+ */
+
+
+#define INIT_Y_b(func_name, py_name) do { \
+    /* Create data array to pass GEOS function pointer to the 'data' parameter of the ufunc */ \
+    static void* func_name##_FuncData[1] = {func_name}; \
+    \
+    /* Create NumPy ufunc: 1 input, 1 output, 1 type signature */ \
+    ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, func_name##_FuncData, Y_b_dtypes, 1, 1, 1, \
+                                    PyUFunc_None, #py_name, "", 0); \
+    PyDict_SetItemString(d, #py_name, ufunc); \
+    \
+    /* Create Python function */ \
+    static PyMethodDef Py##func_name##_Scalar_Def = { \
+        #py_name "_scalar",                   /* Function name */ \
+        Py##func_name##_Scalar,               /* C function pointer */ \
+        METH_O,                               /* Function takes one argument */ \
+        #py_name " scalar implementation"     /* Docstring */ \
+    }; \
+    PyObject* Py##func_name##_Scalar_Func = PyCFunction_NewEx(&Py##func_name##_Scalar_Def, NULL, NULL); \
+    PyDict_SetItemString(d, #py_name "_scalar", Py##func_name##_Scalar_Func); \
+} while(0)
+
+/*
+ * The init function below is called when the Shapely module is imported.
+ *
+ * Parameters:
+ *   m: The Python module object (unused here)
+ *   d: Module dictionary where functions will be registered
+ */
 int init_geos_funcs_Y_b(PyObject* m, PyObject* d) {
-  PyObject* ufunc;
+  PyObject* ufunc;  // Temporary variable for ufunc creation
 
-  /* Define ufuncs */
-  DEFINE_Y_b_UFUNC_AND_SCALAR(is_empty, IsEmpty);
-  DEFINE_Y_b_UFUNC_AND_SCALAR(is_simple, IsSimple);
-  DEFINE_Y_b_UFUNC_AND_SCALAR(is_ring, IsRing);
-  DEFINE_Y_b_UFUNC_AND_SCALAR(is_closed, IsClosed);
-  DEFINE_Y_b_UFUNC_AND_SCALAR(is_valid, IsValid);
-  DEFINE_Y_b_UFUNC_AND_SCALAR(has_z, HasZ);
-  DEFINE_Y_b_UFUNC_AND_SCALAR(is_geometry, IsGeometry);
-  DEFINE_Y_b_UFUNC_AND_SCALAR(is_ccw, IsCCW);
+  INIT_Y_b(GEOSGeom_isCCW_r, is_ccw);
+  INIT_Y_b(GEOSisEmpty_r, is_empty);
+  INIT_Y_b(GEOSisSimpleAllTypes_r, is_simple);
+  INIT_Y_b(GEOSisRing_r, is_ring);
+  INIT_Y_b(GEOSHasZ_r, has_z);
+  INIT_Y_b(GEOSisClosedAllTypes_r, is_closed);
+  INIT_Y_b(GEOSisValid_r, is_valid);
 
 #if GEOS_SINCE_3_12_0
-  DEFINE_Y_b_UFUNC_AND_SCALAR(has_m, HasM);
+  INIT_Y_b(GEOSHasM_r, has_m);
 #endif
-
-  /* Define scalar functions */
-  static PyMethodDef scalar_methods[] = {
-    {"is_empty_scalar", is_empty_scalar, METH_VARARGS, "Check if geometry is empty (scalar)"},
-    {"is_simple_scalar", is_simple_scalar, METH_VARARGS, "Check if geometry is simple (scalar)"},
-    {"is_ring_scalar", is_ring_scalar, METH_VARARGS, "Check if geometry is a ring (scalar)"},
-    {"is_closed_scalar", is_closed_scalar, METH_VARARGS, "Check if geometry is closed (scalar)"},
-    {"is_valid_scalar", is_valid_scalar, METH_VARARGS, "Check if geometry is valid (scalar)"},
-    {"has_z_scalar", has_z_scalar, METH_VARARGS, "Check if geometry has Z coordinate (scalar)"},
-    {"is_geometry_scalar", is_geometry_scalar, METH_VARARGS, "Check if object is a geometry (scalar)"},
-    {"is_ccw_scalar", is_ccw_scalar, METH_VARARGS, "Check if geometry is counter-clockwise (scalar)"},
-#if GEOS_SINCE_3_12_0
-    {"has_m_scalar", has_m_scalar, METH_VARARGS, "Check if geometry has M coordinate (scalar)"},
-#endif
-    {NULL, NULL, 0, NULL}
-  };
-
-  /* Add scalar methods to module */
-  for (PyMethodDef* method = scalar_methods; method->ml_name != NULL; method++) {
-    PyObject* func = PyCFunction_New(method, NULL);
-    if (func == NULL) {
-      return -1;
-    }
-    if (PyObject_SetAttrString(m, method->ml_name, func) < 0) {
-      Py_DECREF(func);
-      return -1;
-    }
-    Py_DECREF(func);
-  }
 
   return 0;
 }
