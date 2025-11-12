@@ -4,6 +4,8 @@ import locale
 import sys
 import unittest
 
+import pytest
+
 from shapely.wkt import dumps, loads
 
 # Set locale to one that uses a comma as decimal separator
@@ -30,7 +32,7 @@ def setUpModule():
         except Exception:
             pass
     if not do_test_locale:
-        raise unittest.SkipTest("test locale not found")
+        pytest.skip("test locale not found")
 
 
 def tearDownModule():
