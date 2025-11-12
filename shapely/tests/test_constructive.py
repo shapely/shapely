@@ -44,6 +44,7 @@ CONSTRUCTIVE_NO_ARGS = (
     shapely.envelope,
     shapely.extract_unique_points,
     shapely.minimum_clearance_line,
+    shapely.minimum_width,
     shapely.node,
     shapely.normalize,
     shapely.point_on_surface,
@@ -970,6 +971,14 @@ def test_minimum_bounding_circle_all_types(geometry):
 def test_minimum_bounding_circle(geometry, expected):
     actual = shapely.minimum_bounding_circle(geometry)
     assert_geometries_equal(actual, expected)
+
+
+@pytest.mark.parametrize("geometry", all_types)
+def test_minimum_width(geometry):
+    actual = shapely.minimum_width(geometry)
+    assert isinstance(actual, LineString)
+    # Minimum width should always be a geometry
+    assert actual is not None
 
 
 @pytest.mark.parametrize("geometry", all_types)
