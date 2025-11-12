@@ -334,7 +334,7 @@ class BaseGeometry(shapely.Geometry):
     @property
     def area(self):
         """Unitless area of the geometry (float)."""
-        return float(shapely.area(self))
+        return shapely.lib.area_scalar(self)
 
     def distance(self, other):
         """Unitless distance to other geometry (float)."""
@@ -347,12 +347,12 @@ class BaseGeometry(shapely.Geometry):
     @property
     def length(self):
         """Unitless length of the geometry (float)."""
-        return float(shapely.length(self))
+        return shapely.lib.length_scalar(self)
 
     @property
     def minimum_clearance(self):
         """Unitless distance a node can be moved to produce an invalid geometry (float)."""  # noqa: E501
-        return float(shapely.minimum_clearance(self))
+        return shapely.lib.minimum_clearance_scalar(self)
 
     # Topological properties
     # ----------------------

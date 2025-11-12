@@ -411,8 +411,24 @@ int __Pyx_InBases(PyTypeObject* a, PyTypeObject* b) {
   return b == &PyBaseObject_Type;
 }
 
-/* Get a GEOSGeometry pointer from a GeometryObject, or NULL if the input is
+
+/* Get a GEOSGeometry pointer from a PyObject, or NULL if the input is
 Py_None. Returns 0 on error, 1 on success. */
+char ShapelyGetGeometry(PyObject* obj, const GEOSGeometry** out) {
+  // Numpy treats NULL the same as Py_None
+  if ((obj == NULL) || ((PyObject*)obj == Py_None)) {
+    *out = NULL;
+    return 1;
+  }
+  PyTypeObject* type = ((PyObject*)obj)->ob_type;
+  if ((type != &GeometryType) && !(__Pyx_InBases(type, &GeometryType))) {
+    return 0;
+  } else {
+    *out = ((GeometryObject*)obj)->ptr;
+    return 1;
+  }
+}
+/* deprecated version of ShapelyGetGeometry with incorrect type signature */
 char get_geom(GeometryObject* obj, GEOSGeometry** out) {
   // Numpy treats NULL the same as Py_None
   if ((obj == NULL) || ((PyObject*)obj == Py_None)) {

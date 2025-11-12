@@ -132,7 +132,7 @@ enum ShapelyErrorCode {
       PyErr_Format(PyExc_RuntimeError,                                                   \
                    "Pygeos ufunc returned with unknown error state code %d.", errstate); \
       break;                                                                             \
-  }
+  }                                                                                      \
 
 // Define initialization / finalization macros
 #define GEOS_INIT           \

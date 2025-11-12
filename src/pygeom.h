@@ -19,6 +19,7 @@ extern PyTypeObject GeometryType;
 extern PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx);
 /* Get a GEOSGeometry from a GeometryObject */
 extern char get_geom(GeometryObject* obj, GEOSGeometry** out);
+extern char ShapelyGetGeometry(PyObject* obj, const GEOSGeometry** out);
 extern char get_geom_with_prepared(GeometryObject* obj, GEOSGeometry** out,
                                    GEOSPreparedGeometry** prep);
 
