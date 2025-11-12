@@ -50,11 +50,8 @@ ThreadLocalGEOS* _init_threadlocal_geos(PyObject* thread_dict) {
   // Create new threadlocal GEOS for this thread
   ThreadLocalGEOS* tl_geos = malloc(sizeof(ThreadLocalGEOS));
 
-  // Initialize GEOS context
+  // Initialize GEOS context (last_error will be initialized in init_geos_error_buffer)
   tl_geos->context = GEOS_init_r();
-
-  // Initialize error message buffer
-  tl_geos->last_error[0] = '\0';
 
   // Set up error and notice handlers
   GEOSContext_setErrorMessageHandler_r(tl_geos->context, geos_error_handler, tl_geos->last_error);
@@ -82,11 +79,7 @@ ThreadLocalGEOS* get_threadlocal_geos(void) {
     return _init_threadlocal_geos(thread_dict);
   }
 
-  ThreadLocalGEOS* tl_geos = PyCapsule_GetPointer(geos_capsule, "threadlocal_geos");
-  // Every time the GEOS threadlocal context is called, the error message buffer should be
-  // cleared because else errors from previous calls may still be there.
-  tl_geos->last_error[0] = '\0';
-  return tl_geos;
+  return tl_geos = PyCapsule_GetPointer(geos_capsule, "threadlocal_geos");
 }
 
 /* Threadlocal GEOS context management functions */
@@ -98,6 +91,9 @@ char* init_geos_error_buffer(void) {
   ThreadLocalGEOS* tl_geos;
 
   tl_geos = get_threadlocal_geos();
+
+  // Every method that uses the error message buffer should first
+  // clear it or else errors from previous calls may still be there.
   tl_geos->last_error[0] = '\0';
   return tl_geos->last_error;
 }
