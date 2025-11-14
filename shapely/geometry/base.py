@@ -707,22 +707,22 @@ class BaseGeometry(shapely.Geometry):
     @property
     def has_z(self):
         """True if the geometry's coordinate sequence(s) have z values."""
-        return bool(shapely.has_z(self))
+        return shapely.lib.has_z_scalar(self)
 
     @property
     def has_m(self):
         """True if the geometry's coordinate sequence(s) have m values."""
-        return bool(shapely.has_m(self))
+        return shapely.lib.has_m_scalar(self)
 
     @property
     def is_empty(self):
         """True if the set of points in this geometry is empty, else False."""
-        return bool(shapely.is_empty(self))
+        return shapely.lib.is_empty_scalar(self)
 
     @property
     def is_ring(self):
         """True if the geometry is a closed ring, else False."""
-        return bool(shapely.is_ring(self))
+        return shapely.lib.is_ring_scalar(self)
 
     @property
     def is_closed(self):
@@ -732,7 +732,7 @@ class BaseGeometry(shapely.Geometry):
         """
         if self.geom_type == "LinearRing":
             return True
-        return bool(shapely.is_closed(self))
+        return shapely.lib.is_closed_scalar(self)
 
     @property
     def is_simple(self):
@@ -740,7 +740,7 @@ class BaseGeometry(shapely.Geometry):
 
         Simple means that any self-intersections are only at boundary points.
         """
-        return bool(shapely.is_simple(self))
+        return shapely.lib.is_simple_scalar(self)
 
     @property
     def is_valid(self):
@@ -748,7 +748,7 @@ class BaseGeometry(shapely.Geometry):
 
         The definition depends on sub-class.
         """
-        return bool(shapely.is_valid(self))
+        return shapely.lib.is_valid_scalar(self)
 
     # Binary predicates
     # -----------------

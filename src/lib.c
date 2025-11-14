@@ -17,6 +17,7 @@
 #include "strtree.h"
 #include "ufuncs.h"
 #include "geos_funcs_Y_d.h"
+#include "geos_funcs_Y_b.h"
 #include "geos_funcs_Y_i.h"
 
 /* This tells Python what methods this module has. */
@@ -95,6 +96,10 @@ PyMODINIT_FUNC PyInit_lib(void) {
   };
 
   if (init_geos_funcs_Y_d(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_Y_b(m, d) < 0) {
     return NULL;
   };
 
