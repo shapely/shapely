@@ -3573,11 +3573,6 @@ finish:
 }
 static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
 
-#define DEFINE_Y_b(NAME)                                                       \
-  ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, NAME##_data, Y_b_dtypes, 1, 1, 1, \
-                                  PyUFunc_None, #NAME, NULL, 0);               \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
 #define DEFINE_O_b(NAME)                                                       \
   ufunc = PyUFunc_FromFuncAndData(O_b_funcs, NAME##_data, O_b_dtypes, 1, 1, 1, \
                                   PyUFunc_None, #NAME, NULL, 0);               \
