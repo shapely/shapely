@@ -116,7 +116,7 @@ class BaseGeometry(shapely.Geometry):
 
     @property
     def _ndim(self):
-        return shapely.get_coordinate_dimension(self)
+        return shapely.lib.get_coordinate_dimension_scalar(self)
 
     def __bool__(self):
         """Return True if the geometry is not empty, else False."""
@@ -326,7 +326,7 @@ class BaseGeometry(shapely.Geometry):
     @property
     def geom_type(self):
         """Name of the geometry's type, such as 'Point'."""
-        return GEOMETRY_TYPES[shapely.get_type_id(self)]
+        return GEOMETRY_TYPES[shapely.lib.get_type_id_scalar(self)]
 
     # Real-valued properties and methods
     # ----------------------------------
@@ -1096,7 +1096,7 @@ class GeometrySequence:
 
     def __len__(self):
         """Return the number of geometries in the sequence."""
-        return shapely.get_num_geometries(self._parent)
+        return shapely.lib.get_num_geometries_scalar(self._parent)
 
     def __getitem__(self, key):
         """Access a geometry in the sequence by index or slice."""

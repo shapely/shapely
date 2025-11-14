@@ -15,7 +15,7 @@ __all__ = ["LinearRing", "Polygon", "orient"]
 
 def _unpickle_linearring(wkb):
     linestring = shapely.from_wkb(wkb)
-    srid = shapely.get_srid(linestring)
+    srid = shapely.lib.get_srid_scalar(linestring)
     linearring = _geometry_helpers.linestring_to_linearring(linestring)
     if srid:
         linearring = shapely.set_srid(linearring, srid)
@@ -160,7 +160,7 @@ class InteriorRingSequence:
             raise StopIteration
 
     def __len__(self):
-        return shapely.get_num_interior_rings(self._parent)
+        return shapely.lib.get_num_interior_rings_scalar(self._parent)
 
     def __getitem__(self, key):
         m = self.__len__()
