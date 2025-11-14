@@ -53,5 +53,4 @@ cdef extern from "geos_c.h":
 cdef class get_geos_handle:
     cdef GEOSContextHandle_t handle
     cdef char* last_error
-    cdef char* last_warning
     cdef GEOSContextHandle_t __enter__(self)
