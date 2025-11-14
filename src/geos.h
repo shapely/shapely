@@ -46,8 +46,9 @@
  * - Errors are captured in the 'errstate' and 'last_error' variables, that are
  *   initialized in GEOS_INIT.
  * - Errors are converted to appropriate Python exceptions in the GEOS_FINISH macro.
- *   This means that PyErr_SetString is called; it is up to the caller to return NULL
- *   in that case (after GEOS_FINISH, by checking `errstate == PGERR_SUCCESS`).
+ *   PyErr_SetString will be called if `errstate != PGERR_SUCCESS`. When writing Python
+ *   C extension functions, the caller should check `errstate` and return `NULL` in that
+ *   case. For NumPy ufuncs, this is not applicable because they return `NULL` anyway.
  * - In case of a GEOS error, the 'last_error' buffer is used as a temporary storage
  *   for the error message. This buffer is reused (as threadlocal).
  *
@@ -63,11 +64,18 @@
  *     goto finish;
  * }
  *
- * // More GEOS operations...
+ * // More operations (that may adjust `errstate`)...
  *
  * finish:
  *   GEOS_FINISH;  // Clean up context and convert errors to Python exceptions
  *                 // Use GEOS_FINISH_THREADS if GEOS_INIT_THREADS was used
+ *
+ * // Python C extension function should check errstate and return NULL on error
+ * if (errstate != PGERR_SUCCESS) {
+ *     return NULL;
+ * }
+ * return Py_BuildValue(...);  // Return appropriate Python object
+ *
  */
 
 // Define the error states
