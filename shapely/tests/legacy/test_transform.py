@@ -92,7 +92,7 @@ class LambdaTestCase(unittest.TestCase):
 
 
 class TypeTestCase(unittest.TestCase):
-    """With the shapely 2.1 implemenation func gets the expected types"""
+    """Test whether with shapely 2.2 the func gets the expected types"""
 
     def test_func_gets_tuples(self):
         def func(x, y):
