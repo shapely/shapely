@@ -58,8 +58,8 @@ static void GeometryObject_dealloc(GeometryObject* self) {
     PyObject_ClearWeakRefs((PyObject*)self);
   }
   if (self->ptr != NULL) {
-    // not using GEOS_INIT, but using global context instead
-    GEOSContextHandle_t ctx = geos_context[0];
+    // use threadlocal GEOS context
+    GEOSContextHandle_t ctx = init_geos_context();
     GEOSGeom_destroy_r(ctx, self->ptr);
     if (self->ptr_prepared != NULL) {
       GEOSPreparedGeom_destroy_r(ctx, self->ptr_prepared);

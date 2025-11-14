@@ -9,6 +9,10 @@ Improved performance of the following geometry methods: `area`, `length`,
 `is_closed`, `is_simple`. Benchmarks showed a change of call duration
 from 2.6 microseconds to 0.2 microseconds (on the `Point.x` attribute).
 
+Improved performance by changing the GEOS context handling. Instead of initializing/finalizing
+on every call, GEOS contexts are reused through a threadlocal. It should give a performance
+increase of about 75 nanoseconds per call.
+
 Added `transform_coordseq`, which applies a transformation function per coordinate sequence
 in a more performant way than `shapely.ops.transform` does. `shapely.ops.transform` is now deprecated.
 

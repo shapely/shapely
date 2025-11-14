@@ -41,8 +41,18 @@
   (GEOSContextHandle_t ctx, const double* buf, unsigned int size, unsigned int dims, \
    char is_ring, int handle_nan, GEOSCoordSequence** coord_seq)
 
+/* GEOSContextHandle_t PyGEOS_InitGEOSContext(void) */
+#define PyGEOS_InitGEOSContext_NUM 3
+#define PyGEOS_InitGEOSContext_RETURN GEOSContextHandle_t
+#define PyGEOS_InitGEOSContext_PROTO (void)
+
+/* char* PyGEOS_InitGEOSErrorBuffer(void) */
+#define PyGEOS_InitGEOSErrorBuffer_NUM 4
+#define PyGEOS_InitGEOSErrorBuffer_RETURN char*
+#define PyGEOS_InitGEOSErrorBuffer_PROTO (void)
+
 /* Total number of C API pointers */
-#define PyGEOS_API_num_pointers 3
+#define PyGEOS_API_num_pointers 5
 
 #ifdef PyGEOS_API_Module
 /* This section is used when compiling shapely.lib C extension.
@@ -52,6 +62,8 @@
 extern PyGEOS_CreateGeometry_RETURN PyGEOS_CreateGeometry PyGEOS_CreateGeometry_PROTO;
 extern PyGEOS_GetGEOSGeometry_RETURN PyGEOS_GetGEOSGeometry PyGEOS_GetGEOSGeometry_PROTO;
 extern PyGEOS_CoordSeq_FromBuffer_RETURN PyGEOS_CoordSeq_FromBuffer PyGEOS_CoordSeq_FromBuffer_PROTO;
+extern PyGEOS_InitGEOSContext_RETURN PyGEOS_InitGEOSContext PyGEOS_InitGEOSContext_PROTO;
+extern PyGEOS_InitGEOSErrorBuffer_RETURN PyGEOS_InitGEOSErrorBuffer PyGEOS_InitGEOSErrorBuffer_PROTO;
 
 #else
 /* This section is used in modules that use the PyGEOS C API
@@ -69,6 +81,12 @@ static void **PyGEOS_API;
 
 #define PyGEOS_CoordSeq_FromBuffer \
     (*(PyGEOS_CoordSeq_FromBuffer_RETURN(*) PyGEOS_CoordSeq_FromBuffer_PROTO)PyGEOS_API[PyGEOS_CoordSeq_FromBuffer_NUM])
+
+#define PyGEOS_InitGEOSContext \
+    (*(PyGEOS_InitGEOSContext_RETURN(*) PyGEOS_InitGEOSContext_PROTO)PyGEOS_API[PyGEOS_InitGEOSContext_NUM])
+
+#define PyGEOS_InitGEOSErrorBuffer \
+    (*(PyGEOS_InitGEOSErrorBuffer_RETURN(*) PyGEOS_InitGEOSErrorBuffer_PROTO)PyGEOS_API[PyGEOS_InitGEOSErrorBuffer_NUM])
 
 /* Dynamically load C API from PyCapsule.
  * This MUST be called prior to using C API functions in other modules; otherwise
