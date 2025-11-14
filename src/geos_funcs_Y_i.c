@@ -34,8 +34,8 @@ typedef int FuncGEOS_Y_i(GEOSContextHandle_t context, const GEOSGeometry* a);
 
 typedef struct {
   FuncGEOS_Y_i* func;
-  int errcode;      // Value that indicates an error from GEOS
-  int none_value;   // Value to return when input geometry is None
+  int errcode;        // Value that indicates an error from GEOS
+  int missing_value;  // Value to return when input geometry is None
 } Y_i_func_data;
 
 /* Wrapper for GEOSGeomGetNumPoints_r - returns 0 for non-linear geometries */
@@ -68,7 +68,7 @@ static int GetNumInteriorRings(GEOSContextHandle_t context, const GEOSGeometry* 
  *
  * Parameters:
  *   context: GEOS context handle for thread-safe operations
- *   data: Y_i_func_data struct containing function pointer, error code, and none_value
+ *   data: Y_i_func_data struct containing GEOS function pointer, error code, and missing_value
  *   geom_obj: Shapely geometry object (Python wrapper around GEOSGeometry)
  *   result: Pointer where the computed int result will be stored
  *   last_error: Pointer to the last_error buffer (available in GEOS_INIT context)
@@ -85,9 +85,9 @@ static char core_Y_i_operation(GEOSContextHandle_t context, const Y_i_func_data*
     return PGERR_NOT_A_GEOMETRY;
   }
 
-  // Handle NULL geometry case - return none_value as per convention
+  // Handle NULL geometry case - return missing_value (0 or -1)
   if (geom == NULL) {
-    *result = data->none_value;
+    *result = data->missing_value;
     return PGERR_SUCCESS;
   }
 
@@ -118,7 +118,7 @@ static char core_Y_i_operation(GEOSContextHandle_t context, const Y_i_func_data*
  * Parameters:
  *   self: Module object (unused, required by Python C API)
  *   obj: Input geometry object (should be a GeometryObject)
- *   data: Y_i_func_data struct containing function pointer, error code, and none_value
+ *   data: Y_i_func_data struct containing GEOS function pointer, error code, and missing_value
  *
  * Returns:
  *   PyLong object containing the result, or NULL on error
@@ -196,26 +196,24 @@ static char Y_i_dtypes[2] = {NPY_OBJECT, NPY_INT};
  *
  * We use a macro to define a scalar Python function for each GEOS operation.
  *
- * This creates a function like PyGetTypeId_Scalar that can be called from Python.
- * The generated function signature is:
- *   static PyObject* Py{func_name}_Scalar(PyObject* self, PyObject* obj)
+ * This creates two things:
+ *  1. A Y_i_func_data struct instance containing the GEOS function pointer,
+ *     error code, and missing value.
+ *  2. A Python function that implements the scalar logic.
  *
- * Example: DEFINE_Y_i(GEOSGeomTypeId_r, -1, -1) creates PyGetTypeId_Scalar function
+ * Example: DEFINE_Y_i(GetNumPoints, -1, -1) creates
+ * - static Y_i_func_data GetNumPoints_data
+ * - static PyObject* PyGetNumPoints_Scalar(PyObject* self, PyObject* obj)
  *
  * Parameters:
  *   func_name: Name of the C function that performs the GEOS operation
- *   errcode: Error code that indicates failure
- *   none_value: Value to return when input is None
- *
- * This macro generates:
- * 1. A Y_i_func_data struct instance with the metadata
- * 2. A void* array containing a pointer to that struct
- * 3. The scalar Python function
+ *   errcode: GEOS function return value that indicates failure
+ *   missing_value: Value to return when input is None
  */
-#define DEFINE_Y_i(func_name, errcode, none_value) \
-  static Y_i_func_data func_name##_udata = {func_name, errcode, none_value}; \
+#define DEFINE_Y_i(func_name, errcode, missing_value) \
+  static Y_i_func_data func_name##_data = {func_name, errcode, missing_value}; \
   static PyObject* Py##func_name##_Scalar(PyObject* self, PyObject* obj) { \
-    return Py_Y_i_Scalar(self, obj, &func_name##_udata); \
+    return Py_Y_i_Scalar(self, obj, &func_name##_data); \
   }
 
 DEFINE_Y_i(GEOSGeomTypeId_r, -1, -1);
@@ -243,13 +241,14 @@ DEFINE_Y_i(GEOSGetNumCoordinates_r, -1, 0);
  *   func_name: Name of the C function (e.g., GEOSGeomTypeId_r)
  *   py_name: Python function name (e.g., get_type_id)
  *
+ * Note that this macro depends on the {func_name}_data struct defined by DEFINE_Y_i.
  */
 #define INIT_Y_i(func_name, py_name) do { \
     /* Create data array containing pointer to Y_i_func_data struct */ \
-    static void* func_name##_data[1] = {(void*)&func_name##_udata}; \
+    static void* func_name##_udata[1] = {(void*)&func_name##_data}; \
     \
-    /* Create NumPy ufunc: pass data array containing pointer to Y_i_func_data struct */ \
-    ufunc = PyUFunc_FromFuncAndData(Y_i_funcs, func_name##_data, Y_i_dtypes, 1, 1, 1, \
+    /* Create NumPy ufunc: 1 input, 1 output, 1 type signature */ \
+    ufunc = PyUFunc_FromFuncAndData(Y_i_funcs, func_name##_udata, Y_i_dtypes, 1, 1, 1, \
                                     PyUFunc_None, #py_name, "", 0); \
     PyDict_SetItemString(d, #py_name, ufunc); \
     \
