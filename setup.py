@@ -164,6 +164,7 @@ else:
                 "src/strtree.c",
                 "src/ufuncs.c",
                 "src/geos_funcs_Y_d.c",
+                "src/geos_funcs_Y_b.c",
                 "src/vector.c",
             ],
             **ext_options,
