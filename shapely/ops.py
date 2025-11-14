@@ -335,7 +335,7 @@ class SplitOp:
     def _split_line_with_line(line, splitter):
         """Split a LineString with another (Multi)LineString or (Multi)Polygon."""
         # if splitter is a polygon, pick it's boundary
-        if splitter.geom_type in ("Polygon", "MultiPolygon"):
+        if splitter.geom_type in {"Polygon", "MultiPolygon"}:
             splitter = splitter.boundary
 
         if not isinstance(line, LineString):
@@ -464,18 +464,18 @@ class SplitOp:
         'GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))'
 
         """
-        if geom.geom_type in ("MultiLineString", "MultiPolygon"):
+        if geom.geom_type in {"MultiLineString", "MultiPolygon"}:
             return GeometryCollection(
                 [i for part in geom.geoms for i in SplitOp.split(part, splitter).geoms]
             )
 
         elif geom.geom_type == "LineString":
-            if splitter.geom_type in (
+            if splitter.geom_type in {
                 "LineString",
                 "MultiLineString",
                 "Polygon",
                 "MultiPolygon",
-            ):
+            }:
                 split_func = SplitOp._split_line_with_line
             elif splitter.geom_type == "Point":
                 split_func = SplitOp._split_line_with_point
@@ -488,7 +488,7 @@ class SplitOp:
                 )
 
         elif geom.geom_type == "Polygon":
-            if splitter.geom_type in ("LineString", "MultiLineString"):
+            if splitter.geom_type in {"LineString", "MultiLineString"}:
                 split_func = SplitOp._split_polygon_with_line
             else:
                 raise GeometryTypeError(

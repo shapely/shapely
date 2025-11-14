@@ -18,8 +18,8 @@ def halton(base):
         i = index
         while i > 0:
             result += f * (i % base)
-            i = i // base
-            f = f / base
+            i //= base
+            f /= base
         return result
 
     i = 1
@@ -42,7 +42,7 @@ class UnionTestCase(unittest.TestCase):
         # Perform a cascaded union of the polygon spots, dissolving them
         # into a collection of polygon patches
         u = unary_union(spots)
-        assert u.geom_type in ("Polygon", "MultiPolygon")
+        assert u.geom_type in {"Polygon", "MultiPolygon"}
 
     def setUp(self):
         # Instead of random points, use deterministic, pseudo-random Halton

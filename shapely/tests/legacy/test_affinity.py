@@ -144,7 +144,7 @@ class TransformOpsTestCase(unittest.TestCase):
         rls = affinity.rotate(ls, -pi / 2, use_radians=True)
         els = load_wkt("LINESTRING(320 380, 220 380, 220 320)")
         assert rls.equals(els)
-        ## other `origin` parameters
+        # other `origin` parameters
         # around the centroid
         rls = affinity.rotate(ls, 90, origin="centroid")
         els = load_wkt("LINESTRING(182.5 320, 282.5 320, 282.5 380)")
@@ -193,7 +193,7 @@ class TransformOpsTestCase(unittest.TestCase):
         # retest with named parameters for the same result
         sls = affinity.scale(geom=ls, xfact=2, yfact=3, zfact=0.5, origin="center")
         assert sls.equals(els)
-        ## other `origin` parameters
+        # other `origin` parameters
         # around the centroid
         sls = affinity.scale(ls, 2, 3, 0.5, origin="centroid")
         els = load_wkt("LINESTRING(228.75 537.5, 228.75 237.5, 348.75 237.5)")
@@ -235,7 +235,7 @@ class TransformOpsTestCase(unittest.TestCase):
         # retest with named parameters for the same result
         sls = affinity.skew(geom=ls, xs=15, ys=-30, origin="center", use_radians=False)
         assert sls.equals_exact(els, 1e-6)
-        ## other `origin` parameters
+        # other `origin` parameters
         # around the centroid
         sls = affinity.skew(ls, 15, -30, origin="centroid")
         els = load_wkt(

@@ -44,6 +44,7 @@ CONSTRUCTIVE_NO_ARGS = (
     shapely.envelope,
     shapely.extract_unique_points,
     shapely.minimum_clearance_line,
+    shapely.minimum_width,
     shapely.node,
     shapely.normalize,
     shapely.point_on_surface,
@@ -79,7 +80,7 @@ def test_no_args_array(geometry, func):
 def test_float_arg_array(geometry, func):
     if (
         func is shapely.offset_curve
-        and shapely.get_type_id(geometry) not in [1, 2]
+        and shapely.get_type_id(geometry) not in {1, 2}
         and shapely.geos_version < (3, 11, 0)
     ):
         with pytest.raises(GEOSException, match="only accept linestrings"):
@@ -973,6 +974,14 @@ def test_minimum_bounding_circle(geometry, expected):
 
 
 @pytest.mark.parametrize("geometry", all_types)
+def test_minimum_width(geometry):
+    actual = shapely.minimum_width(geometry)
+    assert isinstance(actual, LineString)
+    # Minimum width should always be a geometry
+    assert actual is not None
+
+
+@pytest.mark.parametrize("geometry", all_types)
 def test_oriented_envelope_all_types(geometry):
     actual = shapely.oriented_envelope([geometry, geometry])
     assert actual.shape == (2,)
@@ -1144,13 +1153,13 @@ def test_voronoi_polygons_ordered_raise():
 
 @pytest.mark.parametrize("geometry", all_types)
 def test_maximum_inscribed_circle_all_types(geometry):
-    if shapely.get_type_id(geometry) not in [3, 6]:
+    if shapely.get_type_id(geometry) not in {3, 6}:
         # Maximum Inscribed Circle is only supported for (Multi)Polygon input
         with pytest.raises(
             GEOSException,
             match=(
-                "Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
-                "must be a Polygon or MultiPolygon|"
+                r"Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
+                r"must be a Polygon or MultiPolygon|"
                 "Operation not supported by GeometryCollection"
             ),
         ):
@@ -1159,7 +1168,7 @@ def test_maximum_inscribed_circle_all_types(geometry):
 
     if geometry.is_empty:
         with pytest.raises(
-            GEOSException, match="Empty input(?: geometry)? is not supported"
+            GEOSException, match=r"Empty input(?: geometry)? is not supported"
         ):
             shapely.maximum_inscribed_circle(geometry)
         return
@@ -1192,7 +1201,7 @@ def test_maximum_inscribed_circle_empty():
     with pytest.raises(
         GEOSException,
         match=(
-            "Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
+            r"Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
             "must be a Polygon or MultiPolygon"
         ),
     ):
@@ -1200,7 +1209,7 @@ def test_maximum_inscribed_circle_empty():
 
     geometry = shapely.from_wkt("POLYGON EMPTY")
     with pytest.raises(
-        GEOSException, match="Empty input(?: geometry)? is not supported"
+        GEOSException, match=r"Empty input(?: geometry)? is not supported"
     ):
         shapely.maximum_inscribed_circle(geometry)
 

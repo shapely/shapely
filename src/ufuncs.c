@@ -15,20 +15,7 @@
 #include "geos.h"
 #include "pygeos.h"
 #include "pygeom.h"
-
-/* This initializes a global value for interrupt checking */
-int check_signals_interval[1] = {10000};
-unsigned long main_thread_id[1] = {0};
-
-PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
-
-  if (!PyArg_ParseTuple(args, "ik", check_signals_interval, main_thread_id)) {
-    return NULL;
-  }
-
-  Py_INCREF(Py_None);
-  return Py_None;
-}
+#include "signal_checks.h"
 
 #define OUTPUT_Y                                         \
   PyObject* ret = GeometryObject_FromGEOS(ret_ptr, ctx); \
@@ -69,22 +56,6 @@ PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
     if (PyErr_CheckSignals() == -1) {               \
       errstate = PGERR_PYSIGNAL;                    \
     };                                              \
-  }
-
-/* This version of CHECK_SIGNALS is to be used in a context without GIL
- * the GIL is only acquired if the current thread is the main thread (else,
- * signals won't be set anyway)
- */
-
-#define CHECK_SIGNALS_THREADS(I)                            \
-  if (((I + 1) % check_signals_interval[0]) == 0) {         \
-    if (PyThread_get_thread_ident() == main_thread_id[0]) { \
-      Py_BLOCK_THREADS;                                     \
-      if (PyErr_CheckSignals() == -1) {                     \
-        errstate = PGERR_PYSIGNAL;                          \
-      }                                                     \
-      Py_UNBLOCK_THREADS;                                   \
-    }                                                       \
   }
 
 static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,
@@ -553,6 +524,7 @@ static void* GEOSMinimumBoundingCircleWithReturn(void* context, void* geom) {
   return ret;
 }
 static void* minimum_bounding_circle_data[1] = {GEOSMinimumBoundingCircleWithReturn};
+static void* minimum_width_data[1] = {GEOSMinimumWidth_r};
 static void* reverse_data[1] = {GEOSReverse_r};
 static void* oriented_envelope_data[1] = {GEOSMinimumRotatedRectangle_r};
 #if GEOS_SINCE_3_11_0
@@ -1073,120 +1045,6 @@ finish:
   free(geom_arr);
 }
 static PyUFuncGenericFunction Y_Y_reduce_funcs[1] = {&Y_Y_reduce_func};
-
-/* Define the geom -> double functions (Y_d) */
-static int GetX(void* context, void* a, double* b) {
-  char typ = GEOSGeomTypeId_r(context, a);
-  if (typ != 0) {
-    *(double*)b = NPY_NAN;
-    return 1;
-  } else {
-    return GEOSGeomGetX_r(context, a, b);
-  }
-}
-static void* get_x_data[1] = {GetX};
-static int GetY(void* context, void* a, double* b) {
-  char typ = GEOSGeomTypeId_r(context, a);
-  if (typ != 0) {
-    *(double*)b = NPY_NAN;
-    return 1;
-  } else {
-    return GEOSGeomGetY_r(context, a, b);
-  }
-}
-static void* get_y_data[1] = {GetY};
-static int GetZ(void* context, void* a, double* b) {
-  char typ = GEOSGeomTypeId_r(context, a);
-  if (typ != 0) {
-    *(double*)b = NPY_NAN;
-    return 1;
-  } else {
-    return GEOSGeomGetZ_r(context, a, b);
-  }
-}
-static void* get_z_data[1] = {GetZ};
-#if GEOS_SINCE_3_12_0
-static int GetM(void* context, void* a, double* b) {
-  char typ = GEOSGeomTypeId_r(context, a);
-  if (typ != 0) {
-    *(double*)b = NPY_NAN;
-    return 1;
-  } else {
-    return GEOSGeomGetM_r(context, a, b);
-  }
-}
-static void* get_m_data[1] = {GetM};
-#endif
-static void* area_data[1] = {GEOSArea_r};
-static void* length_data[1] = {GEOSLength_r};
-
-static int GetPrecision(void* context, void* a, double* b) {
-  // GEOS returns -1 on error; 0 indicates double precision; > 0 indicates a precision
-  // grid size was set for this geometry.
-  double out = GEOSGeom_getPrecision_r(context, a);
-  if (out == -1) {
-    return 0;
-  }
-  *(double*)b = out;
-  return 1;
-}
-static void* get_precision_data[1] = {GetPrecision};
-static int MinimumClearance(void* context, void* a, double* b) {
-  // GEOSMinimumClearance deviates from the pattern of returning 0 on exception and 1 on
-  // success for functions that return an int (it follows pattern for boolean functions
-  // returning char 0/1 and 2 on exception)
-  int retcode = GEOSMinimumClearance_r(context, a, b);
-  if (retcode == 2) {
-    return 0;
-  } else {
-    return 1;
-  }
-}
-static void* minimum_clearance_data[1] = {MinimumClearance};
-static int GEOSMinimumBoundingRadius(void* context, GEOSGeometry* geom, double* radius) {
-  GEOSGeometry* center = NULL;
-  GEOSGeometry* ret = GEOSMinimumBoundingCircle_r(context, geom, radius, &center);
-  if (ret == NULL) {
-    return 0;  // exception code
-  }
-  GEOSGeom_destroy_r(context, center);
-  GEOSGeom_destroy_r(context, ret);
-  return 1;  // success code
-}
-static void* minimum_bounding_radius_data[1] = {GEOSMinimumBoundingRadius};
-typedef int FuncGEOS_Y_d(void* context, void* a, double* b);
-static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
-static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_Y_d* func = (FuncGEOS_Y_d*)data;
-  GEOSGeometry* in1 = NULL;
-
-  GEOS_INIT_THREADS;
-
-  UNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      goto finish;
-    }
-    /* get the geometry: return on error */
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      goto finish;
-    }
-    if (in1 == NULL) {
-      *(double*)op1 = NPY_NAN;
-    } else {
-      /* let the GEOS function set op1; return on error */
-      if (func(ctx, in1, (npy_double*)op1) == 0) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-    }
-  }
-
-finish:
-  GEOS_FINISH_THREADS;
-}
-static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
 
 /* Define the geom -> int functions (Y_i) */
 /* data values are GEOS func, GEOS error code, return value when input is None */
@@ -3975,6 +3833,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y(build_area);
   DEFINE_Y_Y(coverage_union);
   DEFINE_Y_Y(minimum_bounding_circle);
+  DEFINE_Y_Y(minimum_width);
 
   DEFINE_Y(prepare);
   DEFINE_Y(destroy_prepared);
@@ -4000,15 +3859,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
   DEFINE_Y_Y_reduce(intersection_all);
   DEFINE_Y_Y_reduce(symmetric_difference_all);
-
-  DEFINE_Y_d(get_precision);
-  DEFINE_Y_d(get_x);
-  DEFINE_Y_d(get_y);
-  DEFINE_Y_d(get_z);
-  DEFINE_Y_d(area);
-  DEFINE_Y_d(length);
-  DEFINE_Y_d(minimum_clearance);
-  DEFINE_Y_d(minimum_bounding_radius);
 
   DEFINE_Y_i(get_type_id);
   DEFINE_Y_i(get_dimensions);
@@ -4081,7 +3931,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(coverage_simplify, 3);
   DEFINE_Y_Y(disjoint_subset_union);
   DEFINE_Y_b(has_m);
-  DEFINE_Y_d(get_m);
   DEFINE_Yi_Y(orient_polygons);
 #endif
 
