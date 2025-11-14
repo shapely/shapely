@@ -4,8 +4,9 @@ Changes
 2.2.0 (unreleased)
 ------------------
 
-Improved performance of the Geometry -> float scalar operations: `area`, `length`,
-`minimum_clearance`, `x`, `y`, `z` and `m`. Benchmarks showed a change of call duration
+Improved performance of the following geometry methods: `area`, `length`,
+`minimum_clearance`, `x`, `y`, `z`, `m`, `has_z`, `has_m`, `is_empty`, `is_ring`,
+`is_closed`, `is_simple`. Benchmarks showed a change of call duration
 from 2.6 microseconds to 0.2 microseconds (on the `Point.x` attribute).
 
 Added `transform_coordseq`, which applies a transformation function per coordinate sequence

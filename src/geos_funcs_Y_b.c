@@ -21,97 +21,74 @@
  * GEOS WRAPPER FUNCTIONS
  * ========================================================================
  *
- * Function signature for GEOS operations that take a geometry and return a double: Y->d.
+ * Function signature for GEOS operations that take a geometry and return a bool: Y->b.
  *
  * Parameters:
  *   context: GEOS context handle for thread safety
- *   a: Input geometry (GEOSGeometry*)
- *   b: Output pointer where the result double will be stored
+ *   a: Input geometry
  *
  * Returns:
- *   1 on success, 0 on error (following GEOS convention)
+ *   0 for false, 1 for true, 2 on error (following GEOS convention)
  */
-typedef int FuncGEOS_Y_d(GEOSContextHandle_t context, const GEOSGeometry* a, double* b);
+typedef char FuncGEOS_Y_b(GEOSContextHandle_t context, const GEOSGeometry* a);
 
-static int GetX(GEOSContextHandle_t context, const GEOSGeometry* a, double* b) {
-  char typ = GEOSGeomTypeId_r(context, a);
-  if (typ != GEOS_POINT) {
-    *(double*)b = NPY_NAN;
-    return 1;  // Success, but result is NaN for non-Points
-  } else {
-    return GEOSGeomGetX_r(context, a, b);
-  }
-}
-static int GetY(GEOSContextHandle_t context, const GEOSGeometry* a, double* b) {
-  char typ = GEOSGeomTypeId_r(context, a);
-  if (typ != GEOS_POINT) {
-    *(double*)b = NPY_NAN;
-    return 1;
-  } else {
-    return GEOSGeomGetY_r(context, a, b);
-  }
-}
-static int GetZ(GEOSContextHandle_t context, const GEOSGeometry* a, double* b) {
-  char typ = GEOSGeomTypeId_r(context, a);
-  if (typ != GEOS_POINT) {
-    *(double*)b = NPY_NAN;
-    return 1;
-  } else {
-    return GEOSGeomGetZ_r(context, a, b);
-  }
-}
-
-#if GEOS_SINCE_3_12_0
-static int GetM(GEOSContextHandle_t context, const GEOSGeometry* a, double* b) {
-  char typ = GEOSGeomTypeId_r(context, a);
-  if (typ != GEOS_POINT) {
-    *(double*)b = NPY_NAN;
-    return 1;
-  } else {
-    return GEOSGeomGetM_r(context, a, b);
-  }
-}
-#endif
-
-static int GetPrecision(GEOSContextHandle_t context, const GEOSGeometry* a, double* b) {
-  // GEOS returns -1 on error; 0 indicates double precision; > 0 indicates a precision
-  // grid size was set for this geometry.
-  double out = GEOSGeom_getPrecision_r(context, a);
-  if (out == -1) {
-    return 0;
-  }
-  *(double*)b = out;
-  return 1;
-}
-static int MinimumClearance(GEOSContextHandle_t context, const GEOSGeometry* a, double* b) {
-  // GEOSMinimumClearance deviates from the standard pattern:
-  // - Most GEOS functions return 0 on error, 1 on success
-  // - This function returns 2 on error, 0/1 on success
-  int retcode = GEOSMinimumClearance_r(context, a, b);
-  if (retcode == 2) {
+/* the GEOSisSimple_r function fails on geometrycollections */
+static char GEOSisSimpleAllTypes_r(GEOSContextHandle_t context, const GEOSGeometry* geom) {
+  int type = GEOSGeomTypeId_r(context, geom);
+  if (type == -1) {
+    return 2;  // Predicates use a return value of 2 for errors
+  } else if (type == GEOS_GEOMETRYCOLLECTION) {
     return 0;
   } else {
-    return 1;
+    return GEOSisSimple_r(context, geom);
   }
 }
-static int GEOSMinimumBoundingRadius(GEOSContextHandle_t context, const GEOSGeometry* geom, double* radius) {
-  GEOSGeometry* center = NULL;
 
-  // GEOSMinimumBoundingCircle_r computes both center and radius
-  // We only need the radius, but must clean up the center geometry
-  GEOSGeometry* ret = GEOSMinimumBoundingCircle_r(context, geom, radius, &center);
-
-  if (ret == NULL) {
-    return 0;  // Error occurred
+/* the GEOSisClosed_r function fails on non-linestrings */
+static char GEOSisClosedAllTypes_r(GEOSContextHandle_t context, const GEOSGeometry* geom) {
+  int type = GEOSGeomTypeId_r(context, geom);
+  if (type == -1) {
+    return 2;  // Predicates use a return value of 2 for errors
+  } else if ((type == GEOS_LINESTRING) || (type == GEOS_LINEARRING) || (type == GEOS_MULTILINESTRING)) {
+    return GEOSisClosed_r(context, geom);
+  } else {
+    return 0;
   }
-
-  // Clean up temporary geometries
-  GEOSGeom_destroy_r(context, center);
-  GEOSGeom_destroy_r(context, ret);
-
-  return 1;  // Success - radius is now set
 }
 
+static char GEOSGeom_isCCW_r(GEOSContextHandle_t context, const GEOSGeometry* geom) {
+  const GEOSCoordSequence* coord_seq;
+  char is_ccw = 2;  // return value of 2 means GEOSException
+  int i;
+
+  // Return False for non-linear geometries
+  i = GEOSGeomTypeId_r(context, geom);
+  if (i == -1) {
+    return 2;
+  }
+  if ((i != GEOS_LINEARRING) && (i != GEOS_LINESTRING)) {
+    return 0;
+  }
+
+  // Return False for lines with fewer than 4 points
+  i = GEOSGeomGetNumPoints_r(context, geom);
+  if (i == -1) {
+    return 2;
+  }
+  if (i < 4) {
+    return 0;
+  }
+
+  // Get the coordinatesequence and call isCCW()
+  coord_seq = GEOSGeom_getCoordSeq_r(context, geom);
+  if (coord_seq == NULL) {
+    return 2;
+  }
+  if (!GEOSCoordSeq_isCCW_r(context, coord_seq, &is_ccw)) {
+    return 2;
+  }
+  return is_ccw;
+}
 
 /* ========================================================================
  * CORE OPERATION LOGIC
@@ -125,13 +102,13 @@ static int GEOSMinimumBoundingRadius(GEOSContextHandle_t context, const GEOSGeom
  *   context: GEOS context handle for thread-safe operations
  *   func: Function pointer to the specific GEOS operation to perform
  *   geom_obj: Shapely geometry object (Python wrapper around GEOSGeometry)
- *   result: Pointer where the computed double result will be stored
+ *   result: Pointer where the computed char result will be stored
  *
  * Returns:
  *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)
  */
-static char core_Y_d_operation(GEOSContextHandle_t context, FuncGEOS_Y_d* func,
-                               PyObject* geom_obj, double* result) {
+static char core_Y_b_operation(GEOSContextHandle_t context, FuncGEOS_Y_b* func,
+                               PyObject* geom_obj, char* result) {
   const GEOSGeometry* geom;
 
   // Extract the underlying GEOS geometry from the Python geometry object
@@ -139,15 +116,15 @@ static char core_Y_d_operation(GEOSContextHandle_t context, FuncGEOS_Y_d* func,
     return PGERR_NOT_A_GEOMETRY;
   }
 
-  // Handle NULL geometry case - return NaN as per NumPy convention
+  // Handle NULL geometry case - return False as per convention for boolean operations
   if (geom == NULL) {
-    *result = NPY_NAN;
+    *result = 0;  // False
     return PGERR_SUCCESS;
   }
 
-  // Call the specific GEOS function (e.g., GEOSArea_r, GEOSLength_r, etc.)
-  // GEOS functions return 0 on error, 1 on success
-  if (func(context, geom, result) == 0) {
+  // Call the specific GEOS function (e.g., GEOSisEmpty_r, GEOSisValid_r, etc.)
+  *result = func(context, (void*)geom);
+  if (*result == 2) {
     return PGERR_GEOS_EXCEPTION;
   }
 
@@ -159,12 +136,12 @@ static char core_Y_d_operation(GEOSContextHandle_t context, FuncGEOS_Y_d* func,
  * ======================================================================== */
 
 /*
- * Generic scalar Python function implementation for Y->d operations.
- * This handles single geometry inputs (not arrays) and returns a Python float.
+ * Generic scalar Python function implementation for Y->b operations.
+ * This handles single geometry inputs (not arrays) and returns a Python bool.
  * It should be registered as a METH_O method (accepting only a single argument).
  *
- * This function is used as a template by the DEFINE_Y_d macro to create
- * specific scalar functions like PyGetX_Scalar, PyGetY_Scalar, etc.
+ * This function is used as a template by the DEFINE_Y_b macro to create
+ * specific scalar functions like PyIsEmpty_Scalar, PyIsValid_Scalar, etc.
  *
  * Parameters:
  *   self: Module object (unused, required by Python C API)
@@ -172,14 +149,14 @@ static char core_Y_d_operation(GEOSContextHandle_t context, FuncGEOS_Y_d* func,
  *   func: Function pointer to the specific GEOS operation
  *
  * Returns:
- *   PyFloat object containing the result, or NULL on error
+ *   PyBool object containing the result, or NULL on error
  */
-static PyObject* Py_Y_d_Scalar(PyObject* self, PyObject* obj, FuncGEOS_Y_d* func) {
-  double result = NPY_NAN;
+static PyObject* Py_Y_b_Scalar(PyObject* self, PyObject* obj, FuncGEOS_Y_b* func) {
+  char result = 0;
 
   GEOS_INIT;
 
-  errstate = core_Y_d_operation(ctx, func, obj, &result);
+  errstate = core_Y_b_operation(ctx, func, obj, &result);
 
   GEOS_FINISH;
 
@@ -187,7 +164,7 @@ static PyObject* Py_Y_d_Scalar(PyObject* self, PyObject* obj, FuncGEOS_Y_d* func
     return NULL;  // Python exception was set by GEOS_FINISH
   }
 
-  return PyFloat_FromDouble(result);
+  return PyBool_FromLong(result);
 }
 
 /* ========================================================================
@@ -195,16 +172,16 @@ static PyObject* Py_Y_d_Scalar(PyObject* self, PyObject* obj, FuncGEOS_Y_d* func
  * ======================================================================== */
 
 /*
- * NumPy universal function implementation for Y->d operations.
+ * NumPy universal function implementation for Y->b operations.
  * This handles arrays of geometries efficiently by iterating through them.
  *
  * Parameters:
  *   args, dimensions, steps: Standard ufunc loop parameters (see NumPy docs)
  *   data: User data passed from ufunc creation (contains function pointer)
  */
-static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
+static void Y_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   // Extract the specific GEOS function from the user data
-  FuncGEOS_Y_d* func = (FuncGEOS_Y_d*)data;
+  FuncGEOS_Y_b* func = (FuncGEOS_Y_b*)data;
 
   // Initialize GEOS context with thread support (releases Python GIL)
   GEOS_INIT_THREADS;
@@ -216,7 +193,7 @@ static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* st
     if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
-    errstate = core_Y_d_operation(ctx, func, *(PyObject**)ip1, (double*)op1);
+    errstate = core_Y_b_operation(ctx, func, *(PyObject**)ip1, (char*)op1);
     if (errstate != PGERR_SUCCESS) {
       goto finish;
     }
@@ -232,13 +209,13 @@ finish:
  * NumPy requires this format to register different implementations
  * for different type combinations.
  */
-static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
+static PyUFuncGenericFunction Y_b_funcs[1] = {&Y_b_func};
 
 /*
- * Type signature for the ufunc: takes NPY_OBJECT (geometry), returns NPY_DOUBLE.
+ * Type signature for the ufunc: takes NPY_OBJECT (geometry), returns NPY_BOOL.
  * This tells NumPy what input and output types this ufunc supports.
  */
-static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
+static char Y_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
 
 
 /* ========================================================================
@@ -247,31 +224,31 @@ static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
  *
  * We use a macro to define a scalar Python function for each GEOS operation.
  *
- * This creates a function like PyGetX_Scalar that can be called from Python.
+ * This creates a function like PyIsEmpty_Scalar that can be called from Python.
  * The generated function signature is:
  *   static PyObject* Py{func_name}_Scalar(PyObject* self, PyObject* obj)
  *
- * Example: DEFINE_Y_d(GetX) creates PyGetX_Scalar function
+ * Example: DEFINE_Y_b(IsEmpty) creates PyIsEmpty_Scalar function
  *
  * Parameters:
  *   func_name: Name of the C function that performs the GEOS operation
  */
-#define DEFINE_Y_d(func_name) \
+#define DEFINE_Y_b(func_name) \
   static PyObject* Py##func_name##_Scalar(PyObject* self, PyObject* obj) { \
-    return Py_Y_d_Scalar(self, obj, (FuncGEOS_Y_d*)func_name); \
+    return Py_Y_b_Scalar(self, obj, (FuncGEOS_Y_b*)func_name); \
   }
 
-DEFINE_Y_d(GetX);
-DEFINE_Y_d(GetY);
-DEFINE_Y_d(GetZ);
+DEFINE_Y_b(GEOSGeom_isCCW_r);
+DEFINE_Y_b(GEOSisEmpty_r);
+DEFINE_Y_b(GEOSisSimpleAllTypes_r);
+DEFINE_Y_b(GEOSisRing_r);
+DEFINE_Y_b(GEOSHasZ_r);
+DEFINE_Y_b(GEOSisClosedAllTypes_r);
+DEFINE_Y_b(GEOSisValid_r);
+
 #if GEOS_SINCE_3_12_0
-DEFINE_Y_d(GetM);
+DEFINE_Y_b(GEOSHasM_r);
 #endif
-DEFINE_Y_d(GEOSArea_r);
-DEFINE_Y_d(GEOSLength_r);
-DEFINE_Y_d(GetPrecision);
-DEFINE_Y_d(MinimumClearance);
-DEFINE_Y_d(GEOSMinimumBoundingRadius);
 
 
 /* ========================================================================
@@ -282,22 +259,22 @@ DEFINE_Y_d(GEOSMinimumBoundingRadius);
  * We use a single macro to register both ufunc and scalar versions of a function with Python.
  *
  * This creates two Python-callable functions:
- * 1. A NumPy ufunc (e.g., "get_x") for array operations
- * 2. A scalar function (e.g., "get_x_scalar") for single geometry operations
+ * 1. A NumPy ufunc (e.g., "is_empty") for array operations
+ * 2. A scalar function (e.g., "is_empty_scalar") for single geometry operations
  *
  * Parameters:
- *   func_name: Name of the C function (e.g., GEOSArea_r)
- *   py_name: Python function name (e.g., area)
+ *   func_name: Name of the C function (e.g., IsEmpty)
+ *   py_name: Python function name (e.g., is_empty)
  *
  */
 
 
-#define INIT_Y_d(func_name, py_name) do { \
+#define INIT_Y_b(func_name, py_name) do { \
     /* Create data array to pass GEOS function pointer to the 'data' parameter of the ufunc */ \
     static void* func_name##_FuncData[1] = {func_name}; \
     \
     /* Create NumPy ufunc: 1 input, 1 output, 1 type signature */ \
-    ufunc = PyUFunc_FromFuncAndData(Y_d_funcs, func_name##_FuncData, Y_d_dtypes, 1, 1, 1, \
+    ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, func_name##_FuncData, Y_b_dtypes, 1, 1, 1, \
                                     PyUFunc_None, #py_name, "", 0); \
     PyDict_SetItemString(d, #py_name, ufunc); \
     \
@@ -319,22 +296,20 @@ DEFINE_Y_d(GEOSMinimumBoundingRadius);
  *   m: The Python module object (unused here)
  *   d: Module dictionary where functions will be registered
  */
-int init_geos_funcs_Y_d(PyObject* m, PyObject* d) {
+int init_geos_funcs_Y_b(PyObject* m, PyObject* d) {
   PyObject* ufunc;  // Temporary variable for ufunc creation
 
-  INIT_Y_d(GetX, get_x);
-  INIT_Y_d(GetY, get_y);
-  INIT_Y_d(GetZ, get_z);
+  INIT_Y_b(GEOSGeom_isCCW_r, is_ccw);
+  INIT_Y_b(GEOSisEmpty_r, is_empty);
+  INIT_Y_b(GEOSisSimpleAllTypes_r, is_simple);
+  INIT_Y_b(GEOSisRing_r, is_ring);
+  INIT_Y_b(GEOSHasZ_r, has_z);
+  INIT_Y_b(GEOSisClosedAllTypes_r, is_closed);
+  INIT_Y_b(GEOSisValid_r, is_valid);
 
 #if GEOS_SINCE_3_12_0
-  INIT_Y_d(GetM, get_m);
+  INIT_Y_b(GEOSHasM_r, has_m);
 #endif
-
-  INIT_Y_d(GEOSArea_r, area);
-  INIT_Y_d(GEOSLength_r, length);
-  INIT_Y_d(GetPrecision, get_precision);
-  INIT_Y_d(MinimumClearance, minimum_clearance);
-  INIT_Y_d(GEOSMinimumBoundingRadius, minimum_bounding_radius);
 
   return 0;
 }

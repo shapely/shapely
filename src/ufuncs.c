@@ -76,113 +76,6 @@ static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,
   GEOS_FINISH;
 }
 
-/* Define the geom -> bool functions (Y_b) */
-static void* is_empty_data[1] = {GEOSisEmpty_r};
-/* the GEOSisSimple_r function fails on geometrycollections */
-static char GEOSisSimpleAllTypes_r(void* context, void* geom) {
-  int type = GEOSGeomTypeId_r(context, geom);
-  if (type == -1) {
-    return 2;  // Predicates use a return value of 2 for errors
-  } else if (type == 7) {
-    return 0;
-  } else {
-    return GEOSisSimple_r(context, geom);
-  }
-}
-static void* is_simple_data[1] = {GEOSisSimpleAllTypes_r};
-static void* is_ring_data[1] = {GEOSisRing_r};
-static void* has_z_data[1] = {GEOSHasZ_r};
-#if GEOS_SINCE_3_12_0
-static void* has_m_data[1] = {GEOSHasM_r};
-#endif
-/* the GEOSisClosed_r function fails on non-linestrings */
-static char GEOSisClosedAllTypes_r(void* context, void* geom) {
-  int type = GEOSGeomTypeId_r(context, geom);
-  if (type == -1) {
-    return 2;  // Predicates use a return value of 2 for errors
-  } else if ((type == 1) || (type == 2) || (type == 5)) {
-    return GEOSisClosed_r(context, geom);
-  } else {
-    return 0;
-  }
-}
-static void* is_closed_data[1] = {GEOSisClosedAllTypes_r};
-static void* is_valid_data[1] = {GEOSisValid_r};
-
-static char GEOSGeom_isCCW_r(void* context, void* geom) {
-  const GEOSCoordSequence* coord_seq;
-  char is_ccw = 2;  // return value of 2 means GEOSException
-  int i;
-
-  // Return False for non-linear geometries
-  i = GEOSGeomTypeId_r(context, geom);
-  if (i == -1) {
-    return 2;
-  }
-  if ((i != GEOS_LINEARRING) && (i != GEOS_LINESTRING)) {
-    return 0;
-  }
-
-  // Return False for lines with fewer than 4 points
-  i = GEOSGeomGetNumPoints_r(context, geom);
-  if (i == -1) {
-    return 2;
-  }
-  if (i < 4) {
-    return 0;
-  }
-
-  // Get the coordinatesequence and call isCCW()
-  coord_seq = GEOSGeom_getCoordSeq_r(context, geom);
-  if (coord_seq == NULL) {
-    return 2;
-  }
-  if (!GEOSCoordSeq_isCCW_r(context, coord_seq, &is_ccw)) {
-    return 2;
-  }
-  return is_ccw;
-}
-static void* is_ccw_data[1] = {GEOSGeom_isCCW_r};
-
-typedef char FuncGEOS_Y_b(void* context, void* a);
-static char Y_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
-static void Y_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_Y_b* func = (FuncGEOS_Y_b*)data;
-  GEOSGeometry* in1 = NULL;
-  char ret;
-
-  GEOS_INIT_THREADS;
-
-  UNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      goto finish;
-    }
-    /* get the geometry; return on error */
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      goto finish;
-    }
-    if (in1 == NULL) {
-      /* in case of a missing value: return 0 (False) */
-      ret = 0;
-    } else {
-      /* call the GEOS function */
-      ret = func(ctx, in1);
-      /* finish for illegal values */
-      if (ret == 2) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-    }
-    *(npy_bool*)op1 = ret;
-  }
-
-finish:
-  GEOS_FINISH_THREADS;
-}
-static PyUFuncGenericFunction Y_b_funcs[1] = {&Y_b_func};
-
 /* Define the object -> bool functions (O_b) which do not raise on non-geom objects*/
 static char IsMissing(void* context, PyObject* obj) {
   GEOSGeometry* g = NULL;
@@ -3680,11 +3573,6 @@ finish:
 }
 static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
 
-#define DEFINE_Y_b(NAME)                                                       \
-  ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, NAME##_data, Y_b_dtypes, 1, 1, 1, \
-                                  PyUFunc_None, #NAME, NULL, 0);               \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
 #define DEFINE_O_b(NAME)                                                       \
   ufunc = PyUFunc_FromFuncAndData(O_b_funcs, NAME##_data, O_b_dtypes, 1, 1, 1, \
                                   PyUFunc_None, #NAME, NULL, 0);               \
@@ -3785,15 +3673,6 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
 
 int init_ufuncs(PyObject* m, PyObject* d) {
   PyObject* ufunc;
-
-  DEFINE_Y_b(is_ccw);
-  DEFINE_Y_b(is_empty);
-  DEFINE_Y_b(is_simple);
-  DEFINE_Y_b(is_geometry);
-  DEFINE_Y_b(is_ring);
-  DEFINE_Y_b(has_z);
-  DEFINE_Y_b(is_closed);
-  DEFINE_Y_b(is_valid);
 
   DEFINE_O_b(is_geometry);
   DEFINE_O_b(is_missing);
@@ -3930,7 +3809,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_GENERALIZED(coverage_invalid_edges, 2, "(d),()->(d)");
   DEFINE_CUSTOM(coverage_simplify, 3);
   DEFINE_Y_Y(disjoint_subset_union);
-  DEFINE_Y_b(has_m);
   DEFINE_Yi_Y(orient_polygons);
 #endif
 
