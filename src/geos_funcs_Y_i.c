@@ -2,7 +2,6 @@
 
 #include <Python.h>
 #include <math.h>
-#include <stdint.h>
 
 #define NO_IMPORT_ARRAY
 #define NO_IMPORT_UFUNC
@@ -32,6 +31,12 @@
  *   The requested integer value, or an error code on error
  */
 typedef int FuncGEOS_Y_i(GEOSContextHandle_t context, const GEOSGeometry* a);
+
+typedef struct {
+  FuncGEOS_Y_i* func;
+  int errcode;      // Value that indicates an error from GEOS
+  int none_value;   // Value to return when input geometry is None
+} Y_i_func_data;
 
 /* Wrapper for GEOSGeomGetNumPoints_r - returns 0 for non-linear geometries */
 static int GetNumPoints(GEOSContextHandle_t context, const GEOSGeometry* geom) {
@@ -63,19 +68,16 @@ static int GetNumInteriorRings(GEOSContextHandle_t context, const GEOSGeometry* 
  *
  * Parameters:
  *   context: GEOS context handle for thread-safe operations
- *   func: Function pointer to the specific GEOS operation to perform
- *   errcode: Error code to check against (indicates failure)
- *   none_value: Value to return when input is None
+ *   data: Y_i_func_data struct containing function pointer, error code, and none_value
  *   geom_obj: Shapely geometry object (Python wrapper around GEOSGeometry)
  *   result: Pointer where the computed int result will be stored
- *   last_error_ptr: Pointer to the last_error buffer (available in GEOS_INIT context)
+ *   last_error: Pointer to the last_error buffer (available in GEOS_INIT context)
  *
  * Returns:
  *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)
  */
-static char core_Y_i_operation(GEOSContextHandle_t context, FuncGEOS_Y_i* func,
-                               int errcode, int none_value, PyObject* geom_obj,
-                               int* result, char* last_error) {
+static char core_Y_i_operation(GEOSContextHandle_t context, const Y_i_func_data* data,
+                               PyObject* geom_obj, int* result, char* last_error) {
   const GEOSGeometry* geom;
 
   // Extract the underlying GEOS geometry from the Python geometry object
@@ -85,16 +87,16 @@ static char core_Y_i_operation(GEOSContextHandle_t context, FuncGEOS_Y_i* func,
 
   // Handle NULL geometry case - return none_value as per convention
   if (geom == NULL) {
-    *result = none_value;
+    *result = data->none_value;
     return PGERR_SUCCESS;
   }
 
   // Call the specific GEOS function
-  *result = func(context, geom);
+  *result = data->func(context, geom);
 
   // Check if the result equals the error code
   // We also check if GEOS actually set an error (we can't be sure otherwise)
-  if ((*result == errcode) && (last_error[0] != 0)) {
+  if ((*result == data->errcode) && (last_error[0] != 0)) {
     return PGERR_GEOS_EXCEPTION;
   }
 
@@ -116,20 +118,17 @@ static char core_Y_i_operation(GEOSContextHandle_t context, FuncGEOS_Y_i* func,
  * Parameters:
  *   self: Module object (unused, required by Python C API)
  *   obj: Input geometry object (should be a GeometryObject)
- *   func: Function pointer to the specific GEOS operation
- *   errcode: Error code for the GEOS operation
- *   none_value: Value to return for None inputs
+ *   data: Y_i_func_data struct containing function pointer, error code, and none_value
  *
  * Returns:
  *   PyLong object containing the result, or NULL on error
  */
-static PyObject* Py_Y_i_Scalar(PyObject* self, PyObject* obj, FuncGEOS_Y_i* func,
-                               int errcode, int none_value) {
+static PyObject* Py_Y_i_Scalar(PyObject* self, PyObject* obj, const Y_i_func_data* data) {
   int result = 0;
 
   GEOS_INIT;
 
-  errstate = core_Y_i_operation(ctx, func, errcode, none_value, obj, &result, last_error);
+  errstate = core_Y_i_operation(ctx, data, obj, &result, last_error);
 
   GEOS_FINISH;
 
@@ -150,20 +149,9 @@ static PyObject* Py_Y_i_Scalar(PyObject* self, PyObject* obj, FuncGEOS_Y_i* func
  *
  * Parameters:
  *   args, dimensions, steps: Standard ufunc loop parameters (see NumPy docs)
- *   data: User data passed from ufunc creation (contains function pointers and error codes)
+ *   data: User data passed from ufunc creation (contains Y_i_func_data struct)
  */
 static void Y_i_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  // Extract the specific GEOS function from the user data
-  // Data format: [func_ptr, errcode_ptr, none_value_ptr]
-  FuncGEOS_Y_i* func = (FuncGEOS_Y_i*)((void**)data)[0];
-  // Extract and convert error code from opaque data pointer:
-  //   ((void**)data)[1]     - Get the second element as a void* pointer
-  //   (intptr_t)(...)       - Convert void* to intptr_t (pointer-sized integer)
-  //                           intptr_t is the safe, portable way to hold any pointer value
-  //   (int)(...)            - Convert intptr_t to the actual int we need
-  int errcode = (int)(intptr_t)(((void**)data)[1]);
-  int none_value = (int)(intptr_t)(((void**)data)[2]);
-
   int result = 0;
 
   // Initialize GEOS context with thread support (releases Python GIL)
@@ -176,8 +164,7 @@ static void Y_i_func(char** args, const npy_intp* dimensions, const npy_intp* st
     if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
-    errstate = core_Y_i_operation(ctx, func, errcode, none_value, *(PyObject**)ip1,
-                                  &result, last_error);
+    errstate = core_Y_i_operation(ctx, (Y_i_func_data*)data, *(PyObject**)ip1, &result, last_error);
     if (errstate != PGERR_SUCCESS) {
       goto finish;
     }
@@ -213,20 +200,22 @@ static char Y_i_dtypes[2] = {NPY_OBJECT, NPY_INT};
  * The generated function signature is:
  *   static PyObject* Py{func_name}_Scalar(PyObject* self, PyObject* obj)
  *
- * Example: DEFINE_Y_i(GetTypeId, -1, -1) creates PyGetTypeId_Scalar function
+ * Example: DEFINE_Y_i(GEOSGeomTypeId_r, -1, -1) creates PyGetTypeId_Scalar function
  *
  * Parameters:
  *   func_name: Name of the C function that performs the GEOS operation
  *   errcode: Error code that indicates failure
  *   none_value: Value to return when input is None
  *
- * This macro also generates the data tuple for the ufunc registration.
+ * This macro generates:
+ * 1. A Y_i_func_data struct instance with the metadata
+ * 2. A void* array containing a pointer to that struct
+ * 3. The scalar Python function
  */
 #define DEFINE_Y_i(func_name, errcode, none_value) \
-  static void* func_name##_func_tuple[3] = {func_name, (void*)(intptr_t)errcode, (void*)(intptr_t)none_value}; \
-  static void* func_name##_data[1] = {func_name##_func_tuple}; \
+  static Y_i_func_data func_name##_udata = {func_name, errcode, none_value}; \
   static PyObject* Py##func_name##_Scalar(PyObject* self, PyObject* obj) { \
-    return Py_Y_i_Scalar(self, obj, (FuncGEOS_Y_i*)func_name, errcode, none_value); \
+    return Py_Y_i_Scalar(self, obj, &func_name##_udata); \
   }
 
 DEFINE_Y_i(GEOSGeomTypeId_r, -1, -1);
@@ -256,7 +245,10 @@ DEFINE_Y_i(GEOSGetNumCoordinates_r, -1, 0);
  *
  */
 #define INIT_Y_i(func_name, py_name) do { \
-    /* Create NumPy ufunc: 1 input, 1 output, 1 type signature */ \
+    /* Create data array containing pointer to Y_i_func_data struct */ \
+    static void* func_name##_data[1] = {(void*)&func_name##_udata}; \
+    \
+    /* Create NumPy ufunc: pass data array containing pointer to Y_i_func_data struct */ \
     ufunc = PyUFunc_FromFuncAndData(Y_i_funcs, func_name##_data, Y_i_dtypes, 1, 1, 1, \
                                     PyUFunc_None, #py_name, "", 0); \
     PyDict_SetItemString(d, #py_name, ufunc); \
