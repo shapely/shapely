@@ -49,19 +49,18 @@ static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,
  *
  * Parameters:
  *   context: GEOS context handle for thread safety
- *   a: Input geometry (void* which is a GEOSGeometry*)
+ *   a: Input geometry
  *
  * Returns:
  *   New GEOSGeometry* object, or NULL on error or for missing values
  */
-typedef void* FuncGEOS_Y_Y(void* context, void* a);
+typedef GEOSGeometry* FuncGEOS_Y_Y(GEOSContextHandle_t context, const GEOSGeometry* a);
 
 /* Wrapper functions to handle special cases */
 
-static void* GEOSBoundaryAllTypes_r(void* context, void* geom) {
+static GEOSGeometry* GEOSBoundaryAllTypes_r(GEOSContextHandle_t context, const GEOSGeometry* geom) {
   char typ = GEOSGeomTypeId_r(context, geom);
-  if (typ == 7) {
-    /* return NULL for geometrycollections */
+  if (typ == GEOS_GEOMETRYCOLLECTION) {
     return NULL;
   } else {
     return GEOSBoundary_r(context, geom);
@@ -69,9 +68,9 @@ static void* GEOSBoundaryAllTypes_r(void* context, void* geom) {
 }
 
 /* the normalize function acts in-place */
-static void* GEOSNormalize_r_with_clone(void* context, void* geom) {
+static GEOSGeometry* GEOSNormalize_r_with_clone(GEOSContextHandle_t context, const GEOSGeometry* geom) {
   int ret;
-  void* new_geom = GEOSGeom_clone_r(context, geom);
+  GEOSGeometry* new_geom = GEOSGeom_clone_r(context, geom);
   if (new_geom == NULL) {
     return NULL;
   }
@@ -83,12 +82,12 @@ static void* GEOSNormalize_r_with_clone(void* context, void* geom) {
   return new_geom;
 }
 
-static void* GetExteriorRing(void* context, void* geom) {
+static GEOSGeometry* GetExteriorRing(GEOSContextHandle_t context, const GEOSGeometry* geom) {
   char typ = GEOSGeomTypeId_r(context, geom);
-  if (typ != 3) {
+  if (typ != GEOS_POLYGON) {
     return NULL;
   }
-  void* ret = (void*)GEOSGetExteriorRing_r(context, geom);
+  GEOSGeometry* ret = GEOSGetExteriorRing_r(context, geom);
   /* Create a copy of the obtained geometry */
   if (ret != NULL) {
     ret = GEOSGeom_clone_r(context, ret);
@@ -96,7 +95,7 @@ static void* GetExteriorRing(void* context, void* geom) {
   return ret;
 }
 
-static void* GEOSMinimumBoundingCircleWithReturn(void* context, void* geom) {
+static GEOSGeometry* GEOSMinimumBoundingCircleWithReturn(GEOSContextHandle_t context, const GEOSGeometry* geom) {
   GEOSGeometry* center = NULL;
   double radius;
   GEOSGeometry* ret = GEOSMinimumBoundingCircle_r(context, geom, &radius, &center);
@@ -126,7 +125,7 @@ static void* GEOSMinimumBoundingCircleWithReturn(void* context, void* geom) {
  *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)
  */
 static char core_Y_Y_operation(GEOSContextHandle_t context, FuncGEOS_Y_Y* func,
-                               PyObject* geom_obj, char* last_error, GEOSGeometry** result_ptr) {
+                               PyObject* geom_obj, char* last_error, GEOSGeometry** result) {
   GEOSGeometry* geom;
 
   // Extract the underlying GEOS geometry from the Python geometry object
@@ -136,17 +135,17 @@ static char core_Y_Y_operation(GEOSContextHandle_t context, FuncGEOS_Y_Y* func,
 
   // Handle NULL geometry case - return NULL (None)
   if (geom == NULL) {
-    *result_ptr = NULL;
+    *result = NULL;
     return PGERR_SUCCESS;
   }
 
   // Call the specific GEOS function (e.g., GEOSEnvelope_r, GEOSConvexHull_r, etc.)
-  *result_ptr = func(context, geom);
+  *result = func(context, geom);
 
   // NULL can mean either error or a valid "missing value" for some functions
   // (GetExteriorRing, GEOSBoundaryAllTypes_r) so check the last_error before
   // setting error state
-  if ((*result_ptr == NULL) && (last_error[0] != 0)) {
+  if ((*result == NULL) && (last_error[0] != 0)) {
     return PGERR_GEOS_EXCEPTION;
   }
 
@@ -206,19 +205,23 @@ static PyObject* Py_Y_Y_Scalar(PyObject* self, PyObject* obj, FuncGEOS_Y_Y* func
 static void Y_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   // Extract the specific GEOS function from the user data
   FuncGEOS_Y_Y* func = (FuncGEOS_Y_Y*)data;
-  GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
-
-  // TODO: Add inplace output check once CHECK_NO_INPLACE_OUTPUT macro is available
-  // CHECK_NO_INPLACE_OUTPUT(1);
-
-  // allocate a temporary array to store output GEOSGeometry objects
-  geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  // TODO: Add allocation check once CHECK_ALLOC macro is available
-  // CHECK_ALLOC(geom_arr);
 
   // Initialize GEOS context with thread support (releases Python GIL)
   GEOS_INIT_THREADS;
+
+  if (steps[1] == 0) {
+    // In case of zero-strided output, raise an error
+    errstate = PGERR_INPLACE_OUTPUT;
+    goto finish;
+  }
+
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * dimensions[0]);
+  if (geom_arr == NULL) {
+    errstate = PGERR_NO_MALLOC;
+    goto finish;
+  }
 
   // The UNARY_LOOP macro unpacks args, dimensions, and steps and iterates through input/output arrays
   // ip1 points to current input element, op1 points to current output element
@@ -226,29 +229,16 @@ static void Y_Y_func(char** args, const npy_intp* dimensions, const npy_intp* st
     CHECK_SIGNALS_THREADS(i);
     if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
+      goto finish;
     }
-    // get the geometry: return on error
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
+    errstate = core_Y_Y_operation(ctx, func, *(PyObject**)ip1, last_error, &geom_arr[i]);
+    if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    if (in1 == NULL) {
-      // in case of a missing value: return NULL (None)
-      geom_arr[i] = NULL;
-    } else {
-      geom_arr[i] = func(ctx, in1);
-      // NULL means: exception, but for some functions it may also indicate a
-      // "missing value" (None) (GetExteriorRing, GEOSBoundaryAllTypes_r)
-      // So: check the last_error before setting error state
-      if ((geom_arr[i] == NULL) && (last_error[0] != 0)) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        break;
-      }
+      goto finish;
     }
   }
+
+  finish:
 
   // Clean up GEOS context and handle any errors (reacquires Python GIL)
   GEOS_FINISH_THREADS;
@@ -257,7 +247,9 @@ static void Y_Y_func(char** args, const npy_intp* dimensions, const npy_intp* st
   if (errstate == PGERR_SUCCESS) {
     geom_arr_to_npy(geom_arr, args[1], steps[1], dimensions[0]);
   }
-  free(geom_arr);
+  if (geom_arr != NULL) {
+    free(geom_arr);
+  }
 }
 
 /*
@@ -284,7 +276,7 @@ static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
  * The generated function signature is:
  *   static PyObject* Py{func_name}_Scalar(PyObject* self, PyObject* obj)
  *
- * Example: DEFINE_Y_Y(envelope) creates PyEnvelope_Scalar function
+ * Example: DEFINE_Y_Y(GEOSEnvelope_r) creates PyGEOSEnvelope_r_Scalar function
  *
  * Parameters:
  *   func_name: Name of the C function that performs the GEOS operation
@@ -307,12 +299,12 @@ DEFINE_Y_Y(GEOSGeom_extractUniquePoints_r);
 DEFINE_Y_Y(GetExteriorRing);
 DEFINE_Y_Y(GEOSNormalize_r_with_clone);
 DEFINE_Y_Y(PyGEOSForce2D);
+DEFINE_Y_Y(GEOSMinimumRotatedRectangle_r);
+DEFINE_Y_Y(GEOSReverse_r);
 DEFINE_Y_Y(GEOSBuildArea_r);
 DEFINE_Y_Y(GEOSCoverageUnion_r);
 DEFINE_Y_Y(GEOSMinimumBoundingCircleWithReturn);
 DEFINE_Y_Y(GEOSMinimumWidth_r);
-DEFINE_Y_Y(GEOSReverse_r);
-DEFINE_Y_Y(GEOSMinimumRotatedRectangle_r);
 DEFINE_Y_Y(GEOSConstrainedDelaunayTriangulation_r);
 #if GEOS_SINCE_3_11_0
 DEFINE_Y_Y(GEOSLineMergeDirected_r);
@@ -381,12 +373,12 @@ int init_geos_funcs_Y_Y(PyObject* m, PyObject* d) {
   INIT_Y_Y(GetExteriorRing, get_exterior_ring);
   INIT_Y_Y(GEOSNormalize_r_with_clone, normalize);
   INIT_Y_Y(PyGEOSForce2D, force_2d);
+  INIT_Y_Y(GEOSMinimumRotatedRectangle_r, oriented_envelope);
+  INIT_Y_Y(GEOSReverse_r, reverse);
   INIT_Y_Y(GEOSBuildArea_r, build_area);
   INIT_Y_Y(GEOSCoverageUnion_r, coverage_union);
   INIT_Y_Y(GEOSMinimumBoundingCircleWithReturn, minimum_bounding_circle);
   INIT_Y_Y(GEOSMinimumWidth_r, minimum_width);
-  INIT_Y_Y(GEOSReverse_r, reverse);
-  INIT_Y_Y(GEOSMinimumRotatedRectangle_r, oriented_envelope);
   INIT_Y_Y(GEOSConstrainedDelaunayTriangulation_r, constrained_delaunay_triangles);
 
 #if GEOS_SINCE_3_11_0

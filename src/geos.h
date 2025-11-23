@@ -91,6 +91,7 @@ enum ShapelyErrorCode {
   PGERR_GEOJSON_EMPTY_POINT,
   PGERR_LINEARRING_NCOORDS,
   PGERR_NAN_COORD,
+  PGERR_INPLACE_OUTPUT,
   PGWARN_INVALID_WKB,  // raise the GEOS WKB error as a warning instead of exception
   PGWARN_INVALID_WKT,  // raise the GEOS WKT error as a warning instead of exception
   PGWARN_INVALID_GEOJSON,
@@ -141,7 +142,11 @@ enum ShapelyErrorCode {
     case PGERR_NAN_COORD:                                                                \
       PyErr_SetString(PyExc_ValueError,                                                  \
                       "A NaN, Inf or -Inf coordinate was supplied. Remove the "          \
-                      "coordinate or adapt the 'handle_nan' parameter.");               \
+                      "coordinate or adapt the 'handle_nan' parameter.");                \
+      break;                                                                             \
+    case PGERR_INPLACE_OUTPUT:                                                           \
+      PyErr_SetString(PyExc_ValueError,                                                  \
+                      "Zero-strided outputs are not supported for this operation.");     \
       break;                                                                             \
     case PGWARN_INVALID_WKB:                                                             \
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
