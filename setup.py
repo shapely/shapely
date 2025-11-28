@@ -156,6 +156,7 @@ else:
             sources=[
                 "src/c_api.c",
                 "src/coords.c",
+                "src/geom_arr.c",
                 "src/geos.c",
                 "src/lib.c",
                 "src/pygeom.c",

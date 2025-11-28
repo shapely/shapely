@@ -12,6 +12,7 @@
 #include <numpy/ufuncobject.h>
 
 #include "fast_loop_macros.h"
+#include "geom_arr.h"
 #include "geos.h"
 #include "pygeos.h"
 #include "pygeom.h"
@@ -21,25 +22,6 @@
  * UTILITY FUNCTIONS
  * ========================================================================
  */
-
-/* Convert array of GEOSGeometry pointers to NumPy array of Geometry objects */
-static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,
-                            npy_intp count) {
-  npy_intp i;
-  PyObject* ret;
-  PyObject** out;
-
-  GEOS_INIT;
-
-  for (i = 0; i < count; i++, ptr += stride) {
-    ret = GeometryObject_FromGEOS(array[i], ctx);
-    out = (PyObject**)ptr;
-    Py_XDECREF(*out);
-    *out = ret;
-  }
-
-  GEOS_FINISH;
-}
 
 /* ========================================================================
  * GEOS WRAPPER FUNCTIONS

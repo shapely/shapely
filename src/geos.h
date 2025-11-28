@@ -3,6 +3,7 @@
 
 #include <Python.h>
 #include <numpy/ndarraytypes.h>
+#include "geom_arr.h"
 
 /* To avoid accidental use of non reentrant GEOS API. */
 #ifndef GEOS_USE_ONLY_R_API
@@ -197,7 +198,6 @@ extern GEOSContextHandle_t init_geos_context(void);
 extern char* init_geos_error_buffer(void);
 
 extern void geos_error_handler(const char* message, void* userdata);
-extern void destroy_geom_arr(void* context, GEOSGeometry** array, int length);
 extern char has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 extern GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx,
                                                   GEOSGeometry* geom);

@@ -12,6 +12,7 @@
 #include <numpy/ufuncobject.h>
 
 #include "fast_loop_macros.h"
+#include "geom_arr.h"
 #include "geos.h"
 #include "pygeos.h"
 #include "pygeom.h"
@@ -57,24 +58,6 @@
       errstate = PGERR_PYSIGNAL;                    \
     };                                              \
   }
-
-static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,
-                            npy_intp count) {
-  npy_intp i;
-  PyObject* ret;
-  PyObject** out;
-
-  GEOS_INIT;
-
-  for (i = 0; i < count; i++, ptr += stride) {
-    ret = GeometryObject_FromGEOS(array[i], ctx);
-    out = (PyObject**)ptr;
-    Py_XDECREF(*out);
-    *out = ret;
-  }
-
-  GEOS_FINISH;
-}
 
 /* Define the object -> bool functions (O_b) which do not raise on non-geom objects*/
 static char IsMissing(void* context, PyObject* obj) {
