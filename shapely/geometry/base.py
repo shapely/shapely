@@ -13,6 +13,7 @@ import numpy as np
 
 import shapely
 from shapely._geometry_helpers import _geom_factory
+from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area
 from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.decorators import deprecate_positional
@@ -426,7 +427,11 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `minimum_rotated_rectangle`.
         """
-        return shapely.lib.oriented_envelope_scalar(self)
+        if shapely.lib.geos_version < (3, 12, 0):
+            f = _oriented_envelope_min_area
+        else:
+            f = shapely.lib.oriented_envelope_scalar
+        return f(self)
 
     @property
     def minimum_rotated_rectangle(self):
@@ -446,7 +451,7 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `oriented_envelope`.
         """
-        return shapely.lib.oriented_envelope_scalar(self)
+        return self.oriented_envelope
 
     # Note: future plan is to change this signature over a few releases:
     # shapely 2.0:
