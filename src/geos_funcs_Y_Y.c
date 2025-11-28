@@ -69,12 +69,12 @@ static GEOSGeometry* GetExteriorRing(GEOSContextHandle_t context, const GEOSGeom
   if (typ != GEOS_POLYGON) {
     return NULL;
   }
-  GEOSGeometry* ret = GEOSGetExteriorRing_r(context, geom);
+  const GEOSGeometry* ring = GEOSGetExteriorRing_r(context, geom);
   /* Create a copy of the obtained geometry */
-  if (ret != NULL) {
-    ret = GEOSGeom_clone_r(context, ret);
+  if (ring == NULL) {
+    return NULL;
   }
-  return ret;
+  return GEOSGeom_clone_r(context, ring);
 }
 
 static GEOSGeometry* GEOSMinimumBoundingCircleWithReturn(GEOSContextHandle_t context, const GEOSGeometry* geom) {
@@ -187,7 +187,7 @@ static PyObject* Py_Y_Y_Scalar(PyObject* self, PyObject* obj, FuncGEOS_Y_Y* func
 static void Y_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   // Extract the specific GEOS function from the user data
   FuncGEOS_Y_Y* func = (FuncGEOS_Y_Y*)data;
-  GEOSGeometry** geom_arr;
+  GEOSGeometry** geom_arr = NULL;
 
   // Initialize GEOS context with thread support (releases Python GIL)
   GEOS_INIT_THREADS;
