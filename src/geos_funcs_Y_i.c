@@ -32,12 +32,6 @@
  */
 typedef int FuncGEOS_Y_i(GEOSContextHandle_t context, const GEOSGeometry* a);
 
-typedef struct {
-  FuncGEOS_Y_i* func;
-  int errcode;        // Value that indicates an error from GEOS
-  int missing_value;  // Value to return when input geometry is None
-} Y_i_func_data;
-
 /* Wrapper for GEOSGeomGetNumPoints_r - returns 0 for non-linear geometries */
 static int GetNumPoints(GEOSContextHandle_t context, const GEOSGeometry* geom) {
   char typ = GEOSGeomTypeId_r(context, geom);
@@ -76,6 +70,11 @@ static int GetNumInteriorRings(GEOSContextHandle_t context, const GEOSGeometry* 
  * Returns:
  *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)
  */
+typedef struct {
+  FuncGEOS_Y_i* func;
+  int missing_value;  // Value to return when input geometry is None
+} Y_i_func_data;
+
 static char core_Y_i_operation(GEOSContextHandle_t context, const Y_i_func_data* data,
                                PyObject* geom_obj, int* result, char* last_error) {
   const GEOSGeometry* geom;
@@ -95,8 +94,9 @@ static char core_Y_i_operation(GEOSContextHandle_t context, const Y_i_func_data*
   *result = data->func(context, geom);
 
   // Check if the result equals the error code
-  // We also check if GEOS actually set an error (we can't be sure otherwise)
-  if ((*result == data->errcode) && (last_error[0] != 0)) {
+  // We also check if GEOS actually set an error (because for some functions,
+  // -1 has another semantic meaning than "error")
+  if ((*result == -1) && (last_error[0] != 0)) {
     return PGERR_GEOS_EXCEPTION;
   }
 
@@ -201,29 +201,28 @@ static char Y_i_dtypes[2] = {NPY_OBJECT, NPY_INT};
  *     error code, and missing value.
  *  2. A Python function that implements the scalar logic.
  *
- * Example: DEFINE_Y_i(GetNumPoints, -1, -1) creates
+ * Example: DEFINE_Y_i(GetNumPoints, -1) creates
  * - static Y_i_func_data GetNumPoints_data
  * - static PyObject* PyGetNumPoints_Scalar(PyObject* self, PyObject* obj)
  *
  * Parameters:
  *   func_name: Name of the C function that performs the GEOS operation
- *   errcode: GEOS function return value that indicates failure
  *   missing_value: Value to return when input is None
  */
-#define DEFINE_Y_i(func_name, errcode, missing_value) \
-  static Y_i_func_data func_name##_data = {func_name, errcode, missing_value}; \
+#define DEFINE_Y_i(func_name, missing_value) \
+  static Y_i_func_data func_name##_data = {func_name, missing_value}; \
   static PyObject* Py##func_name##_Scalar(PyObject* self, PyObject* obj) { \
     return Py_Y_i_Scalar(self, obj, &func_name##_data); \
   }
 
-DEFINE_Y_i(GEOSGeomTypeId_r, -1, -1);
-DEFINE_Y_i(GEOSGeom_getDimensions_r, 0, -1);
-DEFINE_Y_i(GEOSGeom_getCoordinateDimension_r, -1, -1);
-DEFINE_Y_i(GEOSGetSRID_r, 0, -1);
-DEFINE_Y_i(GetNumPoints, -1, 0);
-DEFINE_Y_i(GetNumInteriorRings, -1, 0);
-DEFINE_Y_i(GEOSGetNumGeometries_r, -1, 0);
-DEFINE_Y_i(GEOSGetNumCoordinates_r, -1, 0);
+DEFINE_Y_i(GEOSGeomTypeId_r, -1);
+DEFINE_Y_i(GEOSGeom_getDimensions_r, -1);
+DEFINE_Y_i(GEOSGeom_getCoordinateDimension_r, -1);
+DEFINE_Y_i(GEOSGetSRID_r, -1);
+DEFINE_Y_i(GetNumPoints, 0);
+DEFINE_Y_i(GetNumInteriorRings, 0);
+DEFINE_Y_i(GEOSGetNumGeometries_r, 0);
+DEFINE_Y_i(GEOSGetNumCoordinates_r, 0);
 
 
 /* ========================================================================
