@@ -19,11 +19,6 @@
 #include "signal_checks.h"
 
 /* ========================================================================
- * UTILITY FUNCTIONS
- * ========================================================================
- */
-
-/* ========================================================================
  * GEOS WRAPPER FUNCTIONS
  * ========================================================================
  *
@@ -108,10 +103,10 @@ static GEOSGeometry* GEOSMinimumBoundingCircleWithReturn(GEOSContextHandle_t con
  */
 static char core_Y_Y_operation(GEOSContextHandle_t context, FuncGEOS_Y_Y* func,
                                PyObject* geom_obj, char* last_error, GEOSGeometry** result) {
-  GEOSGeometry* geom;
+  const GEOSGeometry* geom;
 
   // Extract the underlying GEOS geometry from the Python geometry object
-  if (!get_geom((GeometryObject*)geom_obj, &geom)) {
+  if (!ShapelyGetGeometry(geom_obj, &geom)) {
     return PGERR_NOT_A_GEOMETRY;
   }
 
@@ -192,7 +187,7 @@ static void Y_Y_func(char** args, const npy_intp* dimensions, const npy_intp* st
   // Initialize GEOS context with thread support (releases Python GIL)
   GEOS_INIT_THREADS;
 
-  if (steps[1] == 0) {
+  if ((steps[1] == 0) && (dimensions[0] > 1)) {
     // In case of zero-strided output, raise an error
     errstate = PGERR_INPLACE_OUTPUT;
     goto finish;
