@@ -726,10 +726,10 @@ def orient(geom, sign=1.0):
 
 
 def get_segments(geometry):
-    """Return the constituent segments a line.
+    """Get segments of each linear geometry object.
 
     Here 'segments' is defined as the individual pairwise coordinates
-    comprising a (non-multi) linear feature.
+    comprising a LineString or LinearRing. Multi* geometry objects are not supported.
 
     Parameters
     ----------
@@ -742,7 +742,7 @@ def get_segments(geometry):
 
     See Also
     --------
-    get_parts
+    get_parts, get_coordinates
 
     Examples
     --------
