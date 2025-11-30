@@ -39,7 +39,7 @@ typedef GEOSGeometry* FuncGEOS_Yi_Y(GEOSContextHandle_t context, const GEOSGeome
 static GEOSGeometry* GetPointN(GEOSContextHandle_t context, const GEOSGeometry* geom, int n) {
   char typ = GEOSGeomTypeId_r(context, geom);
   int size, i;
-  if ((typ != 1) && (typ != 2)) {
+  if ((typ != GEOS_LINESTRING) && (typ != GEOS_LINEARRING)) {
     return NULL;
   }
   size = GEOSGeomGetNumPoints_r(context, geom);
@@ -62,7 +62,9 @@ static GEOSGeometry* GetPointN(GEOSContextHandle_t context, const GEOSGeometry* 
 static GEOSGeometry* GetInteriorRingN(GEOSContextHandle_t context, const GEOSGeometry* geom, int n) {
   char typ = GEOSGeomTypeId_r(context, geom);
   int size, i;
-  if (typ != 3) {
+  const GEOSGeometry* ring;
+
+  if (typ != GEOS_POLYGON) {
     return NULL;
   }
   size = GEOSGetNumInteriorRings_r(context, geom);
@@ -79,16 +81,18 @@ static GEOSGeometry* GetInteriorRingN(GEOSContextHandle_t context, const GEOSGeo
     /* Important, could give segfaults else */
     return NULL;
   }
-  void* ret = (void*)GEOSGetInteriorRingN_r(context, geom, i);
-  /* Create a copy of the obtained geometry */
-  if (ret != NULL) {
-    ret = GEOSGeom_clone_r(context, ret);
+  ring = GEOSGetInteriorRingN_r(context, geom, i);
+  if (ring == NULL) {
+    return NULL;
   }
-  return ret;
+  /* Create a copy of the obtained geometry */
+  return GEOSGeom_clone_r(context, ring);
 }
 
 static GEOSGeometry* GetGeometryN(GEOSContextHandle_t context, const GEOSGeometry* geom, int n) {
   int size, i;
+  const GEOSGeometry* subgeom;
+
   size = GEOSGetNumGeometries_r(context, geom);
   if (size == -1) {
     return NULL;
@@ -103,12 +107,12 @@ static GEOSGeometry* GetGeometryN(GEOSContextHandle_t context, const GEOSGeometr
     /* Important, could give segfaults else */
     return NULL;
   }
-  void* ret = (void*)GEOSGetGeometryN_r(context, geom, i);
-  /* Create a copy of the obtained geometry */
-  if (ret != NULL) {
-    ret = GEOSGeom_clone_r(context, ret);
+  subgeom = GEOSGetGeometryN_r(context, geom, i);
+  if (subgeom == NULL) {
+    return NULL;
   }
-  return ret;
+  /* Create a copy of the obtained geometry */
+  return GEOSGeom_clone_r(context, subgeom);
 }
 
 /* the set srid function acts in-place */
@@ -207,7 +211,6 @@ static PyObject* Py_Yi_Y_Scalar(PyObject* self, PyObject* args, FuncGEOS_Yi_Y* f
   PyObject* geom_obj;
   int int_param;
   GEOSGeometry* ret_ptr = NULL;
-  PyObject* ret;
 
   if (!PyArg_ParseTuple(args, "Oi", &geom_obj, &int_param)) {
     return NULL;
@@ -223,8 +226,7 @@ static PyObject* Py_Yi_Y_Scalar(PyObject* self, PyObject* args, FuncGEOS_Yi_Y* f
     return NULL;  // Python exception was set by GEOS_FINISH
   }
 
-  ret = GeometryObject_FromGEOS(ret_ptr, ctx);
-  return ret;
+  return GeometryObject_FromGEOS(ret_ptr, ctx);
 }
 
 /* ========================================================================
@@ -268,8 +270,7 @@ static void Yi_Y_func(char** args, const npy_intp* dimensions, const npy_intp* s
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    int in2 = *(int*)ip2;
-    errstate = core_Yi_Y_operation(ctx, func, *(PyObject**)ip1, in2, last_error, &geom_arr[i]);
+    errstate = core_Yi_Y_operation(ctx, func, *(PyObject**)ip1, *(int*)ip2, last_error, &geom_arr[i]);
     if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
