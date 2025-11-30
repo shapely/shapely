@@ -517,9 +517,6 @@ static void Yd_Y_func(char** args, const npy_intp* dimensions, const npy_intp* s
 }
 static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 
-/* Yi_Y functions are now defined in geos_funcs_Yi_Y.c */
-extern int init_geos_funcs_Yi_Y(PyObject* m, PyObject* d);
-
 /* Define the geom, geom -> geom functions (YY_Y) */
 static void* intersection_data[1] = {GEOSIntersection_r};
 static void* difference_data[1] = {GEOSDifference_r};
@@ -3392,9 +3389,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
   DEFINE_Y(prepare);
   DEFINE_Y(destroy_prepared);
-
-  /* Yi_Y functions initialized from geos_funcs_Yi_Y.c */
-  init_geos_funcs_Yi_Y(m, d);
 
   DEFINE_Yd_Y(line_interpolate_point);
   DEFINE_Yd_Y(line_interpolate_point_normalized);
