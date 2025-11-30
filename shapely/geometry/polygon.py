@@ -18,7 +18,7 @@ def _unpickle_linearring(wkb):
     srid = shapely.get_srid(linestring)
     linearring = _geometry_helpers.linestring_to_linearring(linestring)
     if srid:
-        linearring = shapely.set_srid(linearring, srid)
+        linearring = shapely.lib.set_srid_scalar(linearring, srid)
     return linearring
 
 
@@ -182,7 +182,7 @@ class InteriorRingSequence:
             raise TypeError("key must be an index or slice")
 
     def _get_ring(self, i):
-        return shapely.get_interior_ring(self._parent, i)
+        return shapely.lib.get_interior_ring_scalar(self._parent, i)
 
 
 class Polygon(BaseGeometry):
@@ -342,4 +342,4 @@ def orient(polygon, sign=1.0):
     Refer to :func:`shapely.orient_polygons` for full documentation.
 
     """
-    return shapely.orient_polygons(polygon, exterior_cw=sign < 0.0)
+    return shapely.lib.orient_polygons_scalar(polygon, sign < 0.0)
