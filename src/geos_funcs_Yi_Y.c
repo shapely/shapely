@@ -194,25 +194,37 @@ static char core_Yi_Y_operation(GEOSContextHandle_t context, FuncGEOS_Yi_Y* func
 /*
  * Generic scalar Python function implementation for Yi->Y operations.
  * This handles single geometry inputs (not arrays) and returns a Python Geometry.
- * It should be registered as a METH_VARARGS method (accepting geometry and int).
+ * It should be registered as a METH_FASTCALL method (accepting geometry and int).
  *
  * This function is used as a template by the DEFINE_Yi_Y macro to create
  * specific scalar functions like PyGetPointN_Scalar, PySetSRID_Scalar, etc.
  *
  * Parameters:
  *   self: Module object (unused, required by Python C API)
- *   args: Tuple containing (geom, int_param)
+ *   args: Array of arguments (geometry, int_param)
+ *   nargs: Number of arguments (should be 2)
  *   func: Function pointer to the specific GEOS operation
  *
  * Returns:
  *   PyObject* containing the result geometry, or NULL on error
  */
-static PyObject* Py_Yi_Y_Scalar(PyObject* self, PyObject* args, FuncGEOS_Yi_Y* func) {
+static PyObject* Py_Yi_Y_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs, FuncGEOS_Yi_Y* func) {
   PyObject* geom_obj;
   int int_param;
   GEOSGeometry* ret_ptr = NULL;
 
-  if (!PyArg_ParseTuple(args, "Oi", &geom_obj, &int_param)) {
+  if (nargs != 2) {
+    PyErr_Format(PyExc_TypeError, "Expected 2 arguments, got %zd", nargs);
+    return NULL;
+  }
+
+  geom_obj = args[0];
+  if (!PyLong_Check(args[1])) {
+    PyErr_Format(PyExc_TypeError, "Expected int as second argument, got %s", Py_TYPE(args[1])->tp_name);
+    return NULL;
+  }
+  int_param = PyLong_AsLong(args[1]);
+  if (PyErr_Occurred()) {
     return NULL;
   }
 
@@ -321,8 +333,8 @@ static char Yi_Y_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
  *   func_name: Name of the C function that performs the GEOS operation
  */
 #define DEFINE_Yi_Y(func_name) \
-  static PyObject* Py##func_name##_Scalar(PyObject* self, PyObject* args) { \
-    return Py_Yi_Y_Scalar(self, args, (FuncGEOS_Yi_Y*)func_name); \
+  static PyObject* Py##func_name##_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs) { \
+    return Py_Yi_Y_Scalar(self, args, nargs, (FuncGEOS_Yi_Y*)func_name); \
   }
 
 DEFINE_Yi_Y(GetPointN);
@@ -362,8 +374,8 @@ DEFINE_Yi_Y(GEOSOrientPolygons_r_with_clone);
     /* Create Python function */ \
     static PyMethodDef Py##func_name##_Scalar_Def = { \
         #py_name "_scalar",                   /* Function name */ \
-        Py##func_name##_Scalar,               /* C function pointer */ \
-        METH_VARARGS,                         /* Function takes variable arguments */ \
+        (PyCFunction)Py##func_name##_Scalar,  /* C function pointer */ \
+        METH_FASTCALL,                        /* Function takes fast call arguments */ \
         #py_name " scalar implementation"     /* Docstring */ \
     }; \
     PyObject* Py##func_name##_Scalar_Func = PyCFunction_NewEx(&Py##func_name##_Scalar_Def, NULL, NULL); \

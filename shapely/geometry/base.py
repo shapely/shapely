@@ -1092,7 +1092,7 @@ class GeometrySequence:
         self._parent = parent
 
     def _get_geom_item(self, i):
-        return shapely.lib.get_geometry_scalar(self._parent, i)
+        return shapely.lib.get_geometry_scalar(self._parent, int(i))
 
     def __iter__(self):
         """Iterate over the geometries in the sequence."""
