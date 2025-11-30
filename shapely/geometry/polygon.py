@@ -4,7 +4,7 @@ import numpy as np
 
 import shapely
 from shapely import _geometry_helpers
-from shapely.algorithms.cga import signed_area  # noqa
+from shapely.algorithms.cga import _orient_polygon, signed_area  # noqa
 from shapely.errors import TopologicalError
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
@@ -342,4 +342,8 @@ def orient(polygon, sign=1.0):
     Refer to :func:`shapely.orient_polygons` for full documentation.
 
     """
-    return shapely.lib.orient_polygons_scalar(polygon, int(sign < 0.0))
+    if shapely.lib.geos_version < (3, 12, 0):
+        f = _orient_polygon
+    else:
+        f = shapely.lib.orient_polygons_scalar
+    return f(polygon, int(sign < 0.0))
