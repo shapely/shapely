@@ -126,11 +126,27 @@ def test_contains_properly():
 
 
 @pytest.mark.parametrize(
-    "op", ["convex_hull", "envelope", "oriented_envelope", "minimum_rotated_rectangle"]
+    "op",
+    [
+        "boundary",
+        "centroid",
+        "convex_hull",
+        "envelope",
+        "oriented_envelope",
+        "minimum_rotated_rectangle",
+    ],
 )
 def test_constructive_properties(op):
     geom = LineString([(0, 0), (0, 10), (10, 10)])
     result = getattr(geom, op)
+    expected = getattr(shapely, op)(geom)
+    assert result == expected
+
+
+@pytest.mark.parametrize("op", ["normalize", "point_on_surface", "reverse"])
+def test_constructive_methods(op):
+    geom = LineString([(0, 0), (0, 10), (10, 10)])
+    result = getattr(geom, op)()
     expected = getattr(shapely, op)(geom)
     assert result == expected
 

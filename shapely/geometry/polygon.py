@@ -251,7 +251,7 @@ class Polygon(BaseGeometry):
     @property
     def exterior(self):
         """Return the exterior ring of the polygon."""
-        return shapely.get_exterior_ring(self)
+        return shapely.lib.get_exterior_ring_scalar(self)
 
     @property
     def interiors(self):
