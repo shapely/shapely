@@ -28,12 +28,12 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.x"
 
@@ -44,7 +44,7 @@ jobs:
           python -m build --sdist
           twine check --strict dist/*
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: release-sdist
           path: ./dist/*.tar.gz
@@ -75,11 +75,11 @@ jobs:
             cibw_build: "*musllinux_aarch64"
             arch: aarch64
     env:
-      basetag: 2024.08.12-1
+      basetag: 2025.08.02-1
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -113,7 +113,7 @@ jobs:
         shell: bash
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.23.3
+        uses: pypa/cibuildwheel@v3.3.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           # TEMP don't use automated/isolated build environment, but manually
@@ -131,7 +131,7 @@ jobs:
           CIBW_MUSLLINUX_AARCH64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: release-linux-${{ matrix.baseimage }}
           path: ./wheelhouse/*.whl
@@ -145,22 +145,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2019
+          - os: windows-2025
             arch: x86
             msvc_arch: x86
-          - os: windows-2019
+          - os: windows-2025
             arch: AMD64
             msvc_arch: x64
-          - os: macos-13
+          - os: windows-11-arm
+            arch: ARM64
+            msvc_arch: ARM64
+          - os: macos-15-intel
             arch: x86_64
             cmake_osx_architectures: x86_64
-          - os: macos-14
+          - os: macos-15
             arch: arm64
             cmake_osx_architectures: arm64
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -177,7 +180,7 @@ jobs:
       - name: Add MSVC LICENSE
         run: cp ci/wheelbuilder/LICENSE_win32 .
         shell: bash
-        if: ${{ matrix.os == 'windows-2019' }}
+        if: ${{ startsWith(matrix.os, 'windows') }}
 
       - name: Activate MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -186,7 +189,7 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.23.3
+        uses: pypa/cibuildwheel@v3.3.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_ENVIRONMENT_MACOS:
@@ -217,7 +220,7 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: release-${{ matrix.os }}-${{ matrix.arch }}
           path: ./wheelhouse/*.whl
@@ -230,7 +233,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'shapely/shapely' && github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           pattern: release-*
           merge-multiple: true
@@ -248,7 +251,7 @@ jobs:
     # release on every tag
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           pattern: release-*
           merge-multiple: true

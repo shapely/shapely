@@ -1,6 +1,27 @@
 Changes
 =======
 
+2.2.0 (unreleased)
+------------------
+
+Improved performance of the following geometry methods: `area`, `length`,
+`minimum_clearance`, `x`, `y`, `z`, `m`, `has_z`, `has_m`, `is_empty`, `is_ring`,
+`is_closed`, `is_simple`. Benchmarks showed a change of call duration
+from 2.6 microseconds to 0.2 microseconds (on the `Point.x` attribute).
+
+Improved performance by changing the GEOS context handling. Instead of initializing/finalizing
+on every call, GEOS contexts are reused through a threadlocal. It should give a performance
+increase of about 75 nanoseconds per call.
+
+Added `transform_coordseq`, which applies a transformation function per coordinate sequence
+in a more performant way than `shapely.ops.transform` does. `shapely.ops.transform` is now deprecated.
+
+2.1.2 (2025-09-24)
+------------------
+
+Wheels are available for Python 3.14 (and still include GEOS 3.13.1).
+
+
 2.1.1 (2025-05-19)
 ------------------
 

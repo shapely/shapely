@@ -1,6 +1,17 @@
 Frequently asked questions and answers
 ======================================
 
+Why does `intersects()` return `False` for a point on a line?
+-------------------------------------------------------------
+
+Determining if a line and a point intersect is complicated by the inherent
+inexactness of floating point values. There is no solution for this. Comparing
+the distance between a line and point to a tolerance value may be a useful
+approach for some applications. Line vs line intersection, on the other hand,
+is robust.
+
+See also: https://libgeos.org/usage/faq/#robustness.
+
 I installed shapely in a conda environment using pip. Why doesn't it work?
 --------------------------------------------------------------------------
 

@@ -74,7 +74,7 @@ def get_ext_options():
             # silence warnings
             ("NPY_NO_DEPRECATED_API", "0"),
             # minimum numpy version
-            ("NPY_TARGET_VERSION", "NPY_1_20_API_VERSION"),
+            ("NPY_TARGET_VERSION", "NPY_1_23_API_VERSION"),
         ],
         "include_dirs": ["./src"],
         "library_dirs": [],
@@ -160,8 +160,11 @@ else:
                 "src/lib.c",
                 "src/pygeom.c",
                 "src/pygeos.c",
+                "src/signal_checks.c",
                 "src/strtree.c",
                 "src/ufuncs.c",
+                "src/geos_funcs_Y_d.c",
+                "src/geos_funcs_Y_b.c",
                 "src/vector.c",
             ],
             **ext_options,

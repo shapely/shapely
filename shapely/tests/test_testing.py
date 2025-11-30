@@ -30,9 +30,9 @@ line_string_reversed = shapely.linestrings([(0, 0), (1, 0), (1, 1)][::-1])
 
 
 def make_array(left, right, use_array):
-    if use_array in ("left", "both"):
+    if use_array in {"left", "both"}:
         left = np.array([left] * 3, dtype=object)
-    if use_array in ("right", "both"):
+    if use_array in {"right", "both"}:
         right = np.array([right] * 3, dtype=object)
     return left, right
 
