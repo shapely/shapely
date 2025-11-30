@@ -99,15 +99,6 @@ char* init_geos_error_buffer(void) {
 }
 
 
-void destroy_geom_arr(void* context, GEOSGeometry** array, int length) {
-  int i;
-  for (i = 0; i < length; i++) {
-    if (array[i] != NULL) {
-      GEOSGeom_destroy_r(context, array[i]);
-    }
-  }
-}
-
 /* These functions are used to workaround issues in GeoJSON writer for GEOS 3.10.0:
  * - POINT EMPTY was not handled correctly (we do it ourselves)
  * - MULTIPOINT (EMPTY) resulted in segfault (we check for it and raise)
