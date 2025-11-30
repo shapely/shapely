@@ -16,22 +16,22 @@ class TestGetSegments:
         self.polygon = Polygon(self.ring)
 
     def test_line(self):
-        known = np.array(
+        expected = np.array(
             [LineString([self.p1, self.p2]), LineString([self.p2, self.p3])]
         )
-        observed = get_segments(self.line)
-        np.testing.assert_array_equal(observed, known)
+        actual = get_segments(self.line)
+        np.testing.assert_array_equal(actual, expected)
 
     def test_ring(self):
-        known = np.array(
+        expected = np.array(
             [
                 LineString([self.p1, self.p2]),
                 LineString([self.p2, self.p3]),
                 LineString([self.p3, self.p1]),
             ]
         )
-        observed = get_segments(self.ring)
-        np.testing.assert_array_equal(observed, known)
+        actual = get_segments(self.ring)
+        np.testing.assert_array_equal(actual, expected)
 
     def test_polygon(self):
         with pytest.raises(
