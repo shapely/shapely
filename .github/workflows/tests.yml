@@ -128,7 +128,7 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check --upgrade pip
           pip config set global.progress_bar off
-          pip install --upgrade wheel setuptools
+          pip install --upgrade wheel meson-python
           if [ -z "${{ matrix.numpy }}" ]; then
             pip install --upgrade --pre pytest pytest-cov coveralls;
             pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython numpy
@@ -171,9 +171,9 @@ jobs:
         # ensure we build against numpy nightly (numpy 2.0 compat)
         run: |
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install -v -e . --no-build-isolation
+            pip install -v -e . --no-build-isolation -Ceditable-verbose=true
           else
-            pip install -v -e .
+            pip install -v -e . -Ceditable-verbose=true
           fi
 
       - name: Overview of the Python environment (pip list)

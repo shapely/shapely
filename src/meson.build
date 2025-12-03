@@ -1,0 +1,21 @@
+py.extension_module(
+  'lib', # shapely.lib
+  'c_api.c',
+  'coords.c',
+  'geom_arr.c',
+  'geos.c',
+  'geos_funcs_Y_b.c',
+  'geos_funcs_Y_d.c',
+  'geos_funcs_Y_Y.c',
+  'lib.c',
+  'pygeom.c',
+  'pygeos.c',
+  'signal_checks.c',
+  'strtree.c',
+  'ufuncs.c',
+  'vector.c',
+  install: true,
+  subdir: 'shapely',
+  dependencies: [py_dep, numpy_dep, geos_dep],
+  include_directories: inc_np,
+)
