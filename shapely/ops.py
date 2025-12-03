@@ -688,16 +688,24 @@ def orient(geom, sign=1.0):
     return shapely.orient_polygons(geom, exterior_cw=sign < 0)
 
 
-def get_segments(geometry):
-    """Get segments of each linear geometry object.
+def get_segments(geometry, *, include_z=False, return_index=False, **kwargs):
+    """Get segments of each input linear geometry object.
 
     Here 'segments' is defined as the individual pairwise coordinates
     comprising a LineString or LinearRing. Multi* geometry objects are not supported.
 
     Parameters
     ----------
-    geometry : Geometry
-        A single linear object.
+    geometry : Geometry or array_like
+        A single linear object or collection of linear objects.
+    include_z : bool, default False
+        If True, return LINESTRING Z (3D) geometries.
+    return_index : bool, default False
+        If True, also return the index of each returned geometry as a separate
+        ndarray of integers. For multidimensional arrays, this indexes into the
+        flattened array (in C contiguous order).
+    **kwargs : dict
+        Keyword arguments to pass into ``shapely.linestrings()``.
 
     Returns
     -------
@@ -705,7 +713,7 @@ def get_segments(geometry):
 
     See Also
     --------
-    get_parts, get_coordinates
+    get_parts, get_coordinates, linestrings
 
     Examples
     --------
@@ -714,22 +722,119 @@ def get_segments(geometry):
 
     Return the 2 constituent pairwise segments of a 3-coordinate linestring.
 
-    >>> get_segments(LineString(([0, 0], [1, 1], [2, 2])))
-    array([<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>], dtype=object)
+    >>> get_segments(LineString(([0, 0], [1, 1], [2, 2]))).tolist()
+    [<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>]
 
     Return the 3 constituent pairwise segments of a 4-coordinate linearring.
 
-    >>> get_segments(LinearRing(([0, 0], [1, 1], [2, 2], [0,0])))
-    array([<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>,
-       <LINESTRING (2 2, 0 0)>], dtype=object)
+    >>> get_segments(LinearRing(([0, 0], [1, 1], [2, 2], [0,0]))).tolist()
+    [<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>, <LINESTRING (2 2, 0 0)>]
+
+    When ``return_index=True``, indexes are returned also:
+
+    >>> segments, index = get_segments(
+    ...:     [
+    ...:         LineString(([0, 0], [1, 1], [2, 2])),
+    ...:         LinearRing(([0, 0], [1, 1], [2, 2], [0,0])),
+    ...:     ],
+    ...:     return_index=True,
+    ...: )
+    >>> segments.tolist(), index.tolist()
+    ([<LINESTRING (0 0, 1 1)>,
+      <LINESTRING (1 1, 2 2)>,
+      <LINESTRING (0 0, 1 1)>,
+      <LINESTRING (1 1, 2 2)>,
+      <LINESTRING (2 2, 0 0)>],
+     [0, 0, 1, 1, 1])
+
+    By default the third dimension (Z) is ignored.
+
+    >>> get_segments(LineString(([0, 0, 1], [1, 1, 1], [2, 2, 1]))).tolist()
+    [<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>]
+    >>> get_segments(
+    ...     LineString(([0, 0, 1], [1, 1, 1], [2, 2, 1])), include_z=True,
+    ... ).tolist()
+    [<LINESTRING Z (0 0 1, 1 1 1)>, <LINESTRING Z (1 1 1, 2 2 1)>]
+
+
+    If geometries don't have a Z dimension, these values will be NaN.
+
+    >>> get_segments(LineString(([0, 0], [1, 1], [2, 2])), include_z=True).tolist()
+    [<LINESTRING Z (0 0 NaN, 1 1 NaN)>, <LINESTRING Z (1 1 NaN, 2 2 NaN)>]
 
     """
-    if geometry.geom_type not in ["LineString", "LinearRing"]:
-        raise GeometryTypeError(
-            f"Getting segments from a {geometry.geom_type} is not supported"
+
+    def _validate_input_feature(g):
+        """Ensure input feature is linear."""
+        if g.geom_type not in valid_geometry_types:
+            raise GeometryTypeError(
+                f"Check input. Getting segments from '{g.geom_type}' is not supported."
+            )
+
+    def _validate_input(g):
+        """Ensure all input features are linear."""
+        if hasattr(g, "geom_type"):
+            _validate_input_feature(g)
+            single_geom = True
+        else:
+            np.vectorize(_validate_input_feature)(g)
+            single_geom = False
+
+        return single_geom
+
+    def _determine_signature(coords_by_feature):
+        """Determine if a signature is needed for the vectorization."""
+        array_signature = "(n,m),()->(k)"
+        signature = array_signature if len(coords_by_feature) == 1 else None
+        if not signature:
+            try:
+                np.array(coords_by_feature)
+                signature = array_signature
+            except ValueError:
+                pass
+
+        return signature
+
+    def _isolate_segments(coords, include_z, **kwargs):
+        """Isolate segments from individual input linear features."""
+        coords_stacked = np.column_stack((coords[:-1], coords[1:]))
+
+        n_segments = coords_stacked.shape[0]
+        n_dims = 2
+        if include_z:
+            n_dims += 1
+
+        return linestrings(coords_stacked.reshape(n_segments, 2, n_dims), **kwargs)
+
+    def _vectorized_isolate_segments(coords, idx, include_z, **kwargs):
+        """Isolate segments from all input linear features."""
+        n_xys = coords.shape[0]
+        idx_splitter = np.unique(idx.reshape(n_xys, 1), return_index=True)[1][1:]
+        xys_by_input_feature = np.split(xys, idx_splitter)
+        signature = _determine_signature(xys_by_input_feature)
+
+        return np.concat(
+            np.vectorize(_isolate_segments, signature=signature, otypes=[np.ndarray])(
+                xys_by_input_feature, include_z, **kwargs
+            )
         )
 
-    xys = get_coordinates(geometry)
-    return linestrings(
-        np.column_stack((xys[:-1], xys[1:])).reshape(xys.shape[0] - 1, 2, 2)
+    def _return_input_index(idx):
+        """Create and return the index location of the original input geometry."""
+        uidx = np.unique_counts(idx)
+
+        return np.repeat(uidx.values, uidx.counts - 1)
+
+    valid_geometry_types = ["LineString", "LinearRing"]
+
+    is_single_geometry = _validate_input(geometry)
+
+    xys, idx_coords = get_coordinates(geometry, return_index=True, include_z=include_z)
+
+    lines = (
+        _isolate_segments(xys, include_z, **kwargs)
+        if is_single_geometry
+        else _vectorized_isolate_segments(xys, idx_coords, include_z, **kwargs)
     )
+
+    return (lines, _return_input_index(idx_coords)) if return_index else lines
