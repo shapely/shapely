@@ -1,9 +1,0 @@
-prune docs
-exclude *.txt
-exclude MANIFEST.in
-include CITATION.cff CHANGES.txt CREDITS.txt LICENSE.txt README.rst
-include pyproject.toml versioneer.py
-recursive-include src *.c *.h
-recursive-include shapely *.pxd *.pyx
-recursive-exclude shapely *.c
-include docs/*.rst

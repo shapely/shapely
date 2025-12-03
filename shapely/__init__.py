@@ -29,8 +29,11 @@ from shapely.geometry import (
     LinearRing,
 )
 
-from shapely import _version
+try:
+    from shapely._version import __git_version__, __version__
+except ImportError:
+    __git_version__ = ""
+    __version__ = "0+unknown"
 
-__version__ = _version.get_versions()["version"]
 
 setup_signal_checks()
