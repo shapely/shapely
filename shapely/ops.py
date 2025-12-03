@@ -813,7 +813,7 @@ def get_segments(geometry, *, include_z=False, return_index=False, **kwargs):
         xys_by_input_feature = np.split(xys, idx_splitter)
         signature = _determine_signature(xys_by_input_feature)
 
-        return np.concat(
+        return np.concatenate(
             np.vectorize(_isolate_segments, signature=signature, otypes=[np.ndarray])(
                 xys_by_input_feature, include_z, **kwargs
             )
