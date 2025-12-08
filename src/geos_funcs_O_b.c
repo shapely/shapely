@@ -56,9 +56,9 @@ static char IsValidInput(PyObject* obj) {
 static char IsPrepared(PyObject* obj) {
   const GEOSGeometry* g;
   if (!ShapelyGetGeometry(obj, &g)) {
-    return 0;
+    return 2;
   }
-  return ((GeometryObject*)obj)->ptr_prepared != NULL;
+  return (g != NULL) && (((GeometryObject*)obj)->ptr_prepared != NULL);
 }
 
 
@@ -92,11 +92,21 @@ static void O_b_func(char** args, const npy_intp* dimensions, const npy_intp* st
       break;
     }
     *(npy_bool*)op1 = func(*(PyObject**)ip1);
+    if (*(npy_bool*)op1 == 2) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      break;
+    }
   }
 
-  // Reacquire GIL (we don't need error handling since only PGERR_PYSIGNAL is possible here
-  // which is already handled by Python)
+  // Reacquire GIL and handle errors
   Py_END_ALLOW_THREADS;
+
+  if (errstate != PGERR_NOT_A_GEOMETRY) {
+        PyErr_SetString(PyExc_TypeError,
+                      "One of the arguments is of incorrect type. Please provide only "
+                      "Geometry objects.");
+}
+
 }
 
 /*
@@ -136,7 +146,18 @@ static char O_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
 DEFINE_O_b(IsMissing);
 DEFINE_O_b(IsGeometry);
 DEFINE_O_b(IsValidInput);
-DEFINE_O_b(IsPrepared);
+
+// IsPrepared is different because it can return 2 (not a geometry)
+static PyObject* PyIsPrepared_Scalar(PyObject* self, PyObject* obj) {
+  char result = IsPrepared(obj);
+  if (result == 2) {
+        PyErr_SetString(PyExc_TypeError,
+                      "One of the arguments is of incorrect type. Please provide only "
+                      "Geometry objects.");
+    return NULL;
+  }
+  return PyBool_FromLong(result);
+}
 
 
 /* ========================================================================
