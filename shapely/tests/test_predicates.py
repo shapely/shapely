@@ -408,3 +408,18 @@ def test_contains_properly():
     # polygon contains itself, but does not properly contains itself
     assert shapely.contains(polygon, polygon).item() is True
     assert shapely.contains_properly(polygon, polygon).item() is False
+
+
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        (point, True),
+        (None, True),
+        ([point], False),
+        ((point,), False),
+        (np.array(point), False),
+        (np.array([point]), False),
+    ],
+)
+def test_is_valid_input_scalar(input, expected):
+    assert shapely.lib.is_valid_input_scalar(input) is expected
