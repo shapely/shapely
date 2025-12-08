@@ -58,7 +58,11 @@ static char IsPrepared(PyObject* obj) {
   if (!ShapelyGetGeometry(obj, &g)) {
     return 2;
   }
-  return (g != NULL) && (((GeometryObject*)obj)->ptr_prepared != NULL);
+  if (g == NULL) {
+    return 0;  // Valid input (None), but not prepared
+  }
+  // Now we know that obj is a GeometryObject
+  return ((GeometryObject*)obj)->ptr_prepared != NULL;
 }
 
 
@@ -76,13 +80,13 @@ static char IsPrepared(PyObject* obj) {
  *   data: User data passed from ufunc creation (contains function pointer)
  */
 static void O_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  char errstate = PGERR_SUCCESS;
-
   // Extract the specific function from the user data
   FuncO_b* func = (FuncO_b*)data;
 
   // Release GIL for the loop (but don't init GEOS context)
-  Py_BEGIN_ALLOW_THREADS;
+  GEOS_INIT_THREADS;
+
+  (void)ctx;   // dims warning;
 
   // The UNARY_LOOP macro unpacks args, dimensions, and steps and iterates through input/output arrays
   // ip1 points to current input element, op1 points to current output element
@@ -99,14 +103,7 @@ static void O_b_func(char** args, const npy_intp* dimensions, const npy_intp* st
   }
 
   // Reacquire GIL and handle errors
-  Py_END_ALLOW_THREADS;
-
-  if (errstate != PGERR_NOT_A_GEOMETRY) {
-        PyErr_SetString(PyExc_TypeError,
-                      "One of the arguments is of incorrect type. Please provide only "
-                      "Geometry objects.");
-}
-
+  GEOS_FINISH_THREADS;
 }
 
 /*

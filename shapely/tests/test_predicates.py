@@ -395,13 +395,30 @@ def test_binary_prepared(a, func):
 
 
 @pytest.mark.parametrize("geometry", all_types)
-def test_is_prepared_true(geometry):
-    assert shapely.is_prepared(_prepare_with_copy(geometry))
+@pytest.mark.parametrize(
+    "func",
+    [shapely.is_prepared, shapely.lib.is_prepared, shapely.lib.is_prepared_scalar],
+)
+def test_is_prepared_true(geometry, func):
+    assert func(_prepare_with_copy(geometry))
 
 
 @pytest.mark.parametrize("geometry", all_types + (None,))
-def test_is_prepared_false(geometry):
-    assert not shapely.is_prepared(geometry)
+@pytest.mark.parametrize(
+    "func",
+    [shapely.is_prepared, shapely.lib.is_prepared, shapely.lib.is_prepared_scalar],
+)
+def test_is_prepared_false(geometry, func):
+    assert not func(geometry)
+
+
+@pytest.mark.parametrize(
+    "func",
+    [shapely.is_prepared, shapely.lib.is_prepared, shapely.lib.is_prepared_scalar],
+)
+def test_is_prepared_invalid(func):
+    with pytest.raises(TypeError):
+        func("a string")
 
 
 def test_contains_properly():
