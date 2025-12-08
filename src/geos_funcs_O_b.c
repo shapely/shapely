@@ -53,6 +53,15 @@ static char IsValidInput(PyObject* obj) {
   return ShapelyGetGeometry(obj, &g);
 }
 
+static char IsPrepared(PyObject* obj) {
+  const GEOSGeometry* g;
+  if (!ShapelyGetGeometry(obj, &g)) {
+    return 0;
+  }
+  return ((GeometryObject*)obj)->ptr_prepared != NULL;
+}
+
+
 /* ========================================================================
  * NUMPY UFUNC
  * ======================================================================== */
@@ -127,6 +136,7 @@ static char O_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
 DEFINE_O_b(IsMissing);
 DEFINE_O_b(IsGeometry);
 DEFINE_O_b(IsValidInput);
+DEFINE_O_b(IsPrepared);
 
 
 /* ========================================================================
@@ -179,6 +189,7 @@ int init_geos_funcs_O_b(PyObject* m, PyObject* d) {
   INIT_O_b(IsMissing, is_missing);
   INIT_O_b(IsGeometry, is_geometry);
   INIT_O_b(IsValidInput, is_valid_input);
+  INIT_O_b(IsPrepared, is_prepared);
 
   return 0;
 }

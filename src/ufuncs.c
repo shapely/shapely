@@ -275,32 +275,6 @@ finish:
 }
 static PyUFuncGenericFunction Ydd_b_p_funcs[1] = {&Ydd_b_p_func};
 
-static char is_prepared_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
-static void is_prepared_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                             void* data) {
-  GEOSGeometry* in1 = NULL;
-  GEOSPreparedGeometry* in1_prepared = NULL;
-  char errstate = PGERR_SUCCESS;
-
-  Py_BEGIN_ALLOW_THREADS;
-
-  UNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      break;
-    }
-    /* get the geometry: return on error */
-    if (!get_geom_with_prepared(*(GeometryObject**)ip1, &in1, &in1_prepared)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      break;
-    }
-    *(npy_bool*)op1 = (in1_prepared != NULL);
-  }
-
-  Py_END_ALLOW_THREADS;
-}
-static PyUFuncGenericFunction is_prepared_funcs[1] = {&is_prepared_func};
-
 /* Define the geom -> no return value functions (Y) */
 static char PrepareGeometryObject(void* ctx, GeometryObject* geom) {
   if (geom->ptr_prepared == NULL) {
@@ -3499,7 +3473,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YY_b_p(covered_by);
   DEFINE_Ydd_b_p(contains_xy);
   DEFINE_Ydd_b_p(intersects_xy);
-  DEFINE_CUSTOM(is_prepared, 1);
 
   DEFINE_Y(prepare);
   DEFINE_Y(destroy_prepared);
