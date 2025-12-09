@@ -90,6 +90,8 @@ def apply_svg_defaults(supplied, defaults):
     return defaults | supplied
 
 
+# For backward compatibility with the names already used by shapely.
+# You can also use the names that SVG uses natively.
 SVG_ATTRIBUTE_NAMES = {
     'fill_color': 'fill',
     'stroke_color': 'stroke',
