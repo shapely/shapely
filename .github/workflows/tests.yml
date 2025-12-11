@@ -39,9 +39,9 @@ jobs:
             geos: 3.14.1
             numpy: 2.3.5
           # free threaded Python (no numpy version to indicate installing nightly cython and numpy)
-          - os: ubuntu-latest
+          - os: ubuntu-22.04  # keep distinct from ubuntu-latest
             python: "3.13t"
-            geos: 3.13.1
+            geos: 3.13.1  # keep distinct from pypy geos version
           # apple x86_64 (Intel)
           - os: macos-15-intel
             python: "3.14"
@@ -51,10 +51,10 @@ jobs:
           - python: "3.12"
             geos: main
             extra_pytest_args: "-W error"  # error on warnings
-          # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
-          - os: ubuntu-22.04
+          # pypy
+          - os: ubuntu-22.04  # keep distinct from ubuntu-latest
             python: "pypy3.11"
-            geos: 3.12.3
+            geos: 3.12.3  # keep distinct from free threaded geos version
             numpy: 2.3.2
 
     env:
