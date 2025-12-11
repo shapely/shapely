@@ -109,7 +109,7 @@ class CoordinateSequence:
     @property
     def xy(self):
         """X and Y arrays."""
-        m = self.__len__()
+        m = len(self)
         x = array("d")
         y = array("d")
         for i in range(m):

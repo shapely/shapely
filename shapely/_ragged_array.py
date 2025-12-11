@@ -57,7 +57,7 @@ def _get_arrays_point(arr, include_z, include_m):
     empties = is_empty(arr) | is_missing(arr)
     if empties.any():
         indices = np.nonzero(empties)[0]
-        indices = indices - np.arange(len(indices))
+        indices -= np.arange(len(indices))
         coords = np.insert(coords, indices, np.nan, axis=0)
 
     return coords, ()

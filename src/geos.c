@@ -7,37 +7,97 @@
 #include <numpy/npy_math.h>
 #include <structmember.h>
 
-/* This initializes a globally accessible GEOS Context, only to be used when holding the
- * GIL */
-void* geos_context[1] = {NULL};
+
+/* Threadlocal GEOS context support - private to this file */
+typedef struct {
+  GEOSContextHandle_t context;
+  char last_error[1024];
+} ThreadLocalGEOS;
 
 /* This initializes a globally accessible GEOSException object */
 PyObject* geos_exception[1] = {NULL};
 
-int init_geos(PyObject* m) {
+/* Threadlocal GEOS context support */
+PyObject* geos_threadlocal_key = NULL;
+
+/* Destructor function to clean up threadlocal GEOS context and buffers when thread terminates */
+static void threadlocal_geos_destructor(PyObject* capsule) {
+  ThreadLocalGEOS* tl_geos = PyCapsule_GetPointer(capsule, "threadlocal_geos");
+  if (tl_geos != NULL) {
+    if (tl_geos->context != NULL) {
+      GEOS_finish_r(tl_geos->context);
+    }
+    free(tl_geos);
+  }
+}
+
+int init_shapely(PyObject* m) {
   PyObject* base_class = PyErr_NewException("shapely.errors.ShapelyError", NULL, NULL);
   PyModule_AddObject(m, "ShapelyError", base_class);
   geos_exception[0] =
       PyErr_NewException("shapely.errors.GEOSException", base_class, NULL);
   PyModule_AddObject(m, "GEOSException", geos_exception[0]);
 
-  void* context_handle = GEOS_init_r();
-  // TODO: the error handling is not yet set up for the global context (it is right now
-  // only used where error handling is not used)
-  // GEOSContext_setErrorMessageHandler_r(context_handle, geos_error_handler, last_error);
-  geos_context[0] = context_handle;
-
+  // Create unique key for threadlocal storage (only needs to be done once globally)
+  geos_threadlocal_key = PyUnicode_FromString("__shapely_geos_threadlocal__");
+  if (geos_threadlocal_key == NULL) {
+    return -1;
+  }
   return 0;
 }
 
-void destroy_geom_arr(void* context, GEOSGeometry** array, int length) {
-  int i;
-  for (i = 0; i < length; i++) {
-    if (array[i] != NULL) {
-      GEOSGeom_destroy_r(context, array[i]);
-    }
-  }
+ThreadLocalGEOS* _init_threadlocal_geos(PyObject* thread_dict) {
+  // Create new threadlocal GEOS for this thread
+  ThreadLocalGEOS* tl_geos = malloc(sizeof(ThreadLocalGEOS));
+
+  // Initialize GEOS context (last_error will be initialized in init_geos_error_buffer)
+  tl_geos->context = GEOS_init_r();
+
+  // Set up error and notice handlers
+  GEOSContext_setErrorMessageHandler_r(tl_geos->context, geos_error_handler, tl_geos->last_error);
+
+  // Create capsule (with destructor so that GEOS context is cleaned up when thread ends)
+  PyObject* geos_capsule = PyCapsule_New(tl_geos, "threadlocal_geos", threadlocal_geos_destructor);
+
+  // Store in thread-local storage
+  PyDict_SetItem(thread_dict, geos_threadlocal_key, geos_capsule);
+
+  Py_DECREF(geos_capsule);
+  return tl_geos;
 }
+
+ThreadLocalGEOS* get_threadlocal_geos(void) {
+  // From Python docs: In general, there will always be an attached thread state when
+  // using Python’s C API. Only in some specific cases (such as in a Py_BEGIN_ALLOW_THREADS
+  // block) will the thread not have an attached thread state.
+  PyObject* thread_dict = PyThreadState_GetDict();
+
+  // PyDict_GetItem returns NULL if the key key is missing without setting an exception.
+  PyObject* geos_capsule = PyDict_GetItem(thread_dict, geos_threadlocal_key);
+  if (geos_capsule == NULL) {
+    // Create new threadlocal GEOS for this thread
+    return _init_threadlocal_geos(thread_dict);
+  }
+
+  return PyCapsule_GetPointer(geos_capsule, "threadlocal_geos");
+}
+
+/* Threadlocal GEOS context management functions */
+GEOSContextHandle_t init_geos_context(void) {
+  return get_threadlocal_geos()->context;
+}
+
+char* init_geos_error_buffer(void) {
+  ThreadLocalGEOS* tl_geos;
+
+  tl_geos = get_threadlocal_geos();
+
+  // Every method that uses the error message buffer should first
+  // clear it or else errors from previous calls may still be there.
+  tl_geos->last_error[0] = '\0';
+  return tl_geos->last_error;
+}
+
 
 /* These functions are used to workaround issues in GeoJSON writer for GEOS 3.10.0:
  * - POINT EMPTY was not handled correctly (we do it ourselves)

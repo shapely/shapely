@@ -1,10 +1,14 @@
 """Support for various GEOS geometry operations."""
 
 from itertools import pairwise
+from warnings import warn
+
+import numpy as np
 
 import shapely
 from shapely.algorithms.polylabel import polylabel  # noqa
-from shapely.errors import GeometryTypeError
+from shapely.coordinates import transform_coordseq
+from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 from shapely.geometry import (
     GeometryCollection,
     LineString,
@@ -214,78 +218,35 @@ def transform(func, geom):
 
     Returns a new geometry of the same type from the transformed coordinates.
 
-    `func` maps x, y, and optionally z to output xp, yp, zp. The input
-    parameters may iterable types like lists or arrays or single values.
-    The output shall be of the same type. Scalars in, scalars out.
-    Lists in, lists out.
-
-    For example, here is an identity function applicable to both types
-    of input.
-
-      def id_func(x, y, z=None):
-          return tuple(filter(None, [x, y, z]))
-
-      g2 = transform(id_func, g1)
-
-    Using pyproj >= 2.1, this example will accurately project Shapely geometries:
-
-      import pyproj
-
-      wgs84 = pyproj.CRS('EPSG:4326')
-      utm = pyproj.CRS('EPSG:32618')
-
-      project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
-
-      g2 = transform(project, g1)
-
-    Note that the always_xy kwarg is required here as Shapely geometries only support
-    X,Y coordinate ordering.
-
-    Lambda expressions such as the one in
-
-      g2 = transform(lambda x, y, z=None: (x+1.0, y+1.0), g1)
-
-    also satisfy the requirements for `func`.
+    .. deprecated:: 2.2.0
+      This function was superseded by :meth:`shapely.transform` and
+      :meth:`shapely.transform_coordseq`.
     """
-    if geom.is_empty:
-        return geom
-    if geom.geom_type in ("Point", "LineString", "LinearRing", "Polygon"):
-        # First we try to apply func to x, y, z sequences. When func is
-        # optimized for sequences, this is the fastest, though zipping
-        # the results up to go back into the geometry constructors adds
-        # extra cost.
+    warn(
+        "The 'ops.transform()' function is deprecated. "
+        "Use 'transform()' or 'transform_coordseq()' instead.",
+        ShapelyDeprecationWarning,
+        stacklevel=2,
+    )
+
+    def _func_wrapped(*args):
+        # wrap the transformation function to get rid of numpy types
+        coords = [
+            tuple(x.tolist()) if isinstance(x, np.ndarray) else x.item() for x in args
+        ]
         try:
-            if geom.geom_type in ("Point", "LineString", "LinearRing"):
-                return type(geom)(
-                    zip(*func(*zip(*geom.coords, strict=True)), strict=True)
-                )
-            elif geom.geom_type == "Polygon":
-                shell = type(geom.exterior)(
-                    zip(*func(*zip(*geom.exterior.coords, strict=True)), strict=True)
-                )
-                holes = [
-                    type(ring)(zip(*func(*zip(*ring.coords, strict=True)), strict=True))
-                    for ring in geom.interiors
-                ]
-                return type(geom)(shell, holes)
-
-        # A func that assumes x, y, z are single values will likely raise a
-        # TypeError, in which case we'll try again.
+            return func(*coords)
         except TypeError:
-            if geom.geom_type in ("Point", "LineString", "LinearRing"):
-                return type(geom)([func(*c) for c in geom.coords])
-            elif geom.geom_type == "Polygon":
-                shell = type(geom.exterior)([func(*c) for c in geom.exterior.coords])
-                holes = [
-                    type(ring)([func(*c) for c in ring.coords])
-                    for ring in geom.interiors
-                ]
-                return type(geom)(shell, holes)
+            # A func that assumes x, y, z are single values will likely raise a
+            # TypeError, in which case we'll try again.
+            return zip(*[func(*c) for c in zip(*coords, strict=False)], strict=False)
 
-    elif geom.geom_type.startswith("Multi") or geom.geom_type == "GeometryCollection":
-        return type(geom)([transform(func, part) for part in geom.geoms])
-    else:
-        raise GeometryTypeError(f"Type {geom.geom_type!r} not recognized")
+    try:
+        return transform_coordseq(
+            geom, _func_wrapped, include_z=None, interleaved=False
+        )
+    except TypeError as e:
+        raise GeometryTypeError(str(e))
 
 
 def nearest_points(g1, g2):
@@ -374,7 +335,7 @@ class SplitOp:
     def _split_line_with_line(line, splitter):
         """Split a LineString with another (Multi)LineString or (Multi)Polygon."""
         # if splitter is a polygon, pick it's boundary
-        if splitter.geom_type in ("Polygon", "MultiPolygon"):
+        if splitter.geom_type in {"Polygon", "MultiPolygon"}:
             splitter = splitter.boundary
 
         if not isinstance(line, LineString):
@@ -503,18 +464,18 @@ class SplitOp:
         'GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))'
 
         """
-        if geom.geom_type in ("MultiLineString", "MultiPolygon"):
+        if geom.geom_type in {"MultiLineString", "MultiPolygon"}:
             return GeometryCollection(
                 [i for part in geom.geoms for i in SplitOp.split(part, splitter).geoms]
             )
 
         elif geom.geom_type == "LineString":
-            if splitter.geom_type in (
+            if splitter.geom_type in {
                 "LineString",
                 "MultiLineString",
                 "Polygon",
                 "MultiPolygon",
-            ):
+            }:
                 split_func = SplitOp._split_line_with_line
             elif splitter.geom_type == "Point":
                 split_func = SplitOp._split_line_with_point
@@ -527,7 +488,7 @@ class SplitOp:
                 )
 
         elif geom.geom_type == "Polygon":
-            if splitter.geom_type in ("LineString", "MultiLineString"):
+            if splitter.geom_type in {"LineString", "MultiLineString"}:
                 split_func = SplitOp._split_polygon_with_line
             else:
                 raise GeometryTypeError(

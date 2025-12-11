@@ -13,6 +13,7 @@ import numpy as np
 
 import shapely
 from shapely._geometry_helpers import _geom_factory
+from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area
 from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.decorators import deprecate_positional
@@ -58,7 +59,7 @@ def dump_coords(geom):
         raise ValueError(
             "Must be instance of a geometry class; found " + geom.__class__.__name__
         )
-    elif geom.geom_type in ("Point", "LineString", "LinearRing"):
+    elif geom.geom_type in {"Point", "LineString", "LinearRing"}:
         return geom.coords[:]
     elif geom.geom_type == "Polygon":
         return geom.exterior.coords[:] + [i.coords[:] for i in geom.interiors]
@@ -122,14 +123,10 @@ class BaseGeometry(shapely.Geometry):
         """Return True if the geometry is not empty, else False."""
         return self.is_empty is False
 
-    def __nonzero__(self):
-        """Return True if the geometry is not empty, else False."""
-        return self.__bool__()
-
     def __format__(self, format_spec):
         """Format a geometry using a format specification."""
         # bypass regexp for simple cases
-        if format_spec == "":
+        if not format_spec:
             return shapely.to_wkt(self, rounding_precision=-1)
         elif format_spec == "x":
             return shapely.to_wkb(self, hex=True).lower()
@@ -157,11 +154,11 @@ class BaseGeometry(shapely.Geometry):
         if not fmt_code:
             fmt_code = "g"
 
-        if fmt_code in ("g", "G"):
+        if fmt_code in {"g", "G"}:
             res = shapely.to_wkt(self, rounding_precision=prec, trim=True)
-        elif fmt_code in ("f", "F"):
+        elif fmt_code in {"f", "F"}:
             res = shapely.to_wkt(self, rounding_precision=prec, trim=False)
-        elif fmt_code in ("x", "X"):
+        elif fmt_code in {"x", "X"}:
             raise ValueError("hex representation does not specify precision")
         else:
             raise NotImplementedError(f"unhandled fmt_code: {fmt_code}")
@@ -338,7 +335,7 @@ class BaseGeometry(shapely.Geometry):
     @property
     def area(self):
         """Unitless area of the geometry (float)."""
-        return float(shapely.area(self))
+        return shapely.lib.area_scalar(self)
 
     def distance(self, other):
         """Unitless distance to other geometry (float)."""
@@ -351,12 +348,12 @@ class BaseGeometry(shapely.Geometry):
     @property
     def length(self):
         """Unitless length of the geometry (float)."""
-        return float(shapely.length(self))
+        return shapely.lib.length_scalar(self)
 
     @property
     def minimum_clearance(self):
         """Unitless distance a node can be moved to produce an invalid geometry (float)."""  # noqa: E501
-        return float(shapely.minimum_clearance(self))
+        return shapely.lib.minimum_clearance_scalar(self)
 
     # Topological properties
     # ----------------------
@@ -369,7 +366,7 @@ class BaseGeometry(shapely.Geometry):
         collection of points. The boundary of a point is an empty (null)
         collection.
         """
-        return shapely.boundary(self)
+        return shapely.lib.boundary_scalar(self)
 
     @property
     def bounds(self):
@@ -379,21 +376,21 @@ class BaseGeometry(shapely.Geometry):
     @property
     def centroid(self):
         """Return the geometric center of the object."""
-        return shapely.centroid(self)
+        return shapely.lib.centroid_scalar(self)
 
     def point_on_surface(self):
         """Return a point guaranteed to be within the object, cheaply.
 
         Alias of `representative_point`.
         """
-        return shapely.point_on_surface(self)
+        return shapely.lib.point_on_surface_scalar(self)
 
     def representative_point(self):
         """Return a point guaranteed to be within the object, cheaply.
 
         Alias of `point_on_surface`.
         """
-        return shapely.point_on_surface(self)
+        return shapely.lib.point_on_surface_scalar(self)
 
     @property
     def convex_hull(self):
@@ -405,12 +402,12 @@ class BaseGeometry(shapely.Geometry):
         The convex hull of a three member multipoint, for example, is a
         triangular polygon.
         """
-        return shapely.convex_hull(self)
+        return shapely.lib.convex_hull_scalar(self)
 
     @property
     def envelope(self):
         """A figure that envelopes the geometry."""
-        return shapely.envelope(self)
+        return shapely.lib.envelope_scalar(self)
 
     @property
     def oriented_envelope(self):
@@ -430,7 +427,11 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `minimum_rotated_rectangle`.
         """
-        return shapely.oriented_envelope(self)
+        if shapely.lib.geos_version < (3, 12, 0):
+            f = _oriented_envelope_min_area
+        else:
+            f = shapely.lib.oriented_envelope_scalar
+        return f(self)
 
     @property
     def minimum_rotated_rectangle(self):
@@ -450,7 +451,7 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `oriented_envelope`.
         """
-        return shapely.oriented_envelope(self)
+        return self.oriented_envelope
 
     # Note: future plan is to change this signature over a few releases:
     # shapely 2.0:
@@ -636,7 +637,7 @@ class BaseGeometry(shapely.Geometry):
         <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
 
         """
-        return shapely.normalize(self)
+        return shapely.lib.normalize_scalar(self)
 
     # Overlay operations
     # ---------------------------
@@ -711,22 +712,22 @@ class BaseGeometry(shapely.Geometry):
     @property
     def has_z(self):
         """True if the geometry's coordinate sequence(s) have z values."""
-        return bool(shapely.has_z(self))
+        return shapely.lib.has_z_scalar(self)
 
     @property
     def has_m(self):
         """True if the geometry's coordinate sequence(s) have m values."""
-        return bool(shapely.has_m(self))
+        return shapely.lib.has_m_scalar(self)
 
     @property
     def is_empty(self):
         """True if the set of points in this geometry is empty, else False."""
-        return bool(shapely.is_empty(self))
+        return shapely.lib.is_empty_scalar(self)
 
     @property
     def is_ring(self):
         """True if the geometry is a closed ring, else False."""
-        return bool(shapely.is_ring(self))
+        return shapely.lib.is_ring_scalar(self)
 
     @property
     def is_closed(self):
@@ -736,7 +737,7 @@ class BaseGeometry(shapely.Geometry):
         """
         if self.geom_type == "LinearRing":
             return True
-        return bool(shapely.is_closed(self))
+        return shapely.lib.is_closed_scalar(self)
 
     @property
     def is_simple(self):
@@ -744,7 +745,7 @@ class BaseGeometry(shapely.Geometry):
 
         Simple means that any self-intersections are only at boundary points.
         """
-        return bool(shapely.is_simple(self))
+        return shapely.lib.is_simple_scalar(self)
 
     @property
     def is_valid(self):
@@ -752,7 +753,7 @@ class BaseGeometry(shapely.Geometry):
 
         The definition depends on sub-class.
         """
-        return bool(shapely.is_valid(self))
+        return shapely.lib.is_valid_scalar(self)
 
     # Binary predicates
     # -----------------
@@ -1015,7 +1016,7 @@ class BaseGeometry(shapely.Geometry):
         <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
 
         """
-        return shapely.reverse(self)
+        return shapely.lib.reverse_scalar(self)
 
 
 class BaseMultipartGeometry(BaseGeometry):

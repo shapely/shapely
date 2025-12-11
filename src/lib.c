@@ -16,6 +16,9 @@
 #include "pygeom.h"
 #include "strtree.h"
 #include "ufuncs.h"
+#include "geos_funcs_Y_d.h"
+#include "geos_funcs_Y_Y.h"
+#include "geos_funcs_Y_b.h"
 
 /* This tells Python what methods this module has. */
 static PyMethodDef GeosModule[] = {
@@ -48,7 +51,7 @@ PyMODINIT_FUNC PyInit_lib(void) {
     PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
   #endif
 
-  if (init_geos(m) < 0) {
+  if (init_shapely(m) < 0) {
     return NULL;
   };
 
@@ -92,10 +95,24 @@ PyMODINIT_FUNC PyInit_lib(void) {
     return NULL;
   };
 
+  if (init_geos_funcs_Y_d(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_Y_Y(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_Y_b(m, d) < 0) {
+    return NULL;
+  };
+
   /* Initialize the C API pointer array */
   PyGEOS_API[PyGEOS_CreateGeometry_NUM] = (void*)PyGEOS_CreateGeometry;
   PyGEOS_API[PyGEOS_GetGEOSGeometry_NUM] = (void*)PyGEOS_GetGEOSGeometry;
   PyGEOS_API[PyGEOS_CoordSeq_FromBuffer_NUM] = (void*)PyGEOS_CoordSeq_FromBuffer;
+  PyGEOS_API[PyGEOS_InitGEOSContext_NUM] = (void*)PyGEOS_InitGEOSContext;
+  PyGEOS_API[PyGEOS_InitGEOSErrorBuffer_NUM] = (void*)PyGEOS_InitGEOSErrorBuffer;
 
   /* Create a Capsule containing the API pointer array's address */
   c_api_object = PyCapsule_New((void*)PyGEOS_API, "shapely.lib._C_API", NULL);

@@ -293,7 +293,7 @@ def test_coverage_union_overlapping_inputs():
         # Overlapping polygons raise an error
         with pytest.raises(
             shapely.GEOSException,
-            match="CoverageUnion cannot process incorrectly noded inputs.",
+            match="CoverageUnion cannot process incorrectly noded inputs",
         ):
             shapely.coverage_union(polygon, other)
 
@@ -335,7 +335,7 @@ def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
     else:
         # Non polygon geometries raise an error
         with pytest.raises(
-            shapely.GEOSException, match="Unhandled geometry type in CoverageUnion."
+            shapely.GEOSException, match="Unhandled geometry type in CoverageUnion"
         ):
             shapely.coverage_union(geom_1, geom_2)
 
