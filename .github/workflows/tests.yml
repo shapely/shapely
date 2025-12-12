@@ -56,6 +56,13 @@ jobs:
             python: "pypy3.11"
             geos: 3.12.3  # keep distinct from free threaded geos version
             numpy: 2.3.2
+          - os: ubuntu-24.04-arm  # linux-arm
+            python: "3.13"
+            geos: 3.14.1
+          - os: windows-11-arm  # windows-arm
+            python: "3.13"
+            geos: 3.14.1
+
         exclude:
           # skip floating-point exceptions from GEOS that are now resolved
           - os: macos-latest
