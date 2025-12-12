@@ -1,4 +1,5 @@
 import platform
+import sys
 import weakref
 
 import numpy as np
@@ -17,6 +18,7 @@ from shapely import (
 )
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.testing import assert_geometries_equal
+from shapely.tests.common import ignore_invalid
 
 
 def test_polygon():
@@ -138,8 +140,13 @@ def test_contains_properly():
 )
 def test_constructive_properties(op):
     geom = LineString([(0, 0), (0, 10), (10, 10)])
-    result = getattr(geom, op)
-    expected = getattr(shapely, op)(geom)
+    with ignore_invalid(
+        op in ["oriented_envelope", "minimum_rotated_rectangle"]
+        and sys.platform == "darwin"
+        and shapely.geos_version[:2] in [(3, 13), (3, 15)]
+    ):
+        result = getattr(geom, op)
+        expected = getattr(shapely, op)(geom)
     assert result == expected
 
 
