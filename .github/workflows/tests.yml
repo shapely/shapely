@@ -56,10 +56,6 @@ jobs:
             python: "pypy3.11"
             geos: 3.12.3  # keep distinct from free threaded geos version
             numpy: 2.3.2
-        exclude:
-          # skip floating-point exceptions from GEOS that are now resolved
-          - os: macos-latest
-            geos: 3.13.1
     env:
       GEOS_VERSION: ${{ matrix.geos }}
       GEOS_VERSION_SPEC: ${{ matrix.geos }}

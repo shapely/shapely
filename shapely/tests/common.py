@@ -222,9 +222,9 @@ all_types_zm = (
 
 
 @contextmanager
-def ignore_invalid(condition=True):
+def ignore_invalid(condition=True, divide=False):
     if condition:
-        with np.errstate(invalid="ignore"):
+        with np.errstate(invalid="ignore", divide="ignore" if divide else None):
             yield
     else:
         yield
