@@ -999,7 +999,8 @@ def test_minimum_width(geometry):
 @pytest.mark.parametrize("geometry", all_types)
 def test_oriented_envelope_all_types(geometry):
     with ignore_invalid(
-        sys.platform == "darwin" and shapely.geos_version[:2] in [(3, 13), (3, 15)]
+        sys.platform == "darwin" and shapely.geos_version[:2] in [(3, 13), (3, 15)],
+        divide=True,
     ):
         actual = shapely.oriented_envelope([geometry, geometry])
     assert actual.shape == (2,)
@@ -1043,7 +1044,8 @@ def test_oriented_envelope_all_types(geometry):
 )
 def test_oriented_envelope(geometry, expected, func):
     with ignore_invalid(
-        sys.platform == "darwin" and shapely.geos_version[:2] in [(3, 13), (3, 15)]
+        sys.platform == "darwin" and shapely.geos_version[:2] in [(3, 13), (3, 15)],
+        divide=True,
     ):
         actual = func(geometry)
     assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)

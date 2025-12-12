@@ -143,7 +143,8 @@ def test_constructive_properties(op):
     with ignore_invalid(
         op in ["oriented_envelope", "minimum_rotated_rectangle"]
         and sys.platform == "darwin"
-        and shapely.geos_version[:2] in [(3, 13), (3, 15)]
+        and shapely.geos_version[:2] in [(3, 13), (3, 15)],
+        divide=True,
     ):
         result = getattr(geom, op)
         expected = getattr(shapely, op)(geom)
