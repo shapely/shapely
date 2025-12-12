@@ -59,7 +59,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            baseimage: manylinux2014_x86_64
+            baseimage: manylinux_2_28_x86_64
             cibw_build: "*manylinux_x86_64"
             arch: x86_64
           - os: ubuntu-latest
@@ -67,7 +67,7 @@ jobs:
             cibw_build: "*musllinux_x86_64"
             arch: x86_64
           - os: ubuntu-24.04-arm
-            baseimage: manylinux2014_aarch64
+            baseimage: manylinux_2_28_aarch64
             cibw_build: "*manylinux_aarch64"
             arch: aarch64
           - os: ubuntu-24.04-arm
@@ -75,7 +75,7 @@ jobs:
             cibw_build: "*musllinux_aarch64"
             arch: aarch64
     env:
-      basetag: 2025.08.02-1
+      basetag: 2025.12.07-1
 
     steps:
       - name: Checkout source
@@ -218,7 +218,6 @@ jobs:
             pip install numpy setuptools wheel &&
             pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
         with:
