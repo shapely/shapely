@@ -450,8 +450,12 @@ def test_remove_repeated_points(geom, expected):
 def test_remove_repeated_points_invalid_result(geom, tolerance):
     # Requiring GEOS 3.12 instead of 3.11
     # (GEOS 3.11 had a bug causing this to intermittently not fail)
-    with pytest.raises(shapely.GEOSException, match="Invalid number of points"):
-        shapely.remove_repeated_points(geom, tolerance)
+    if shapely.geos_version >= (3, 15, 0):
+        result = shapely.remove_repeated_points(geom, tolerance)
+        assert result.wkt == "POLYGON EMPTY"
+    else:
+        with pytest.raises(shapely.GEOSException, match="Invalid number of points"):
+            shapely.remove_repeated_points(geom, tolerance)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
