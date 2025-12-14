@@ -24,7 +24,8 @@
  * Function signature for GEOS operations that take any object and return a bool: O->b.
  *
  * Parameters:
- *   context: GEOS context handle for thread safety
+ *   context: GEOS context handle for thread safety. Note that not all functions use GEOS;
+ *            passing NULL in this parameter is acceptable for those functions.
  *   obj: Input Python object (may be a geometry or any other type)
  *   result: Pointer where the computed double result will be stored
  *
@@ -129,6 +130,8 @@ static void O_b_func(char** args, const npy_intp* dimensions, const npy_intp* st
   FuncO_b* func = (FuncO_b*)data;
 
   // Initialize GEOS context with thread support (releases Python GIL)
+  // Note that some functions may not use GEOS at all; we acquire the context anyway to
+  // eliminate code duplication. Overhead is small compared to the ufunc machinery.
   GEOS_INIT_THREADS;
 
   // The UNARY_LOOP macro unpacks args, dimensions, and steps and iterates through input/output arrays
@@ -167,7 +170,7 @@ static char O_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
  * ========================================================================
  *
  * Define functions for the O->b operations. We don't use a macro here because
- * they are all slightly different.
+ * they are short and slightly different.
  *
  * The function signatures are:
  *   static PyObject* Py{func_name}_Scalar(PyObject* self, PyObject* obj)
@@ -192,10 +195,11 @@ static PyObject* PyIsValidInput_Scalar(PyObject* self, PyObject* obj) {
 
 static PyObject* PyIsPrepared_Scalar(PyObject* self, PyObject* obj) {
   char result;
-  GEOS_INIT;
-  errstate = IsPrepared(ctx, obj, &result);
-  GEOS_FINISH;
+  char errstate;
+  errstate = IsPrepared(NULL, obj, &result);
   if (errstate != PGERR_SUCCESS) {
+    char* last_error = NULL;  // Needed for GEOS_HANDLE_ERR macro, but unused here
+    GEOS_HANDLE_ERR;
     return NULL;
   }
   return PyBool_FromLong(result);

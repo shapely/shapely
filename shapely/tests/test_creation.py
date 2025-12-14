@@ -705,14 +705,16 @@ def test_prepare():
     arr = np.array([shapely.points(1, 1), None, shapely.box(0, 0, 1, 1)])
     assert arr[0]._geom_prepared == 0
     assert arr[2]._geom_prepared == 0
-    shapely.prepare(arr)
+    actual = shapely.prepare(arr)
+    assert np.all(actual == [True, False, True])
     assert arr[0]._geom_prepared != 0
     assert arr[1] is None
     assert arr[2]._geom_prepared != 0
 
     # preparing again actually does nothing
     original = arr[0]._geom_prepared
-    shapely.prepare(arr)
+    actual = shapely.prepare(arr)
+    assert np.all(actual == [False, False, False])
     assert arr[0]._geom_prepared == original
 
 
@@ -721,11 +723,13 @@ def test_destroy_prepared():
     shapely.prepare(arr)
     assert arr[0]._geom_prepared != 0
     assert arr[2]._geom_prepared != 0
-    shapely.destroy_prepared(arr)
+    actual = shapely.destroy_prepared(arr)
+    assert np.all(actual == [True, False, True])
     assert arr[0]._geom_prepared == 0
     assert arr[1] is None
     assert arr[2]._geom_prepared == 0
-    shapely.destroy_prepared(arr)  # does not error
+    actual = shapely.destroy_prepared(arr)  # does not error
+    assert np.all(actual == [False, False, False])
 
 
 @pytest.mark.parametrize("geom_type", [None, GeometryType.MISSING, -1])

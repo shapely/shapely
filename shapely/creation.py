@@ -747,7 +747,7 @@ def prepare(geometry, **kwargs):
     it is efficient to call this function on an array that partially contains
     prepared geometries.
 
-    This function does not return any values; geometries are modified in place.
+    This function returns True where geometries were prepared, and False otherwise.
 
     Parameters
     ----------
@@ -771,7 +771,7 @@ def prepare(geometry, **kwargs):
     [False, True]
 
     """
-    lib.prepare(geometry, **kwargs)
+    return lib.prepare(geometry, **kwargs)
 
 
 def destroy_prepared(geometry, **kwargs):
@@ -780,6 +780,9 @@ def destroy_prepared(geometry, **kwargs):
     Note that the prepared geometry will always be cleaned up if the geometry itself
     is dereferenced. This function needs only be called in very specific circumstances,
     such as freeing up memory without losing the geometries, or benchmarking.
+
+    This function returns True where prepared geometries were destroyed, and False
+    otherwise.
 
     Parameters
     ----------
@@ -793,7 +796,7 @@ def destroy_prepared(geometry, **kwargs):
     prepare
 
     """
-    lib.destroy_prepared(geometry, **kwargs)
+    return lib.destroy_prepared(geometry, **kwargs)
 
 
 def empty(shape, geom_type=None, order="C"):
