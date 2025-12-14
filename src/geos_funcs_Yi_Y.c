@@ -154,7 +154,7 @@ static GEOSGeometry* GEOSOrientPolygons_r_with_clone(GEOSContextHandle_t context
  *   geom_obj: Shapely geometry object (Python wrapper around GEOSGeometry)
  *   i: Integer parameter for the operation
  *   last_error: Error buffer to check for GEOS exceptions
- *   result_ptr: Pointer where the computed GEOSGeometry result will be stored
+ *   result: Pointer where the computed GEOSGeometry result will be stored
  *
  * Returns:
  *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)

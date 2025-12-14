@@ -642,95 +642,6 @@ finish:
 }
 static PyUFuncGenericFunction Y_Y_reduce_funcs[1] = {&Y_Y_reduce_func};
 
-/* Define the geom -> int functions (Y_i) */
-/* data values are GEOS func, GEOS error code, return value when input is None */
-static void* get_type_id_func_tuple[3] = {GEOSGeomTypeId_r, (void*)-1, (void*)-1};
-static void* get_type_id_data[1] = {get_type_id_func_tuple};
-
-static void* get_dimensions_func_tuple[3] = {GEOSGeom_getDimensions_r, (void*)0,
-                                             (void*)-1};
-static void* get_dimensions_data[1] = {get_dimensions_func_tuple};
-
-static void* get_coordinate_dimension_func_tuple[3] = {GEOSGeom_getCoordinateDimension_r,
-                                                       (void*)-1, (void*)-1};
-static void* get_coordinate_dimension_data[1] = {get_coordinate_dimension_func_tuple};
-
-static void* get_srid_func_tuple[3] = {GEOSGetSRID_r, (void*)0, (void*)-1};
-static void* get_srid_data[1] = {get_srid_func_tuple};
-
-static int GetNumPoints(void* context, void* geom, int n) {
-  char typ = GEOSGeomTypeId_r(context, geom);
-  if ((typ == 1) || (typ == 2)) { /* Linestring & Linearring */
-    return GEOSGeomGetNumPoints_r(context, geom);
-  } else {
-    return 0;
-  }
-}
-static void* get_num_points_func_tuple[3] = {GetNumPoints, (void*)-1, (void*)0};
-static void* get_num_points_data[1] = {get_num_points_func_tuple};
-
-static int GetNumInteriorRings(void* context, void* geom) {
-  char typ = GEOSGeomTypeId_r(context, geom);
-  if (typ == 3) { /* Polygon */
-    return GEOSGetNumInteriorRings_r(context, geom);
-  } else {
-    return 0;
-  }
-}
-static void* get_num_interior_rings_func_tuple[3] = {GetNumInteriorRings, (void*)-1,
-                                                     (void*)0};
-static void* get_num_interior_rings_data[1] = {get_num_interior_rings_func_tuple};
-
-static void* get_num_geometries_func_tuple[3] = {GEOSGetNumGeometries_r, (void*)-1,
-                                                 (void*)0};
-static void* get_num_geometries_data[1] = {get_num_geometries_func_tuple};
-
-static void* get_num_coordinates_func_tuple[3] = {GEOSGetNumCoordinates_r, (void*)-1,
-                                                  (void*)0};
-static void* get_num_coordinates_data[1] = {get_num_coordinates_func_tuple};
-
-typedef int FuncGEOS_Y_i(void* context, void* a);
-static char Y_i_dtypes[2] = {NPY_OBJECT, NPY_INT};
-static void Y_i_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_Y_i* func = ((FuncGEOS_Y_i**)data)[0];
-  int errcode = (int)((int**)data)[1];
-  int none_value = (int)((int**)data)[2];
-
-  GEOSGeometry* in1 = NULL;
-  int result;
-
-  GEOS_INIT_THREADS;
-
-  UNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      goto finish;
-    }
-    /* get the geometry: return on error */
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      goto finish;
-    }
-    if (in1 == NULL) {
-      /* None results in 0 for counting functions, -1 otherwise */
-      *(npy_int*)op1 = none_value;
-    } else {
-      result = func(ctx, in1);
-      // Check last_error if the result equals errcode.
-      // Otherwise we can't be sure if it is an exception
-      if ((result == errcode) && (last_error[0] != 0)) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-      *(npy_int*)op1 = result;
-    }
-  }
-
-finish:
-  GEOS_FINISH_THREADS;
-}
-static PyUFuncGenericFunction Y_i_funcs[1] = {&Y_i_func};
-
 /* Define the geom, geom -> double functions (YY_d) */
 static void* distance_data[1] = {GEOSDistance_r};
 static void* hausdorff_distance_data[1] = {GEOSHausdorffDistance_r};
@@ -3327,11 +3238,6 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
                                   PyUFunc_None, #NAME, "", 0);                 \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_Y_i(NAME)                                                       \
-  ufunc = PyUFunc_FromFuncAndData(Y_i_funcs, NAME##_data, Y_i_dtypes, 1, 1, 1, \
-                                  PyUFunc_None, #NAME, "", 0);                 \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
 #define DEFINE_YY_d(NAME)                                                        \
   ufunc = PyUFunc_FromFuncAndData(YY_d_funcs, NAME##_data, YY_d_dtypes, 1, 2, 1, \
                                   PyUFunc_None, #NAME, "", 0);                   \
@@ -3406,15 +3312,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
   DEFINE_Y_Y_reduce(intersection_all);
   DEFINE_Y_Y_reduce(symmetric_difference_all);
-
-  DEFINE_Y_i(get_type_id);
-  DEFINE_Y_i(get_dimensions);
-  DEFINE_Y_i(get_coordinate_dimension);
-  DEFINE_Y_i(get_srid);
-  DEFINE_Y_i(get_num_points);
-  DEFINE_Y_i(get_num_interior_rings);
-  DEFINE_Y_i(get_num_geometries);
-  DEFINE_Y_i(get_num_coordinates);
 
   DEFINE_YY_d(distance);
   DEFINE_YY_d(frechet_distance);
