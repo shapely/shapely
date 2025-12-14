@@ -21,13 +21,13 @@
  * WRAPPER FUNCTIONS
  * ========================================================================
  *
- * Function signature for GEOS operations that take any object and return a bool: O->b.
+ * Function signature for GEOS operations that take any object and return a boolean: O->b.
  *
  * Parameters:
  *   context: GEOS context handle for thread safety. Note that not all functions use GEOS;
  *            passing NULL in this parameter is acceptable for those functions.
  *   obj: Input Python object (may be a geometry or any other type)
- *   result: Pointer where the computed double result will be stored
+ *   result: Pointer where the computed boolean result (0 or 1) will be stored
  *
  * Returns:
  *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)
@@ -82,7 +82,7 @@ static char PrepareGeometry(GEOSContextHandle_t context, PyObject* obj, char* re
   if (!ShapelyGetGeometryWithPrepared(obj, &g, &prep)) {
     return PGERR_NOT_A_GEOMETRY;
   }
-  if ((g == NULL) | (prep != NULL)) {
+  if ((g == NULL) || (prep != NULL)) {
     // Nothing to do; set result to False
     *result = 0;
   } else {
@@ -117,9 +117,8 @@ static char DestroyPreparedGeometryObject(GEOSContextHandle_t context, PyObject*
  * ======================================================================== */
 
 /*
- * NumPy universal function implementation for O->b operations.
- * This handles arrays of objects efficiently by iterating through them.
- * Since these operations don't call GEOS, we only need to manage the GIL.
+ * NumPy universal function implementation for Y->b operations.
+ * This handles arrays of geometries efficiently by iterating through them.
  *
  * Parameters:
  *   args, dimensions, steps: Standard ufunc loop parameters (see NumPy docs)
@@ -214,7 +213,7 @@ static PyObject* PyPrepareGeometry_Scalar(PyObject* self, PyObject* obj) {
     return NULL;
   }
   return PyBool_FromLong(result);
-  }
+}
 
 static PyObject* PyDestroyPreparedGeometryObject_Scalar(PyObject* self, PyObject* obj) {
   char result;
