@@ -431,11 +431,32 @@ def test_contains_properly():
     "input,expected",
     [
         (point, True),
+        (None, False),
+        ("foo", False),
+    ],
+)
+def test_is_geometry_scalar(input, expected):
+    assert shapely.lib.is_geometry_scalar(input) is expected
+
+
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        (point, False),
         (None, True),
-        ([point], False),
-        ((point,), False),
-        (np.array(point), False),
-        (np.array([point]), False),
+        ("foo", False),
+    ],
+)
+def test_is_missing_scalar(input, expected):
+    assert shapely.lib.is_missing_scalar(input) is expected
+
+
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        (point, True),
+        (None, True),
+        ("foo", False),
     ],
 )
 def test_is_valid_input_scalar(input, expected):

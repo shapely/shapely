@@ -732,6 +732,31 @@ def test_destroy_prepared():
     assert np.all(actual == [False, False, False])
 
 
+def test_prepare_scalar():
+    geom = shapely.Point(1, 1)
+    assert geom._geom_prepared == 0
+    actual = shapely.lib.prepare_scalar(geom)
+    assert actual is True
+    assert geom._geom_prepared != 0
+
+    # preparing again actually does nothing
+    original = geom._geom_prepared
+    actual = shapely.lib.prepare_scalar(geom)
+    assert actual is False
+    assert geom._geom_prepared == original
+
+
+def test_destroy_prepared_scalar():
+    geom = shapely.Point(1, 1)
+    shapely.lib.prepare_scalar(geom)
+    assert geom._geom_prepared != 0
+    actual = shapely.lib.destroy_prepared_scalar(geom)
+    assert actual is True
+    assert geom._geom_prepared == 0
+    actual = shapely.lib.destroy_prepared_scalar(geom)  # does not error
+    assert actual is False
+
+
 @pytest.mark.parametrize("geom_type", [None, GeometryType.MISSING, -1])
 def test_empty_missing(geom_type):
     actual = shapely.empty((2,), geom_type=geom_type)
