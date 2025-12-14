@@ -238,8 +238,6 @@ def is_geometry(geometry, **kwargs):
     False
 
     """
-    if not kwargs and lib.is_valid_input_scalar(geometry):
-        return lib.is_geometry_scalar(geometry)
     return lib.is_geometry(geometry, **kwargs)
 
 
@@ -274,8 +272,6 @@ def is_missing(geometry, **kwargs):
     False
 
     """
-    if not kwargs and lib.is_valid_input_scalar(geometry):
-        return lib.is_missing_scalar(geometry)
     return lib.is_missing(geometry, **kwargs)
 
 
@@ -315,8 +311,6 @@ def is_prepared(geometry, **kwargs):
     False
 
     """
-    if not kwargs and lib.is_valid_input_scalar(geometry):
-        return lib.is_prepared_scalar(geometry)
     return lib.is_prepared(geometry, **kwargs)
 
 
@@ -352,8 +346,6 @@ def is_valid_input(geometry, **kwargs):
     False
 
     """
-    if not kwargs and lib.is_valid_input_scalar(geometry):
-        return True
     return lib.is_valid_input(geometry, **kwargs)
 
 
