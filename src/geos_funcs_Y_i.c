@@ -62,7 +62,7 @@ static int GetNumInteriorRings(GEOSContextHandle_t context, const GEOSGeometry* 
  *
  * Parameters:
  *   context: GEOS context handle for thread-safe operations
- *   data: Y_i_func_data struct containing GEOS function pointer, error code, and missing_value
+ *   data: Y_i_func_data struct containing GEOS function pointer and missing_value
  *   geom_obj: Shapely geometry object (Python wrapper around GEOSGeometry)
  *   result: Pointer where the computed int result will be stored
  *   last_error: Pointer to the last_error buffer (available in GEOS_INIT context)
