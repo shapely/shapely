@@ -21,14 +21,15 @@
  * WRAPPER FUNCTIONS
  * ========================================================================
  *
- * Function signature for operations that take a Python object and return a bool: O->b.
- * These functions do not raise errors on non-geometry objects (unlike Y_b functions).
+ * Function signature for GEOS operations that take any object and return a bool: O->b.
  *
  * Parameters:
+ *   context: GEOS context handle for thread safety
  *   obj: Input Python object (may be a geometry or any other type)
+ *   result: Pointer where the computed double result will be stored
  *
  * Returns:
- *   0 for false, 1 for true
+ *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)
  */
 typedef char FuncO_b(GEOSContextHandle_t context, PyObject* obj, char* result);
 
@@ -36,6 +37,7 @@ static char IsMissing(GEOSContextHandle_t context, PyObject* obj, char* result) 
   const GEOSGeometry* g = NULL;
   if (!ShapelyGetGeometry(obj, &g)) {
     *result = 0;
+  // ShapelyGetGeometry sets g to NULL for None input
   } else if (g == NULL) {
     *result = 1;
   } else {
@@ -48,6 +50,7 @@ static char IsGeometry(GEOSContextHandle_t context, PyObject* obj, char* result)
   const GEOSGeometry* g = NULL;
   if (!ShapelyGetGeometry(obj, &g)) {
     *result = 0;
+  // ShapelyGetGeometry sets g to NULL for None input
   } else if (g == NULL) {
     *result = 0;
   } else {
@@ -58,58 +61,50 @@ static char IsGeometry(GEOSContextHandle_t context, PyObject* obj, char* result)
 
 static char IsValidInput(GEOSContextHandle_t context, PyObject* obj, char* result) {
   const GEOSGeometry* g;
-  if (ShapelyGetGeometry(obj, &g)) {
-    *result = 1;
-  } else {
-    *result = 0;
-  }
+  *result = ShapelyGetGeometry(obj, &g);
   return PGERR_SUCCESS;
 }
 
 static char IsPrepared(GEOSContextHandle_t context, PyObject* obj, char* result) {
   const GEOSGeometry* g;
-  if (!ShapelyGetGeometry(obj, &g)) {
+  const GEOSPreparedGeometry* prep;
+  if (!ShapelyGetGeometryWithPrepared(obj, &g, &prep)) {
     return PGERR_NOT_A_GEOMETRY;
   }
-  if (g == NULL) {
-    *result = 0;  // Valid input (None), but not prepared
-  } else if (((GeometryObject*)obj)->ptr_prepared == NULL) {
-    *result = 0;
-  } else {
-    *result = 1;
-  }
+  *result = prep != NULL;
   return PGERR_SUCCESS;
 }
 
 static char PrepareGeometry(GEOSContextHandle_t context, PyObject* obj, char* result) {
   const GEOSGeometry* g;
-  if (!ShapelyGetGeometry(obj, &g)) {
+  const GEOSPreparedGeometry* prep;
+  if (!ShapelyGetGeometryWithPrepared(obj, &g, &prep)) {
     return PGERR_NOT_A_GEOMETRY;
   }
-  if (g == NULL) {
-    *result = 0;
-  } else if (((GeometryObject*)obj)->ptr_prepared != NULL) {
+  if ((g == NULL) | (prep != NULL)) {
+    // Nothing to do; set result to False
     *result = 0;
   } else {
-    ((GeometryObject*)obj)->ptr_prepared = GEOSPrepare_r(context, g);
-    if (((GeometryObject*)obj)->ptr_prepared == NULL) {
+    prep = GEOSPrepare_r(context, g);
+    if (prep == NULL) {
       return PGERR_GEOS_EXCEPTION;
     }
+    ((GeometryObject*)obj)->ptr_prepared = prep;
     *result = 1;
   }
   return PGERR_SUCCESS;
 }
 static char DestroyPreparedGeometryObject(GEOSContextHandle_t context, PyObject* obj, char* result) {
   const GEOSGeometry* g;
-  if (!ShapelyGetGeometry(obj, &g)) {
+  const GEOSPreparedGeometry* prep;
+  if (!ShapelyGetGeometryWithPrepared(obj, &g, &prep)) {
     return PGERR_NOT_A_GEOMETRY;
   }
-  if (g == NULL) {
-    *result = 0;
-  } else if (((GeometryObject*)obj)->ptr_prepared == NULL) {
+  if (prep == NULL) {
+    // Nothing to do; set result to False
     *result = 0;
   } else {
-    GEOSPreparedGeom_destroy_r(context, ((GeometryObject*)obj)->ptr_prepared);
+    GEOSPreparedGeom_destroy_r(context, prep);
     ((GeometryObject*)obj)->ptr_prepared = NULL;
     *result = 1;
   }
@@ -135,8 +130,6 @@ static void O_b_func(char** args, const npy_intp* dimensions, const npy_intp* st
 
   // Initialize GEOS context with thread support (releases Python GIL)
   GEOS_INIT_THREADS;
-
-  (void)ctx;   // dims warning;
 
   // The UNARY_LOOP macro unpacks args, dimensions, and steps and iterates through input/output arrays
   // ip1 points to current input element, op1 points to current output element
