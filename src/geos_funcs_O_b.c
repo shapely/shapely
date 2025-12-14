@@ -199,25 +199,34 @@ static PyObject* PyIsValidInput_Scalar(PyObject* self, PyObject* obj) {
 
 static PyObject* PyIsPrepared_Scalar(PyObject* self, PyObject* obj) {
   char result;
-  char* last_error = NULL;
-  char errstate = IsPrepared(NULL, obj, &result);
-  GEOS_HANDLE_ERR;
+  GEOS_INIT;
+  errstate = IsPrepared(ctx, obj, &result);
+  GEOS_FINISH;
+  if (errstate != PGERR_SUCCESS) {
+    return NULL;
+  }
   return PyBool_FromLong(result);
 }
 
 static PyObject* PyPrepareGeometry_Scalar(PyObject* self, PyObject* obj) {
   char result;
-  char* last_error = NULL;
-  char errstate = PrepareGeometry(NULL, obj, &result);
-  GEOS_HANDLE_ERR;
+  GEOS_INIT;
+  errstate = PrepareGeometry(ctx, obj, &result);
+  GEOS_FINISH;
+  if (errstate != PGERR_SUCCESS) {
+    return NULL;
+  }
   return PyBool_FromLong(result);
-}
+  }
 
 static PyObject* PyDestroyPreparedGeometryObject_Scalar(PyObject* self, PyObject* obj) {
   char result;
-  char* last_error = NULL;
-  char errstate = DestroyPreparedGeometryObject(NULL, obj, &result);
-  GEOS_HANDLE_ERR;
+  GEOS_INIT;
+  errstate = DestroyPreparedGeometryObject(ctx, obj, &result);
+  GEOS_FINISH;
+  if (errstate != PGERR_SUCCESS) {
+    return NULL;
+  }
   return PyBool_FromLong(result);
 }
 
