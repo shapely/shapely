@@ -767,6 +767,7 @@ def prepare(geometry, **kwargs):
     >>> from shapely import Point
     >>> poly = shapely.buffer(Point(1.0, 1.0), 1)
     >>> shapely.prepare(poly)
+    True
     >>> shapely.contains_properly(poly, [Point(0.0, 0.0), Point(0.5, 0.5)]).tolist()
     [False, True]
 
