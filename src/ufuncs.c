@@ -275,59 +275,6 @@ finish:
 }
 static PyUFuncGenericFunction Ydd_b_p_funcs[1] = {&Ydd_b_p_func};
 
-/* Define the geom -> no return value functions (Y) */
-static char PrepareGeometryObject(void* ctx, GeometryObject* geom) {
-  if (geom->ptr_prepared == NULL) {
-    geom->ptr_prepared = (GEOSPreparedGeometry*)GEOSPrepare_r(ctx, geom->ptr);
-    if (geom->ptr_prepared == NULL) {
-      return PGERR_GEOS_EXCEPTION;
-    }
-  }
-  return PGERR_SUCCESS;
-}
-static char DestroyPreparedGeometryObject(void* ctx, GeometryObject* geom) {
-  if (geom->ptr_prepared != NULL) {
-    GEOSPreparedGeom_destroy_r(ctx, geom->ptr_prepared);
-    geom->ptr_prepared = NULL;
-  }
-  return PGERR_SUCCESS;
-}
-
-static void* prepare_data[1] = {PrepareGeometryObject};
-static void* destroy_prepared_data[1] = {DestroyPreparedGeometryObject};
-typedef char FuncPyGEOS_Y(void* ctx, GeometryObject* geom);
-static char Y_dtypes[1] = {NPY_OBJECT};
-static void Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncPyGEOS_Y* func = (FuncPyGEOS_Y*)data;
-  GEOSGeometry* in1 = NULL;
-  GeometryObject* geom_obj = NULL;
-
-  GEOS_INIT;
-
-  NO_OUTPUT_LOOP {
-    CHECK_SIGNALS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      goto finish;
-    }
-    geom_obj = *(GeometryObject**)ip1;
-    if (!get_geom(geom_obj, &in1)) {
-      errstate = PGERR_GEOS_EXCEPTION;
-      goto finish;
-    }
-    if (in1 != NULL) {
-      errstate = func(ctx, geom_obj);
-      if (errstate != PGERR_SUCCESS) {
-        goto finish;
-      }
-    }
-  }
-
-finish:
-
-  GEOS_FINISH;
-}
-static PyUFuncGenericFunction Y_funcs[1] = {&Y_func};
-
 /* Define the geom, double -> geom functions (Yd_Y) */
 static void* GEOSInterpolateProtectEmpty_r(void* context, void* geom, double d) {
   char errstate = geos_interpolate_checker(context, geom);
@@ -3138,11 +3085,6 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
                                   PyUFunc_None, #NAME, "", 0);                         \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_Y(NAME)                                                                   \
-  ufunc = PyUFunc_FromFuncAndData(Y_funcs, NAME##_data, Y_dtypes, 1, 1, 0, PyUFunc_None, \
-                                  #NAME, "", 0);                                         \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
 #define DEFINE_Yd_Y(NAME)                                                        \
   ufunc = PyUFunc_FromFuncAndData(Yd_Y_funcs, NAME##_data, Yd_Y_dtypes, 1, 2, 1, \
                                   PyUFunc_None, #NAME, "", 0);                   \
@@ -3218,9 +3160,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YY_b_p(covered_by);
   DEFINE_Ydd_b_p(contains_xy);
   DEFINE_Ydd_b_p(intersects_xy);
-
-  DEFINE_Y(prepare);
-  DEFINE_Y(destroy_prepared);
 
   DEFINE_Yd_Y(line_interpolate_point);
   DEFINE_Yd_Y(line_interpolate_point_normalized);

@@ -30,41 +30,91 @@
  * Returns:
  *   0 for false, 1 for true
  */
-typedef char FuncO_b(PyObject* obj);
+typedef char FuncO_b(GEOSContextHandle_t context, PyObject* obj, char* result);
 
-static char IsMissing(PyObject* obj) {
+static char IsMissing(GEOSContextHandle_t context, PyObject* obj, char* result) {
   const GEOSGeometry* g = NULL;
   if (!ShapelyGetGeometry(obj, &g)) {
-    return 0;
-  };
-  return g == NULL;
-}
-
-static char IsGeometry(PyObject* obj) {
-  const GEOSGeometry* g = NULL;
-  if (!ShapelyGetGeometry(obj, &g)) {
-    return 0;
+    *result = 0;
+  } else if (g == NULL) {
+    *result = 1;
+  } else {
+    *result = 0;
   }
-  return g != NULL;
+  return PGERR_SUCCESS;
 }
 
-static char IsValidInput(PyObject* obj) {
+static char IsGeometry(GEOSContextHandle_t context, PyObject* obj, char* result) {
+  const GEOSGeometry* g = NULL;
+  if (!ShapelyGetGeometry(obj, &g)) {
+    *result = 0;
+  } else if (g == NULL) {
+    *result = 0;
+  } else {
+    *result = 1;
+  }
+  return PGERR_SUCCESS;
+}
+
+static char IsValidInput(GEOSContextHandle_t context, PyObject* obj, char* result) {
   const GEOSGeometry* g;
-  return ShapelyGetGeometry(obj, &g);
+  if (ShapelyGetGeometry(obj, &g)) {
+    *result = 1;
+  } else {
+    *result = 0;
+  }
+  return PGERR_SUCCESS;
 }
 
-static char IsPrepared(PyObject* obj) {
+static char IsPrepared(GEOSContextHandle_t context, PyObject* obj, char* result) {
   const GEOSGeometry* g;
   if (!ShapelyGetGeometry(obj, &g)) {
-    return 2;
+    return PGERR_NOT_A_GEOMETRY;
   }
   if (g == NULL) {
-    return 0;  // Valid input (None), but not prepared
+    *result = 0;  // Valid input (None), but not prepared
+  } else if (((GeometryObject*)obj)->ptr_prepared == NULL) {
+    *result = 0;
+  } else {
+    *result = 1;
   }
-  // Now we know that obj is a GeometryObject
-  return ((GeometryObject*)obj)->ptr_prepared != NULL;
+  return PGERR_SUCCESS;
 }
 
+static char PrepareGeometry(GEOSContextHandle_t context, PyObject* obj, char* result) {
+  const GEOSGeometry* g;
+  if (!ShapelyGetGeometry(obj, &g)) {
+    return PGERR_NOT_A_GEOMETRY;
+  }
+  if (g == NULL) {
+    *result = 0;
+  } else if (((GeometryObject*)obj)->ptr_prepared != NULL) {
+    *result = 0;
+  } else {
+    ((GeometryObject*)obj)->ptr_prepared = GEOSPrepare_r(context, g);
+    if (((GeometryObject*)obj)->ptr_prepared == NULL) {
+      return PGERR_GEOS_EXCEPTION;
+    }
+    *result = 1;
+  }
+  return PGERR_SUCCESS;
+}
+static char DestroyPreparedGeometryObject(GEOSContextHandle_t context, PyObject* obj, char* result) {
+  const GEOSGeometry* g;
+  if (!ShapelyGetGeometry(obj, &g)) {
+    return PGERR_NOT_A_GEOMETRY;
+  }
+  if (g == NULL) {
+    *result = 0;
+  } else if (((GeometryObject*)obj)->ptr_prepared == NULL) {
+    *result = 0;
+  } else {
+    GEOSPreparedGeom_destroy_r(context, ((GeometryObject*)obj)->ptr_prepared);
+    ((GeometryObject*)obj)->ptr_prepared = NULL;
+    *result = 1;
+  }
+  return PGERR_SUCCESS;
+}
 
 /* ========================================================================
  * NUMPY UFUNC
@@ -83,7 +133,7 @@ static void O_b_func(char** args, const npy_intp* dimensions, const npy_intp* st
   // Extract the specific function from the user data
   FuncO_b* func = (FuncO_b*)data;
 
-  // Release GIL for the loop (but don't init GEOS context)
+  // Initialize GEOS context with thread support (releases Python GIL)
   GEOS_INIT_THREADS;
 
   (void)ctx;   // dims warning;
@@ -95,14 +145,13 @@ static void O_b_func(char** args, const npy_intp* dimensions, const npy_intp* st
     if (errstate == PGERR_PYSIGNAL) {
       break;
     }
-    *(npy_bool*)op1 = func(*(PyObject**)ip1);
-    if (*(npy_bool*)op1 == 2) {
-      errstate = PGERR_NOT_A_GEOMETRY;
+    errstate = func(ctx, *(PyObject**)ip1, (char*)op1);
+    if (errstate != PGERR_SUCCESS) {
       break;
     }
   }
 
-  // Reacquire GIL and handle errors
+  // Clean up GEOS context and handle any errors (reacquires Python GIL)
   GEOS_FINISH_THREADS;
 }
 
@@ -124,38 +173,53 @@ static char O_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
  * PYTHON FUNCTION DEFINITIONS
  * ========================================================================
  *
- * We use a macro to define a scalar Python function for each operation.
+ * Define functions for the O->b operations. We don't use a macro here because
+ * they are all slightly different.
  *
- * This creates a function like PyIsMissing_Scalar that can be called from Python.
- * The generated function signature is:
+ * The function signatures are:
  *   static PyObject* Py{func_name}_Scalar(PyObject* self, PyObject* obj)
- *
- * Example: DEFINE_O_b(IsMissing) creates PyIsMissing_Scalar function
- *
- * Parameters:
- *   func_name: Name of the C function that performs the operation
  */
-#define DEFINE_O_b(func_name) \
-  static PyObject* Py##func_name##_Scalar(PyObject* self, PyObject* obj) { \
-    return PyBool_FromLong(func_name(obj)); \
-  }
+static PyObject* PyIsMissing_Scalar(PyObject* self, PyObject* obj) {
+    char result;
+    IsMissing(NULL, obj, &result);
+    return PyBool_FromLong(result);
+}
 
-DEFINE_O_b(IsMissing);
-DEFINE_O_b(IsGeometry);
-DEFINE_O_b(IsValidInput);
+static PyObject* PyIsGeometry_Scalar(PyObject* self, PyObject* obj) {
+    char result;
+    IsGeometry(NULL, obj, &result);
+    return PyBool_FromLong(result);
+}
 
-// IsPrepared is different because it can return 2 (not a geometry)
+static PyObject* PyIsValidInput_Scalar(PyObject* self, PyObject* obj) {
+    char result;
+    IsValidInput(NULL, obj, &result);
+    return PyBool_FromLong(result);
+}
+
 static PyObject* PyIsPrepared_Scalar(PyObject* self, PyObject* obj) {
-  char result = IsPrepared(obj);
-  if (result == 2) {
-        PyErr_SetString(PyExc_TypeError,
-                      "One of the arguments is of incorrect type. Please provide only "
-                      "Geometry objects.");
-    return NULL;
-  }
+  char result;
+  char* last_error = NULL;
+  char errstate = IsPrepared(NULL, obj, &result);
+  GEOS_HANDLE_ERR;
   return PyBool_FromLong(result);
 }
 
+static PyObject* PyPrepareGeometry_Scalar(PyObject* self, PyObject* obj) {
+  char result;
+  char* last_error = NULL;
+  char errstate = PrepareGeometry(NULL, obj, &result);
+  GEOS_HANDLE_ERR;
+  return PyBool_FromLong(result);
+}
+
+static PyObject* PyDestroyPreparedGeometryObject_Scalar(PyObject* self, PyObject* obj) {
+  char result;
+  char* last_error = NULL;
+  char errstate = DestroyPreparedGeometryObject(NULL, obj, &result);
+  GEOS_HANDLE_ERR;
+  return PyBool_FromLong(result);
+}
 
 /* ========================================================================
  * MODULE INITIALIZATION
@@ -208,6 +272,8 @@ int init_geos_funcs_O_b(PyObject* m, PyObject* d) {
   INIT_O_b(IsGeometry, is_geometry);
   INIT_O_b(IsValidInput, is_valid_input);
   INIT_O_b(IsPrepared, is_prepared);
+  INIT_O_b(PrepareGeometry, prepare);
+  INIT_O_b(DestroyPreparedGeometryObject, destroy_prepared);
 
   return 0;
 }
