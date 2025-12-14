@@ -987,9 +987,7 @@ def test_minimum_bounding_circle(geometry, expected):
 
 @pytest.mark.parametrize("geometry", all_types)
 def test_minimum_width(geometry):
-    with ignore_invalid(
-        sys.platform == "darwin" and shapely.geos_version[:2] in [(3, 13), (3, 15)]
-    ):
+    with ignore_invalid(sys.platform == "darwin"):
         actual = shapely.minimum_width(geometry)
     assert isinstance(actual, LineString)
     # Minimum width should always be a geometry
@@ -999,7 +997,7 @@ def test_minimum_width(geometry):
 @pytest.mark.parametrize("geometry", all_types)
 def test_oriented_envelope_all_types(geometry):
     with ignore_invalid(
-        sys.platform == "darwin" and shapely.geos_version[:2] in [(3, 13), (3, 15)],
+        sys.platform == "darwin" and shapely.geos_version >= (3, 12, 0),
         divide=True,
     ):
         actual = shapely.oriented_envelope([geometry, geometry])
@@ -1044,7 +1042,7 @@ def test_oriented_envelope_all_types(geometry):
 )
 def test_oriented_envelope(geometry, expected, func):
     with ignore_invalid(
-        sys.platform == "darwin" and shapely.geos_version[:2] in [(3, 13), (3, 15)],
+        sys.platform == "darwin" and shapely.geos_version >= (3, 12, 0),
         divide=True,
     ):
         actual = func(geometry)
@@ -1084,7 +1082,8 @@ def test_oriented_envelope(geometry, expected, func):
 def test_oriented_envelope_pre_geos_312(geometry, expected):
     # use private method (similar as direct shapely.lib.oriented_envelope)
     # to cover the C code for older GEOS versions
-    actual = shapely.constructive._oriented_envelope_geos(geometry)
+    with ignore_invalid(sys.platform == "darwin"):
+        actual = shapely.constructive._oriented_envelope_geos(geometry)
     assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
 
 
