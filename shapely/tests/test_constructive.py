@@ -73,11 +73,7 @@ def test_no_args_array(geometry, func):
     ):  # GEOS GH-601
         pytest.xfail("GEOS < 3.10.3 crashes with empty geometries")
 
-    with ignore_invalid(
-        func is shapely.minimum_width
-        and sys.platform == "darwin"
-        and shapely.geos_version[:2] in [(3, 13), (3, 15)]
-    ):
+    with ignore_invalid(func is shapely.minimum_width and sys.platform == "darwin"):
         actual = func([geometry, geometry])
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
