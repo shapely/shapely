@@ -261,8 +261,8 @@ def nearest_points(g1, g2):
         else:
             raise ValueError("The second input geometry is empty")
 
-    p1 = shapely.get_point(seq, 0)
-    p2 = shapely.get_point(seq, 1)
+    p1 = shapely.lib.get_point_scalar(seq, 0)
+    p2 = shapely.lib.get_point_scalar(seq, 1)
     return (p1, p2)
 
 

@@ -1,7 +1,7 @@
 """Provides functions for finding the pole of inaccessibility for a given polygon."""
 
-from shapely._geometry import get_point
 from shapely.constructive import maximum_inscribed_circle
+from shapely.lib import get_point_scalar
 
 
 def polylabel(polygon, tolerance=1.0):
@@ -40,4 +40,4 @@ def polylabel(polygon, tolerance=1.0):
 
     """
     line = maximum_inscribed_circle(polygon, tolerance)
-    return get_point(line, 0)
+    return get_point_scalar(line, 0)
