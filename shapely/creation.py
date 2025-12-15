@@ -748,6 +748,8 @@ def prepare(geometry, **kwargs):
     prepared geometries.
 
     This function returns True where geometries were prepared, and False otherwise.
+    When it returns False, this does not mean that the function failed; it merely
+    indicates that the geometry was already prepared.
 
     Parameters
     ----------
