@@ -305,6 +305,7 @@ def is_prepared(geometry, **kwargs):
     >>> shapely.is_prepared(Point(0, 0))
     False
     >>> shapely.prepare(geometry)
+    True
     >>> shapely.is_prepared(geometry)
     True
     >>> shapely.is_prepared(None)
