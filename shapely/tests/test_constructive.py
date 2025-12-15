@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pytest
 
@@ -70,7 +72,9 @@ def test_no_args_array(geometry, func):
         and geos_version < (3, 10, 3)
     ):  # GEOS GH-601
         pytest.xfail("GEOS < 3.10.3 crashes with empty geometries")
-    actual = func([geometry, geometry])
+
+    with ignore_invalid(func is shapely.minimum_width and sys.platform == "darwin"):
+        actual = func([geometry, geometry])
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
 
@@ -450,8 +454,12 @@ def test_remove_repeated_points(geom, expected):
 def test_remove_repeated_points_invalid_result(geom, tolerance):
     # Requiring GEOS 3.12 instead of 3.11
     # (GEOS 3.11 had a bug causing this to intermittently not fail)
-    with pytest.raises(shapely.GEOSException, match="Invalid number of points"):
-        shapely.remove_repeated_points(geom, tolerance)
+    if shapely.geos_version >= (3, 15, 0):
+        result = shapely.remove_repeated_points(geom, tolerance)
+        assert result.wkt == "POLYGON EMPTY"
+    else:
+        with pytest.raises(shapely.GEOSException, match="Invalid number of points"):
+            shapely.remove_repeated_points(geom, tolerance)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
@@ -975,7 +983,8 @@ def test_minimum_bounding_circle(geometry, expected):
 
 @pytest.mark.parametrize("geometry", all_types)
 def test_minimum_width(geometry):
-    actual = shapely.minimum_width(geometry)
+    with ignore_invalid(sys.platform == "darwin"):
+        actual = shapely.minimum_width(geometry)
     assert isinstance(actual, LineString)
     # Minimum width should always be a geometry
     assert actual is not None
@@ -983,7 +992,11 @@ def test_minimum_width(geometry):
 
 @pytest.mark.parametrize("geometry", all_types)
 def test_oriented_envelope_all_types(geometry):
-    actual = shapely.oriented_envelope([geometry, geometry])
+    with ignore_invalid(
+        sys.platform == "darwin" and shapely.geos_version >= (3, 12, 0),
+        divide=True,
+    ):
+        actual = shapely.oriented_envelope([geometry, geometry])
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
 
@@ -1024,7 +1037,11 @@ def test_oriented_envelope_all_types(geometry):
     ],
 )
 def test_oriented_envelope(geometry, expected, func):
-    actual = func(geometry)
+    with ignore_invalid(
+        sys.platform == "darwin" and shapely.geos_version >= (3, 12, 0),
+        divide=True,
+    ):
+        actual = func(geometry)
     assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
 
 
@@ -1061,7 +1078,8 @@ def test_oriented_envelope(geometry, expected, func):
 def test_oriented_envelope_pre_geos_312(geometry, expected):
     # use private method (similar as direct shapely.lib.oriented_envelope)
     # to cover the C code for older GEOS versions
-    actual = shapely.constructive._oriented_envelope_geos(geometry)
+    with ignore_invalid(sys.platform == "darwin"):
+        actual = shapely.constructive._oriented_envelope_geos(geometry)
     assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
 
 

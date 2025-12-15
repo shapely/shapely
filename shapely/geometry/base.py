@@ -13,6 +13,7 @@ import numpy as np
 
 import shapely
 from shapely._geometry_helpers import _geom_factory
+from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area
 from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.decorators import deprecate_positional
@@ -116,7 +117,7 @@ class BaseGeometry(shapely.Geometry):
 
     @property
     def _ndim(self):
-        return shapely.get_coordinate_dimension(self)
+        return shapely.lib.get_coordinate_dimension_scalar(self)
 
     def __bool__(self):
         """Return True if the geometry is not empty, else False."""
@@ -326,7 +327,7 @@ class BaseGeometry(shapely.Geometry):
     @property
     def geom_type(self):
         """Name of the geometry's type, such as 'Point'."""
-        return GEOMETRY_TYPES[shapely.get_type_id(self)]
+        return GEOMETRY_TYPES[shapely.lib.get_type_id_scalar(self)]
 
     # Real-valued properties and methods
     # ----------------------------------
@@ -365,7 +366,7 @@ class BaseGeometry(shapely.Geometry):
         collection of points. The boundary of a point is an empty (null)
         collection.
         """
-        return shapely.boundary(self)
+        return shapely.lib.boundary_scalar(self)
 
     @property
     def bounds(self):
@@ -375,21 +376,21 @@ class BaseGeometry(shapely.Geometry):
     @property
     def centroid(self):
         """Return the geometric center of the object."""
-        return shapely.centroid(self)
+        return shapely.lib.centroid_scalar(self)
 
     def point_on_surface(self):
         """Return a point guaranteed to be within the object, cheaply.
 
         Alias of `representative_point`.
         """
-        return shapely.point_on_surface(self)
+        return shapely.lib.point_on_surface_scalar(self)
 
     def representative_point(self):
         """Return a point guaranteed to be within the object, cheaply.
 
         Alias of `point_on_surface`.
         """
-        return shapely.point_on_surface(self)
+        return shapely.lib.point_on_surface_scalar(self)
 
     @property
     def convex_hull(self):
@@ -401,12 +402,12 @@ class BaseGeometry(shapely.Geometry):
         The convex hull of a three member multipoint, for example, is a
         triangular polygon.
         """
-        return shapely.convex_hull(self)
+        return shapely.lib.convex_hull_scalar(self)
 
     @property
     def envelope(self):
         """A figure that envelopes the geometry."""
-        return shapely.envelope(self)
+        return shapely.lib.envelope_scalar(self)
 
     @property
     def oriented_envelope(self):
@@ -426,7 +427,11 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `minimum_rotated_rectangle`.
         """
-        return shapely.oriented_envelope(self)
+        if shapely.lib.geos_version < (3, 12, 0):
+            f = _oriented_envelope_min_area
+        else:
+            f = shapely.lib.oriented_envelope_scalar
+        return f(self)
 
     @property
     def minimum_rotated_rectangle(self):
@@ -446,7 +451,7 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `oriented_envelope`.
         """
-        return shapely.oriented_envelope(self)
+        return self.oriented_envelope
 
     # Note: future plan is to change this signature over a few releases:
     # shapely 2.0:
@@ -632,7 +637,7 @@ class BaseGeometry(shapely.Geometry):
         <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
 
         """
-        return shapely.normalize(self)
+        return shapely.lib.normalize_scalar(self)
 
     # Overlay operations
     # ---------------------------
@@ -1011,7 +1016,7 @@ class BaseGeometry(shapely.Geometry):
         <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
 
         """
-        return shapely.reverse(self)
+        return shapely.lib.reverse_scalar(self)
 
 
 class BaseMultipartGeometry(BaseGeometry):
@@ -1087,7 +1092,7 @@ class GeometrySequence:
         self._parent = parent
 
     def _get_geom_item(self, i):
-        return shapely.get_geometry(self._parent, i)
+        return shapely.lib.get_geometry_scalar(self._parent, int(i))
 
     def __iter__(self):
         """Iterate over the geometries in the sequence."""
@@ -1096,7 +1101,7 @@ class GeometrySequence:
 
     def __len__(self):
         """Return the number of geometries in the sequence."""
-        return shapely.get_num_geometries(self._parent)
+        return shapely.lib.get_num_geometries_scalar(self._parent)
 
     def __getitem__(self, key):
         """Access a geometry in the sequence by index or slice."""

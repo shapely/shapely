@@ -3,6 +3,7 @@
 
 #include <Python.h>
 #include <numpy/ndarraytypes.h>
+#include "geom_arr.h"
 
 /* To avoid accidental use of non reentrant GEOS API. */
 #ifndef GEOS_USE_ONLY_R_API
@@ -91,6 +92,7 @@ enum ShapelyErrorCode {
   PGERR_GEOJSON_EMPTY_POINT,
   PGERR_LINEARRING_NCOORDS,
   PGERR_NAN_COORD,
+  PGERR_INPLACE_OUTPUT,
   PGWARN_INVALID_WKB,  // raise the GEOS WKB error as a warning instead of exception
   PGWARN_INVALID_WKT,  // raise the GEOS WKT error as a warning instead of exception
   PGWARN_INVALID_GEOJSON,
@@ -141,7 +143,11 @@ enum ShapelyErrorCode {
     case PGERR_NAN_COORD:                                                                \
       PyErr_SetString(PyExc_ValueError,                                                  \
                       "A NaN, Inf or -Inf coordinate was supplied. Remove the "          \
-                      "coordinate or adapt the 'handle_nan' parameter.");               \
+                      "coordinate or adapt the 'handle_nan' parameter.");                \
+      break;                                                                             \
+    case PGERR_INPLACE_OUTPUT:                                                           \
+      PyErr_SetString(PyExc_ValueError,                                                  \
+                      "Zero-strided outputs are not supported for this operation.");     \
       break;                                                                             \
     case PGWARN_INVALID_WKB:                                                             \
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
@@ -192,7 +198,6 @@ extern GEOSContextHandle_t init_geos_context(void);
 extern char* init_geos_error_buffer(void);
 
 extern void geos_error_handler(const char* message, void* userdata);
-extern void destroy_geom_arr(void* context, GEOSGeometry** array, int length);
 extern char has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 extern GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx,
                                                   GEOSGeometry* geom);
