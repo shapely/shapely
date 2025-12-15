@@ -67,6 +67,7 @@ static void* intersects_xy_data[1] = {GEOSPreparedIntersectsXY_r};
 static void* contains_xy_data[1] = {GEOSPreparedContains_r};
 static void* intersects_xy_data[1] = {GEOSPreparedIntersects_r};
 #endif
+typedef char FuncGEOS_YY_b(void* context, void* a, void* b);
 typedef char FuncGEOS_Ydd_b(void* context, const void* pg, double x, double y);
 static char Ydd_b_p_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL};
 static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
