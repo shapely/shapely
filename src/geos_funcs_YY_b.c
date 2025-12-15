@@ -66,8 +66,7 @@ static char ShapelyContainsProperly(GEOSContextHandle_t context, const GEOSGeome
  *
  * Parameters:
  *   context: GEOS context handle for thread-safe operations
- *   func: Function pointer to the GEOS operation to perform
- *   func_prepared: Prepared geometry version of the function (called if first geom has is prepared)
+ *   data: YY_b_func_data struct containing function pointers
  *   geom1_obj: First Shapely geometry object
  *   geom2_obj: Second Shapely geometry object
  *   result: Pointer where the computed boolean result will be stored
@@ -75,9 +74,8 @@ static char ShapelyContainsProperly(GEOSContextHandle_t context, const GEOSGeome
  * Returns:
  *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)
  */
-static char core_YY_b_operation(GEOSContextHandle_t context, FuncGEOS_YY_b* func,
-                                FuncGEOS_YY_b_p* func_prepared, PyObject* geom1_obj,
-                                PyObject* geom2_obj, char* result) {
+static char core_YY_b_operation(GEOSContextHandle_t context, const YY_b_func_data* data,
+                                PyObject* geom1_obj, PyObject* geom2_obj, char* result) {
   const GEOSGeometry* geom1;
   const GEOSGeometry* geom2;
   const GEOSPreparedGeometry* geom1_prepared;
@@ -97,10 +95,11 @@ static char core_YY_b_operation(GEOSContextHandle_t context, FuncGEOS_YY_b* func
   }
 
   // Call the appropriate GEOS function based on whether first geometry is prepared
-  if (geom1_prepared == NULL) {
-    *result = func(context, geom1, geom2);
+  // and whether prepared version is available
+  if (geom1_prepared == NULL || data->func_prepared == NULL) {
+    *result = data->func(context, geom1, geom2);
   } else {
-    *result = func_prepared(context, geom1_prepared, geom2);
+    *result = data->func_prepared(context, geom1_prepared, geom2);
   }
 
   if (*result == 2) {
@@ -142,7 +141,7 @@ static PyObject* Py_YY_b_Scalar(PyObject* self, PyObject* const* args, Py_ssize_
 
   GEOS_INIT;
 
-  errstate = core_YY_b_operation(ctx, data->func, data->func_prepared, args[0], args[1], &result);
+  errstate = core_YY_b_operation(ctx, data, args[0], args[1], &result);
 
   GEOS_FINISH;
 
@@ -164,14 +163,9 @@ static PyObject* Py_YY_b_Scalar(PyObject* self, PyObject* const* args, Py_ssize_
  *
  * Parameters:
  *   args, dimensions, steps: Standard ufunc loop parameters (see NumPy docs)
- *   data: User data passed from ufunc creation (contains function pointer tuple)
+ *   data: User data passed from ufunc creation (contains function pointer struct)
  */
-static void YY_b_p_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  // Extract the specific GEOS functions from the user data struct
-  YY_b_func_data* funcs = (YY_b_func_data*)data;
-  FuncGEOS_YY_b* func = funcs->func;
-  FuncGEOS_YY_b_p* func_prepared = funcs->func_prepared;
-
+static void YY_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   // Initialize GEOS context with thread support (releases Python GIL)
   GEOS_INIT_THREADS;
 
@@ -182,7 +176,7 @@ static void YY_b_p_func(char** args, const npy_intp* dimensions, const npy_intp*
     if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
-    errstate = core_YY_b_operation(ctx, func, func_prepared, *(PyObject**)ip1,
+    errstate = core_YY_b_operation(ctx, (YY_b_func_data*)data, *(PyObject**)ip1,
                                    *(PyObject**)ip2, (char*)op1);
     if (errstate != PGERR_SUCCESS) {
       goto finish;
@@ -199,19 +193,19 @@ finish:
  * NumPy requires this format to register different implementations
  * for different type combinations.
  */
-static PyUFuncGenericFunction YY_b_p_funcs[1] = {&YY_b_p_func};
+static PyUFuncGenericFunction YY_b_funcs[1] = {&YY_b_func};
 
 /*
  * Type signature for the ufunc: takes two NPY_OBJECT (geometries), returns NPY_BOOL.
  * This tells NumPy what input and output types this ufunc supports.
  */
-static char YY_b_p_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
+static char YY_b_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
 
 
 /* ========================================================================
  * PYTHON FUNCTION DEFINITIONS
  * ========================================================================
-/*
+ *
  * We use a macro to define a scalar Python function for each GEOS operation.
  *
  * This creates two things:
@@ -223,8 +217,8 @@ static char YY_b_p_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
  * - static PyObject* PyGEOSDisjoint_r_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs)
  *
  * Parameters:
- *   func: Non-prepared GEOS function (FuncGEOS_YY_b*)
- *   func_prepared: Prepared GEOS function (FuncGEOS_YY_b_p*)
+ *   func: Non-prepared GEOS function
+ *   func_prepared: Prepared GEOS function
  */
 #define DEFINE_YY_b(func, func_prepared) \
   static YY_b_func_data func##_data = {func, func_prepared}; \
@@ -240,6 +234,8 @@ DEFINE_YY_b(GEOSWithin_r, GEOSPreparedWithin_r);
 DEFINE_YY_b(GEOSContains_r, GEOSPreparedContains_r);
 DEFINE_YY_b(ShapelyContainsProperly, GEOSPreparedContainsProperly_r);
 DEFINE_YY_b(GEOSOverlaps_r, GEOSPreparedOverlaps_r);
+DEFINE_YY_b(GEOSEquals_r, NULL);
+DEFINE_YY_b(PyGEOSEqualsIdentical, NULL);
 DEFINE_YY_b(GEOSCovers_r, GEOSPreparedCovers_r);
 DEFINE_YY_b(GEOSCoveredBy_r, GEOSPreparedCoveredBy_r);
 
@@ -267,7 +263,7 @@ DEFINE_YY_b(GEOSCoveredBy_r, GEOSPreparedCoveredBy_r);
     static void* func##_udata[1] = {(void*)&func##_data}; \
     \
     /* Create NumPy ufunc: 2 inputs, 1 output, 1 type signature */ \
-    ufunc = PyUFunc_FromFuncAndData(YY_b_p_funcs, func##_udata, YY_b_p_dtypes, 1, 2, 1, \
+    ufunc = PyUFunc_FromFuncAndData(YY_b_funcs, func##_udata, YY_b_dtypes, 1, 2, 1, \
                                     PyUFunc_None, #py_name, "", 0); \
     PyDict_SetItemString(d, #py_name, ufunc); \
     \
@@ -300,6 +296,8 @@ int init_geos_funcs_YY_b(PyObject* m, PyObject* d) {
   INIT_YY_b(contains, GEOSContains_r, GEOSPreparedContains_r);
   INIT_YY_b(contains_properly, ShapelyContainsProperly, GEOSPreparedContainsProperly_r);
   INIT_YY_b(overlaps, GEOSOverlaps_r, GEOSPreparedOverlaps_r);
+  INIT_YY_b(equals, GEOSEquals_r, NULL);
+  INIT_YY_b(equals_identical, PyGEOSEqualsIdentical, NULL);
   INIT_YY_b(covers, GEOSCovers_r, GEOSPreparedCovers_r);
   INIT_YY_b(covered_by, GEOSCoveredBy_r, GEOSPreparedCoveredBy_r);
   return 0;
