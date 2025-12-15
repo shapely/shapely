@@ -19,7 +19,7 @@ in a more performant way than `shapely.ops.transform` does. `shapely.ops.transfo
 Bug fixes:
 
 - Fix error when splitting a linestring with a point very close to a vertex, leading to
-  a floating point precision issue (#).
+  a floating point precision issue (#2370).
 
 2.1.2 (2025-09-24)
 ------------------
