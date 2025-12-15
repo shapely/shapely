@@ -9,6 +9,8 @@ from shapely.decorators import (
     multithreading_enabled,
     requires_geos,
 )
+from shapely.errors import GeometryTypeError
+
 
 __all__ = [
     "GeometryType",
@@ -28,6 +30,7 @@ __all__ = [
     "get_point",
     "get_precision",
     "get_rings",
+    "get_segments",
     "get_srid",
     "get_type_id",
     "get_x",
@@ -1013,3 +1016,165 @@ def force_3d(geometry, z=0.0, **kwargs):
     if np.isnan(z).any():
         raise ValueError("It is not allowed to set the Z coordinate to NaN.")
     return lib.force_3d(geometry, z, **kwargs)
+
+
+@multithreading_enabled
+def get_segments(
+    geometry,
+    *,
+    include_z=False,
+    return_index=False,
+    **kwargs,
+):
+    """Get segments of each input linear geometry object.
+
+    Here 'segments' is defined as the individual pairwise coordinates
+    comprising a LineString or LinearRing. Multi* geometry objects are not supported.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        A single linear object or collection of linear objects.
+    include_z : bool, default False
+        If True, return LINESTRING Z (3D) geometries.
+    return_index : bool, default False
+        If True, also return the index of each returned geometry as a separate
+        ndarray of integers. For multidimensional arrays, this indexes into the
+        flattened array (in C contiguous order).
+    **kwargs : dict
+        Keyword arguments to pass into ``shapely.linestrings()``.
+
+    Returns
+    -------
+    ndarray of constituent pairwise segments.
+
+    See Also
+    --------
+    get_parts, get_coordinates, linestrings
+
+    Examples
+    --------
+    >>> from shapely.ops import get_segments
+    >>> from shapely import LineString, LinearRing
+
+    Return the 2 constituent pairwise segments of a 3-coordinate linestring.
+
+    >>> get_segments(LineString(([0, 0], [1, 1], [2, 2]))).tolist()
+    [<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>]
+
+    Return the 3 constituent pairwise segments of a 4-coordinate linearring.
+
+    >>> get_segments(LinearRing(([0, 0], [1, 1], [2, 2], [0,0]))).tolist()
+    [<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>, <LINESTRING (2 2, 0 0)>]
+
+    When ``return_index=True``, indexes are returned also:
+
+    >>> segments, index = get_segments(
+    ...:     [
+    ...:         LineString(([0, 0], [1, 1], [2, 2])),
+    ...:         LinearRing(([0, 0], [1, 1], [2, 2], [0,0])),
+    ...:     ],
+    ...:     return_index=True,
+    ...: )
+    >>> segments.tolist(), index.tolist()
+    ([<LINESTRING (0 0, 1 1)>,
+      <LINESTRING (1 1, 2 2)>,
+      <LINESTRING (0 0, 1 1)>,
+      <LINESTRING (1 1, 2 2)>,
+      <LINESTRING (2 2, 0 0)>],
+     [0, 0, 1, 1, 1])
+
+    By default the third dimension (Z) is ignored.
+
+    >>> get_segments(LineString(([0, 0, 1], [1, 1, 1], [2, 2, 1]))).tolist()
+    [<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>]
+    >>> get_segments(
+    ...     LineString(([0, 0, 1], [1, 1, 1], [2, 2, 1])), include_z=True,
+    ... ).tolist()
+    [<LINESTRING Z (0 0 1, 1 1 1)>, <LINESTRING Z (1 1 1, 2 2 1)>]
+
+    If geometries don't have a Z dimension, these values will be NaN.
+
+    >>> get_segments(LineString(([0, 0], [1, 1], [2, 2])), include_z=True).tolist()
+    [<LINESTRING Z (0 0 NaN, 1 1 NaN)>, <LINESTRING Z (1 1 NaN, 2 2 NaN)>]
+
+    """
+
+    def _return_input_index(idx):
+        """Create and return the index location of the original input geometry."""
+        uidx = np.unique_counts(idx)
+
+        return np.repeat(uidx.values, uidx.counts - 1)
+
+    # ensure array-type
+    geometry = np.asarray(geometry, dtype=np.object_)
+    geometry = np.atleast_1d(geometry)
+
+    if geometry.ndim != 1:
+        raise ValueError("Array should be one dimensional")
+
+    # ensure valid geometry type
+    allowed_type_values = [GeometryType.LINESTRING.value, GeometryType.LINEARRING.value]
+    valid_geometries = np.isin(get_type_id(geometry), allowed_type_values)
+    if not valid_geometries.all():
+        raise ValueError("Geometry type is not supported")
+
+    # not currently supported for linestrings
+    include_m = False
+    # always return index for get_coordinates()
+    xys, idx_coords = lib.get_coordinates(geometry, include_z, include_m, True)
+
+    # isolate coords by input linear feature
+    n_xys = xys.shape[0]
+    idx_splitter = np.unique(idx_coords.reshape(n_xys, 1), return_index=True)[1][1:]
+    xys_by_input_feature = np.split(xys, idx_splitter)
+
+
+    #############################################
+    # LOOP
+    lines = []
+    for _xys in xys_by_input_feature:
+        lines.append(_create_segments(_xys, include_z, **kwargs))
+    lines = np.concatenate(lines)
+
+    # LIST COMP
+    #lines = np.concatenate(
+    #    [_create_segments(_xys, include_z, **kwargs) for _xys in xys_by_input_feature]
+    #)
+
+
+
+
+    return (lines, _return_input_index(idx_coords)) if return_index else lines
+
+
+def _create_segments(coords, include_z, **kwargs):
+    """Create segments from pairwise coordinates."""
+
+    coords_stacked = np.column_stack((coords[:-1], coords[1:]))
+
+    n_segments = coords_stacked.shape[0]
+    n_dims = 2
+    if include_z:
+        n_dims += 1
+
+    print(f"\n\n{n_dims=}\n\n")
+    print(f"\n\n{coords_stacked=}\n\n")
+
+    # currently only 'allow'
+    handle_nan = 0
+    #return lib.linestrings(
+    #    coords_stacked.reshape(n_segments, 2, n_dims),
+    #    np.intc(handle_nan),
+    #    **kwargs
+    #)
+    
+    LINES = lib.linestrings(
+        coords_stacked.reshape(n_segments, 2, n_dims),
+        np.intc(handle_nan),
+        **kwargs
+    )
+    
+    print(f"\n\n{LINES=}\n\n")
+    
+    return LINES
