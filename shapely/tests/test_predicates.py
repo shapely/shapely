@@ -395,16 +395,69 @@ def test_binary_prepared(a, func):
 
 
 @pytest.mark.parametrize("geometry", all_types)
-def test_is_prepared_true(geometry):
-    assert shapely.is_prepared(_prepare_with_copy(geometry))
+@pytest.mark.parametrize(
+    "func",
+    [shapely.is_prepared, shapely.lib.is_prepared, shapely.lib.is_prepared_scalar],
+)
+def test_is_prepared_true(geometry, func):
+    assert func(_prepare_with_copy(geometry))
 
 
 @pytest.mark.parametrize("geometry", all_types + (None,))
-def test_is_prepared_false(geometry):
-    assert not shapely.is_prepared(geometry)
+@pytest.mark.parametrize(
+    "func",
+    [shapely.is_prepared, shapely.lib.is_prepared, shapely.lib.is_prepared_scalar],
+)
+def test_is_prepared_false(geometry, func):
+    assert not func(geometry)
+
+
+@pytest.mark.parametrize(
+    "func",
+    [shapely.is_prepared, shapely.lib.is_prepared, shapely.lib.is_prepared_scalar],
+)
+def test_is_prepared_invalid(func):
+    with pytest.raises(TypeError):
+        func("a string")
 
 
 def test_contains_properly():
     # polygon contains itself, but does not properly contains itself
     assert shapely.contains(polygon, polygon).item() is True
     assert shapely.contains_properly(polygon, polygon).item() is False
+
+
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        (point, True),
+        (None, False),
+        ("foo", False),
+    ],
+)
+def test_is_geometry_scalar(input, expected):
+    assert shapely.lib.is_geometry_scalar(input) is expected
+
+
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        (point, False),
+        (None, True),
+        ("foo", False),
+    ],
+)
+def test_is_missing_scalar(input, expected):
+    assert shapely.lib.is_missing_scalar(input) is expected
+
+
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        (point, True),
+        (None, True),
+        ("foo", False),
+    ],
+)
+def test_is_valid_input_scalar(input, expected):
+    assert shapely.lib.is_valid_input_scalar(input) is expected
