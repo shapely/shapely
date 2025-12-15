@@ -15,13 +15,28 @@ def test_from_coordinates():
     # PointZ
     p = Point(1.0, 2.0, 3.0)
     assert p.coords[:] == [(1.0, 2.0, 3.0)]
-    assert p.has_z
+    assert p.has_z is True
 
     # empty
     p = Point()
     assert p.is_empty
     assert isinstance(p.coords, CoordinateSequence)
     assert p.coords[:] == []
+
+
+@pytest.mark.skipif(geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_from_coordinates_m():
+    # PointM
+    p = Point(1.0, 2.0, None, 4.0)
+    assert p.coords[:] == [(1.0, 2.0, 4.0)]
+    assert p.has_z is False
+    assert p.has_m is True
+
+    # PointZM
+    p = Point(1.0, 2.0, 3.0, 4.0)
+    assert p.coords[:] == [(1.0, 2.0, 3.0, 4.0)]
+    assert p.has_z is True
+    assert p.has_m is True
 
 
 def test_from_sequence():
@@ -46,6 +61,18 @@ def test_from_sequence():
     assert p.coords[:] == [(3.0, 4.0, 5.0)]
 
 
+@pytest.mark.skipif(geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_from_sequence_zm():
+    # Note that PointM cannot be made from a sequence
+    # PointZM
+    p = Point((3.0, 4.0, 5.0, 6.0))
+    assert p.coords[:] == [(3.0, 4.0, 5.0, 6.0)]
+    p = Point([3.0, 4.0, 5.0, 6.0])
+    assert p.coords[:] == [(3.0, 4.0, 5.0, 6.0)]
+    p = Point([(3.0, 4.0, 5.0, 6.0)])
+    assert p.coords[:] == [(3.0, 4.0, 5.0, 6.0)]
+
+
 def test_from_numpy():
     # Construct from a numpy array
     p = Point(np.array([1.0, 2.0]))
@@ -66,6 +93,15 @@ def test_from_numpy_xy():
     assert p.coords[:] == [(1.0, 2.0, 3.0)]
 
 
+@pytest.mark.skipif(geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_from_numpy_zm():
+    p = Point(np.array([1.0, 2.0, 3.0, 4.0]))
+    assert p.coords[:] == [(1.0, 2.0, 3.0, 4.0)]
+
+    p = Point(np.array([1.0]), np.array([2.0]), np.array([3.0]), np.array([4.0]))
+    assert p.coords[:] == [(1.0, 2.0, 3.0, 4.0)]
+
+
 def test_from_point():
     # From another point
     p = Point(3.0, 4.0)
@@ -77,15 +113,35 @@ def test_from_point():
     assert q.coords[:] == [(3.0, 4.0, 5.0)]
 
 
+@pytest.mark.skipif(geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_from_point_m():
+    # From another PointM
+    p = Point(3.0, 4.0, None, 6.0)
+    q = Point(p)
+    assert q.coords[:] == [(3.0, 4.0, 6.0)]
+    assert q.has_z is False
+    assert q.has_m is True
+
+    # PointZM
+    p = Point(3.0, 4.0, 5.0, 6.0)
+    q = Point(p)
+    assert q.coords[:] == [(3.0, 4.0, 5.0, 6.0)]
+
+
 def test_from_generator():
     gen = (coord for coord in [(1.0, 2.0)])
     p = Point(gen)
     assert p.coords[:] == [(1.0, 2.0)]
 
+    gen = (coord for coord in [(1.0, 2.0, 3.0)])
+    p = Point(gen)
+    assert p.coords[:] == [(1.0, 2.0, 3.0)]
+    assert p.has_z is True
+
 
 def test_from_invalid():
-    with pytest.raises(TypeError, match="takes at most 3 arguments"):
-        Point(1, 2, 3, 4)
+    with pytest.raises(TypeError, match="takes at most 4 arguments"):
+        Point(1, 2, 3, 4, 5)
 
     # this worked in shapely 1.x, just ignoring the other coords
     with pytest.raises(
@@ -127,7 +183,27 @@ class TestPoint:
             with pytest.raises(DimensionError):
                 p.m
 
-            # TODO: Check XYM and XYZM points
+            # Check XYM point
+            p = Point(1.0, 2.0, None, 4.0)
+            assert p.coords[:] == [(1.0, 2.0, 4.0)]
+            assert str(p) == p.wkt
+            assert p.has_z is False
+            with pytest.raises(DimensionError):
+                p.z
+            assert p.has_m is True
+            assert p.m == 4.0
+            assert type(p.m) is float
+
+            # Check XYZM point
+            p = Point(1.0, 2.0, 3.0, 4.0)
+            assert p.coords[:] == [(1.0, 2.0, 3.0, 4.0)]
+            assert str(p) == p.wkt
+            assert p.has_z is True
+            assert p.z == 3.0
+            assert type(p.z) is float
+            assert p.has_m is True
+            assert p.m == 4.0
+            assert type(p.m) is float
 
         # Coordinate access
         p = Point((3.0, 4.0))
