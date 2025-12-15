@@ -34,6 +34,15 @@
 typedef char FuncGEOS_YY_b(GEOSContextHandle_t context, const GEOSGeometry* a, const GEOSGeometry* b);
 typedef char FuncGEOS_YY_b_p(GEOSContextHandle_t context, const GEOSPreparedGeometry* a, const GEOSGeometry* b);
 
+/*
+ * Struct to hold function pointers for both prepared and non-prepared versions
+ * of a binary predicate operation.
+ */
+typedef struct {
+  FuncGEOS_YY_b* func;
+  FuncGEOS_YY_b_p* func_prepared;
+} YY_b_func_data;
+
 static char ShapelyContainsProperly(GEOSContextHandle_t context, const GEOSGeometry* g1, const GEOSGeometry* g2) {
   const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
   char ret;
@@ -108,32 +117,32 @@ static char core_YY_b_operation(GEOSContextHandle_t context, FuncGEOS_YY_b* func
 /*
  * Generic scalar Python function implementation for YY->b operations.
  * This handles single geometry pairs (not arrays) and returns a Python bool.
- * It should be registered as a METH_VARARGS method (accepting two arguments).
+ * It should be registered as a METH_FASTCALL method (accepting two geometries).
  *
  * This function is used as a template to create specific scalar functions
  * like PyDisjoint_Scalar, PyIntersects_Scalar, etc.
  *
  * Parameters:
  *   self: Module object (unused, required by Python C API)
- *   args: Tuple containing (geom1, geom2)
- *   func: Function pointer to the non-prepared GEOS operation
- *   func_prepared: Prepared geometry version of the function
+ *   args: Array of arguments (geom1, geom2)
+ *   nargs: Number of arguments (should be 2)
+ *   data: YY_b_func_data struct containing GEOS function pointers
  *
  * Returns:
  *   PyBool object containing the result, or NULL on error
  */
-static PyObject* Py_YY_b_Scalar(PyObject* self, PyObject* args,
-                                 FuncGEOS_YY_b* func, FuncGEOS_YY_b_p* func_prepared) {
-  PyObject *geom1_obj, *geom2_obj;
-  char result = 0;
-
-  if (!PyArg_ParseTuple(args, "OO", &geom1_obj, &geom2_obj)) {
+static PyObject* Py_YY_b_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs,
+                                 const YY_b_func_data* data) {
+  if (nargs != 2) {
+    PyErr_Format(PyExc_TypeError, "Expected 2 arguments, got %zd", nargs);
     return NULL;
   }
 
+  char result = 0;
+
   GEOS_INIT;
 
-  errstate = core_YY_b_operation(ctx, func, func_prepared, geom1_obj, geom2_obj, &result);
+  errstate = core_YY_b_operation(ctx, data->func, data->func_prepared, args[0], args[1], &result);
 
   GEOS_FINISH;
 
@@ -149,7 +158,8 @@ static PyObject* Py_YY_b_Scalar(PyObject* self, PyObject* args,
  * ======================================================================== */
 
 /*
- * NumPy universal function implementation for YY->b operations with prepared support.
+ * NumPy universal function implementation for YY->b operations (with support for
+ * prepared geometries).
  * This handles arrays of geometry pairs efficiently by iterating through them.
  *
  * Parameters:
@@ -157,9 +167,10 @@ static PyObject* Py_YY_b_Scalar(PyObject* self, PyObject* args,
  *   data: User data passed from ufunc creation (contains function pointer tuple)
  */
 static void YY_b_p_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  // Extract the specific GEOS functions from the user data tuple
-  FuncGEOS_YY_b* func = ((FuncGEOS_YY_b**)data)[0];
-  FuncGEOS_YY_b_p* func_prepared = ((FuncGEOS_YY_b_p**)data)[1];
+  // Extract the specific GEOS functions from the user data struct
+  YY_b_func_data* funcs = (YY_b_func_data*)data;
+  FuncGEOS_YY_b* func = funcs->func;
+  FuncGEOS_YY_b_p* func_prepared = funcs->func_prepared;
 
   // Initialize GEOS context with thread support (releases Python GIL)
   GEOS_INIT_THREADS;
@@ -200,23 +211,25 @@ static char YY_b_p_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
 /* ========================================================================
  * PYTHON FUNCTION DEFINITIONS
  * ========================================================================
- *
+/*
  * We use a macro to define a scalar Python function for each GEOS operation.
  *
- * This creates a function like PyDisjoint_Scalar that can be called from Python.
- * The generated function signature is:
- *   static PyObject* Py{func}_Scalar(PyObject* self, PyObject* args)
+ * This creates two things:
+ *  1. A YY_b_func_data struct instance containing the GEOS function pointers
+ *  2. A Python function that implements the scalar logic.
  *
- * Example: DEFINE_YY_b(Disjoint, GEOSDisjoint_r, GEOSPreparedDisjoint_r)
- *          creates PyDisjoint_Scalar function
+ * Example: DEFINE_YY_b(GEOSDisjoint_r, GEOSPreparedDisjoint_r) creates
+ * - static YY_b_func_data GEOSDisjoint_r_data
+ * - static PyObject* PyGEOSDisjoint_r_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs)
  *
  * Parameters:
  *   func: Non-prepared GEOS function (FuncGEOS_YY_b*)
  *   func_prepared: Prepared GEOS function (FuncGEOS_YY_b_p*)
  */
 #define DEFINE_YY_b(func, func_prepared) \
-  static PyObject* Py##func##_Scalar(PyObject* self, PyObject* args) { \
-    return Py_YY_b_Scalar(self, args, (FuncGEOS_YY_b*)func, (FuncGEOS_YY_b_p*)func_prepared); \
+  static YY_b_func_data func##_data = {func, func_prepared}; \
+  static PyObject* Py##func##_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs) { \
+    return Py_YY_b_Scalar(self, args, nargs, &func##_data); \
   }
 
 DEFINE_YY_b(GEOSDisjoint_r, GEOSPreparedDisjoint_r);
@@ -250,12 +263,11 @@ DEFINE_YY_b(GEOSCoveredBy_r, GEOSPreparedCoveredBy_r);
  */
 
 #define INIT_YY_b(py_name, func, func_prepared) do { \
-    /* Create data array with tuple of function pointers to pass to the ufunc */ \
-    static void* func##_FuncData[2] = {func, func_prepared}; \
-    static void* func##_FuncDataTuple[1] = {func##_FuncData}; \
+    /* Create struct with function pointers to pass to the ufunc */ \
+    static void* func##_udata[1] = {(void*)&func##_data}; \
     \
     /* Create NumPy ufunc: 2 inputs, 1 output, 1 type signature */ \
-    ufunc = PyUFunc_FromFuncAndData(YY_b_p_funcs, func##_FuncDataTuple, YY_b_p_dtypes, 1, 2, 1, \
+    ufunc = PyUFunc_FromFuncAndData(YY_b_p_funcs, func##_udata, YY_b_p_dtypes, 1, 2, 1, \
                                     PyUFunc_None, #py_name, "", 0); \
     PyDict_SetItemString(d, #py_name, ufunc); \
     \
@@ -263,7 +275,7 @@ DEFINE_YY_b(GEOSCoveredBy_r, GEOSPreparedCoveredBy_r);
     static PyMethodDef Py##func##_Scalar_Def = { \
         #py_name "_scalar",                   /* Function name */ \
         (PyCFunction)Py##func##_Scalar,       /* C function pointer */ \
-        METH_VARARGS,                         /* Function takes two arguments */ \
+        METH_FASTCALL,                        /* Function takes fast call arguments */ \
         #py_name " scalar implementation"     /* Docstring */ \
     }; \
     PyObject* Py##func##_Scalar_Func = PyCFunction_NewEx(&Py##func##_Scalar_Def, NULL, NULL); \
