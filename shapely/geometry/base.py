@@ -772,14 +772,20 @@ class BaseGeometry(shapely.Geometry):
 
     def covers(self, other):
         """Return True if the geometry covers the other, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.covers_scalar(self, other)
         return _maybe_unpack(shapely.covers(self, other))
 
     def covered_by(self, other):
         """Return True if the geometry is covered by the other, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.covered_by_scalar(self, other)
         return _maybe_unpack(shapely.covered_by(self, other))
 
     def contains(self, other):
         """Return True if the geometry contains the other, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.contains_scalar(self, other)
         return _maybe_unpack(shapely.contains(self, other))
 
     def contains_properly(self, other):
@@ -789,14 +795,20 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.contains_properly` for full documentation.
         """
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.contains_properly_scalar(self, other)
         return _maybe_unpack(shapely.contains_properly(self, other))
 
     def crosses(self, other):
         """Return True if the geometries cross, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.crosses_scalar(self, other)
         return _maybe_unpack(shapely.crosses(self, other))
 
     def disjoint(self, other):
         """Return True if geometries are disjoint, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.disjoint_scalar(self, other)
         return _maybe_unpack(shapely.disjoint(self, other))
 
     def equals(self, other):
@@ -821,22 +833,32 @@ class BaseGeometry(shapely.Geometry):
         bool
 
         """
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.equals_scalar(self, other)
         return _maybe_unpack(shapely.equals(self, other))
 
     def intersects(self, other):
         """Return True if geometries intersect, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.intersects_scalar(self, other)
         return _maybe_unpack(shapely.intersects(self, other))
 
     def overlaps(self, other):
         """Return True if geometries overlap, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.overlaps_scalar(self, other)
         return _maybe_unpack(shapely.overlaps(self, other))
 
     def touches(self, other):
         """Return True if geometries touch, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.touches_scalar(self, other)
         return _maybe_unpack(shapely.touches(self, other))
 
     def within(self, other):
         """Return True if geometry is within the other, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.within_scalar(self, other)
         return _maybe_unpack(shapely.within(self, other))
 
     def dwithin(self, other, distance):
