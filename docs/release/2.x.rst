@@ -1,24 +1,275 @@
 Version 2.x
 ===========
 
-.. _version-2-1-0:
+.. _version-2-1-2:
 
-Version 2.1.0 (unreleased)
+Version 2.1.2 (2025-09-24)
 --------------------------
 
-API changes:
+Wheels are available for Python 3.14 (and still include GEOS 3.13.1).
+
+.. _version-2-1-1:
+
+Version 2.1.1 (2025-05-19)
+--------------------------
+
+Bug fixes:
+
+- Fix performance degradation calling shapely functions (caused by deprecation
+  of certain positional arguments) (#2283).
+- Fix crash caused by `from_ragged_array()` (#2291).
+- Fix compilation error building with recent LLVM toolchain (#2293).
+
+Acknowledgments
+^^^^^^^^^^^^^^^
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+A total of 5 people contributed patches to this release.  People with a
+"+" by their names contributed a patch for the first time.
+
+* Joris Van den Bossche
+* Kamil Monicz +
+* Kurt Schwehr +
+* Mike Taves
+
+.. _version-2-1-0:
+
+Version 2.1.0 (2025-04-03)
+--------------------------
+
+New features
+^^^^^^^^^^^^
+
+Initial support for geometries with M or ZM values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Shapely geometries can now represent coordinates with M values (measure) in
+addition to X, Y, and Z (requires GEOS >= 3.12).
+
+.. code:: python
+
+  >>> import shapely
+  >>> point_m = shapely.from_wkt("POINT M (5.2 52.1 15.3)")
+  >>> point_m
+  <POINT M (5.2 52.1 15.3)>
+  >>> point_m.has_m
+  True
+  >>> point_m.m
+  15.3
+
+The initial support includes:
+
+- Creating geometries from WKT or WKB with M values will now preserve the M
+  values.
+- Exporting geometries to WKT and WKB will include the M values by default, if
+  present (#1808).
+- The ``Geometry`` class now has a ``.has_m`` attribute to check if the
+  geometry has M values (#2008). The Point subclass has a ``.m`` attribute to
+  access the M value (#2019). The ``.coords`` attribute will include
+  the M value, if present (#2238).
+- Add an ``include_m`` keyword in ``to_ragged_array`` and ``get_coordinates``
+  (#2234, #2235).
+
+Coverage validation and simplification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Several functions have been added to work with coverages (requires GEOS >=
+3.12), where a coverage is made up of a collection of valid (multi)polygons that
+do not overlap and are edge-matched (vertices along shared edges are identical).
+
+The :func:`.coverage_is_valid` and :func:`.coverage_invalid_edges` functions
+help to validate an array of geometries as a topological coverage and
+inspect invalid edges. The :func:`.coverage_simplify` function then allows
+topological simplification of the coverage (in contrast to the existing
+:func:`.simplify` function, which simplifies an array of geometries one by one,
+independently).
+
+.. plot:: code/coverage_simplify.py
+
+New functions
+~~~~~~~~~~~~~
+
+Several (new) functions from GEOS are now exposed in Shapely as top-level
+vectorized functions:
+
+- :func:`.minimum_clearance_line` (#2106)
+- :func:`.maximum_inscribed_circle` (polylabel) (#1307)
+- :func:`.orient_polygons` (#2147)
+- :func:`.constrained_delaunay_triangles` (#1685) (requires GEOS >= 3.10)
+- :func:`.equals_identical` (#1760)
+- :func:`.disjoint_subset_union` and :func:`.disjoint_subset_union_all` as an
+  optimized version of :func:`.union` and :func:`.union_all`, assuming inputs
+  can be divided into subsets that do not intersect. (requires GEOS >= 3.12)
+- :func:`.coverage_simplify` to allow topological simplification of polygonal
+  coverages (#1969) (requires GEOS >= 3.12)
+- :func:`.coverage_is_valid` and :func:`.coverage_invalid_edges` to validate an
+  array of geometries as valid topological coverage (#2156) (requires
+  GEOS >= 3.12)
+- :func:`.has_m` (#2008) (requires GEOS >= 3.12)
+- :func:`.get_m` (#2019) (requires GEOS >= 3.12)
+
+Other improvements
+~~~~~~~~~~~~~~~~~~
+
+- Add a ``handle_nan`` parameter to ``shapely.points()``,
+  ``shapely.linestrings()`` and ``shapely.linearrings()`` to allow, skip, or
+  error on nonfinite (NaN / Inf) coordinates. The default behaviour (allow) is
+  backwards compatible (#1594, #1811).
+- Add an ``interleaved`` parameter to ``shapely.transform()`` allowing a
+  transposed call signature in the ``transformation`` function (#1849).
+- The ``include_z`` in ``shapely.transform()`` now also allows ``None``, which
+  lets it automatically detect the dimensionality of each input geometry
+  (#1849).
+- Add parameters ``method`` and ``keep_collapsed`` to ``shapely.make_valid()``
+  (#1941)
+- The ``voronoi_polygons`` now accepts the ``ordered`` keyword, optionally
+  forcing the order of polygons within the GeometryCollection to follow the
+  order of input coordinates. Requires at least GEOS 3.12. (#1968)
+- Add option ``on_invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
+- Add a ``normalize`` keyword to ``equals_exact`` to normalize the input
+  geometries (#1231)
+- Handle ``Feature`` type in ``shapely.geometry.shape`` (#1815)
+- Add support to split polygons by multilinestrings (#2206)
+- The ``to_ragged_array()`` function will now use int32 offsets instead of
+  int64, when possible, reducing memory usage and improving compatibility with
+  the Arrow ecosystem (#2223).
+- Support sliced offsets in ``from_ragged_array()`` (#2255).
+
+Performance improvements:
+
+- Single geometry input to ``contains_xy`` and ``intersects_xy`` now gets
+  prepared automatically, providing a considerable speedup (#2146).
+- Improved ``from_ragged_array`` performance (#2142, #2225).
+- Improved ``MultiPoint(..)`` constructor from a numpy array of coordinates
+  (#1961).
+
+API changes
+^^^^^^^^^^^
+
+Breaking change:
 
 - Equality of geometries (``geom1 == geom2``) now considers NaN coordinate
   values in the same location to be equal (#1775). It is recommended however to
   ensure geometries don't have NaN values in the first place, for which you can
   now use the ``handle_nan`` parameter in construction functions.
 
-Improvements:
+Breaking changes in GEOS 3.12:
 
-- Require GEOS >= 3.9, NumPy >= 1.21, and Python >= 3.10 (#1802, #1885, #2124)
-- Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and
-  ``shapely.linearrings()`` to allow, skip, or error on nonfinite (NaN / Inf)
-  coordinates. The default behaviour (allow) is backwards compatible (#1594).
+- ``oriented_envelope`` / ``minimum_rotated_rectangle`` changed its
+  implementation in GEOS 3.12. Be aware that results will change when updating
+  GEOS. Coincidentally the implementation is similar to the shapely 1.x
+  approach. (#1885)
+- ``get_coordinate_dimension`` / ``has_z`` now considers geometries three
+  dimensional if they have a NaN z coordinate. (#1885)
+- ``voronoi_polygons`` changed its output from a LINESTRING to a
+  MULTILINESTRING in case ``only_edges=True``. (#1885)
+- The WKT representation of a MULTIPOINT changed from for example
+  "MULTIPOINT (0 0, 1 1)" to "MULTIPOINT ((0 0), (1 1))". (#1885)
+
+Deprecations:
+
+- The ``shapely.geos`` module is deprecated. All GEOS-version related
+  attributes are available directly from the top-level ``shapely`` namespace
+  as well (already since shapely 2.0) (#2145).
+- The ``shapely.vectorized`` module is deprecated. The two functions
+  (``contains`` and ``touches``) can be replaced by the top-level vectorized
+  functions ``contains_xy`` and ``intersects_xy`` (#1630).
+- Various parameters will be required to be passed as a keyword argument in the
+  future, and specifying it as a positional argument is deprecated and raises a
+  warning (for example, the ``grid_size`` keyword in set operations, boolean
+  flags such as the ``normalized`` or ``include_z`` keywords, the ``indices``
+  keyword in geometry constructor functions, etc) (#2237)
+- The ``resolution`` keyword in ``Geometry.buffer()`` is deprecated, use
+  ``quad_segs`` instead (alraedy available since shapely 2.0) (#2243)
+- The ``symmetric_difference_all`` function behaves incorrectly and will be
+  removed in a future version. See
+  https://github.com/shapely/shapely/issues/2027 for more details.
+
+Removals from previous deprecations:
+
+- The ``almost_equals`` method on the Geometry class. Use :func:`.equals_exact`
+  instead (#2244)
+- The ``shapely.ops.cascaded_union()`` function has been removed. Use
+  :func:`.unary_union` instead (#2246).
+
+Bug fixes
+^^^^^^^^^
+
+- Prevent crash when serializing a number > 1e100 to WKT with GEOS < 3.13.
+  (#1907)
+- Ensure ``plot_polygon`` does not color the interiors of polygons (#1933).
+- Fixes GeoJSON serialization of empty points (#2118)
+- Fixes `__geo_interface__` handling of empty points (#2120)
+- Fixes ``GeometryCollection()`` constructor accepting an array of geometries
+  (#2017).
+- Fixes the ``MultiPolygon()`` constructor from a numpy array of Polygons
+  (#1880).
+- Raise proper error message when trying to construct a MultiPolygon from a
+  sequence of MultiPolygons (#1786).
+- Fixes ``shapely.ops.orient()`` for empty polygons (#2214).
+- Fixes ``to_geojson()`` with empty points (#2118).
+
+Packaging
+^^^^^^^^^
+
+- Shapely 2.1.0 requires GEOS >= 3.9, NumPy >= 1.21, and Python >= 3.10 (#1802,
+  #1885, #2124)
+- Binary wheels are now built for musllinux (Alpine) x86_64 platforms (#1996).
+- Upgraded the GEOS version in the binary wheel distributions to 3.13.1.
+- Initial support for free-threaded Python builds, with the extension module
+  declaring free-threaded support and wheels for Python 3.13t being built
+  (#2138).
+
+Acknowledgments
+^^^^^^^^^^^^^^^
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Adam J. Stewart
+* Ali Hamdan +
+* Andrea Giudiceandrea +
+* Antoni Gołoś +
+* Ben Beasley
+* Bill Mill +
+* Brendan Ward
+* Casper van der Wel
+* David Hoese +
+* Erik Pettersson +
+* Frédéric Junod
+* Gabriel Homsi +
+* Gareth Simons +
+* Greg Lucas +
+* Hood Chatham +
+* Ian Williamson +
+* Idan Miara +
+* Joris Van den Bossche
+* JuriaanSioux +
+* Kyle Barron
+* Luke Lashley +
+* Lyle Cheatham +
+* Marek Czaplicki +
+* Martin Fleischmann
+* Mathew Topper +
+* Mathias Hauser +
+* Michał Górny +
+* Mike Taves
+* Nicolas Hammje +
+* Oreille +
+* Paul Jurczak +
+* Pieter Roggemans +
+* Raja Gangopadhya
+* Sean Gillies
+* Sebastian Castro +
+* Tetsuo Koyama +
+* Tom Augspurger +
+* Wentao Li +
+* nobkd +
+* quassy +
+* tfardet +
+* void-rooster +
 
 .. _version-2-0-7:
 

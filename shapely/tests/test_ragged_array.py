@@ -7,21 +7,38 @@ from shapely import MultiLineString, MultiPoint, MultiPolygon
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     empty_line_string,
+    empty_line_string_m,
     empty_line_string_z,
+    empty_line_string_zm,
+    empty_multi_polygon_m,
+    empty_multi_polygon_z,
+    empty_multi_polygon_zm,
     geometry_collection,
     line_string,
+    line_string_m,
     line_string_z,
+    line_string_zm,
     linear_ring,
     multi_line_string,
+    multi_line_string_m,
     multi_line_string_z,
+    multi_line_string_zm,
     multi_point,
+    multi_point_m,
     multi_point_z,
+    multi_point_zm,
     multi_polygon,
+    multi_polygon_m,
     multi_polygon_z,
+    multi_polygon_zm,
     point,
+    point_m,
     point_z,
+    point_zm,
     polygon,
+    polygon_m,
     polygon_z,
+    polygon_zm,
 )
 
 all_types = (
@@ -42,6 +59,28 @@ all_types_z = (
     multi_polygon_z,
 )
 
+all_types_m = (
+    point_m,
+    line_string_m,
+    polygon_m,
+    multi_point_m,
+    multi_line_string_m,
+    multi_polygon_m,
+)
+
+all_types_zm = (
+    point_zm,
+    line_string_zm,
+    polygon_zm,
+    multi_point_zm,
+    multi_line_string_zm,
+    multi_polygon_zm,
+)
+
+all_types_dims_combos = all_types + all_types_z
+if shapely.geos_version >= (3, 12, 0):
+    all_types_dims_combos = all_types_dims_combos + all_types_m + all_types_zm
+
 all_types_not_supported = (
     linear_ring,
     geometry_collection,
@@ -54,24 +93,31 @@ def test_roundtrip(geom):
     assert_geometries_equal(actual, [geom, geom])
 
 
-@pytest.mark.parametrize("geom", all_types)
-def test_include_z(geom):
-    _, coords, _ = shapely.to_ragged_array([geom, geom], include_z=True)
-    # For 2D geoms, z coords are filled in with NaN
-    assert np.isnan(coords[:, 2]).all()
-
-
-@pytest.mark.parametrize("geom", all_types_z)
-def test_include_z_false(geom):
-    _, coords, _ = shapely.to_ragged_array([geom, geom], include_z=False)
-    # For 3D geoms, z coords are dropped
-    assert coords.shape[1] == 2
+@pytest.mark.parametrize("include_m", [None, True, False])
+@pytest.mark.parametrize("include_z", [None, True, False])
+@pytest.mark.parametrize("geom", all_types_dims_combos)
+def test_to_ragged_array(geom, include_z, include_m):
+    _, coords, _ = shapely.to_ragged_array(
+        [geom, geom], include_z=include_z, include_m=include_m
+    )
+    nan_dims = np.all(np.isnan(coords), axis=0).tolist()
+    expected = [False, False]  # XY
+    has_z = geom.has_z
+    if include_z or (include_z is None and has_z):
+        expected.append(not has_z)  # XYZ or XYZM
+    if shapely.geos_version >= (3, 12, 0):
+        has_m = geom.has_m
+    else:
+        has_m = False
+    if include_m or (include_m is None and has_m):
+        expected.append(not has_m)  # XYM or XYZM
+    assert nan_dims == expected
 
 
 def test_include_z_default():
     # corner cases for inferring dimensionality
 
-    # mixed 2D and 3D -> 3D
+    # mixed XY and XYZ -> XYZ
     _, coords, _ = shapely.to_ragged_array([line_string, line_string_z])
     assert coords.shape[1] == 3
 
@@ -81,7 +127,31 @@ def test_include_z_default():
     _, coords, _ = shapely.to_ragged_array([empty_line_string_z])
     assert coords.shape[1] == 2
     # empty collection -> GEOS indicates 2D
-    _, coords, _ = shapely.to_ragged_array(shapely.from_wkt(["MULTIPOLYGON Z EMPTY"]))
+    _, coords, _ = shapely.to_ragged_array([empty_multi_polygon_z])
+    assert coords.shape[1] == 2
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_include_m_default():
+    # a few other corner cases for inferring dimensionality
+
+    # mixed XY and XYM -> XYM
+    _, coords, _ = shapely.to_ragged_array([line_string, line_string_m])
+    assert coords.shape[1] == 3
+
+    # mixed XY, XYM, and XYZM -> XYZM
+    _, coords, _ = shapely.to_ragged_array([line_string, line_string_m, line_string_zm])
+    assert coords.shape[1] == 4
+
+    # only empties -> always 2D
+    _, coords, _ = shapely.to_ragged_array([empty_line_string_m])
+    assert coords.shape[1] == 2
+    _, coords, _ = shapely.to_ragged_array([empty_line_string_zm])
+    assert coords.shape[1] == 2
+    # empty collection -> GEOS indicates 2D
+    _, coords, _ = shapely.to_ragged_array([empty_multi_polygon_m])
+    assert coords.shape[1] == 2
+    _, coords, _ = shapely.to_ragged_array([empty_multi_polygon_zm])
     assert coords.shape[1] == 2
 
 
@@ -176,6 +246,15 @@ def test_linestrings():
     arr[-2] = shapely.from_wkt("LINESTRING EMPTY")
     assert_geometries_equal(result, arr)
 
+    # sliced
+    offsets_sliced = (offsets[0][1:],)
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0][:-1],)
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-1])
+
 
 def test_polygons():
     arr = shapely.from_wkt(
@@ -229,6 +308,17 @@ def test_polygons():
     arr[-2] = shapely.from_wkt("POLYGON EMPTY")
     assert_geometries_equal(result, arr)
 
+    # sliced:
+    # - indices into the coordinate array for the whole buffer
+    # - indices into the ring array for *just* the sliced part
+    offsets_sliced = (offsets[0], offsets[1][1:])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0], offsets[1][:-1])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-1])
+
 
 def test_multipoints():
     arr = shapely.from_wkt(
@@ -267,6 +357,15 @@ def test_multipoints():
     # in a roundtrip, missing geometries come back as empty
     arr[-2] = shapely.from_wkt("MULTIPOINT EMPTY")
     assert_geometries_equal(result, arr)
+
+    # sliced:
+    offsets_sliced = (offsets[0][1:],)
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0][:-1],)
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-1])
 
 
 def test_multilinestrings():
@@ -318,6 +417,17 @@ def test_multilinestrings():
     # in a roundtrip, missing geometries come back as empty
     arr[-2] = shapely.from_wkt("MULTILINESTRING EMPTY")
     assert_geometries_equal(result, arr)
+
+    # sliced:
+    # - indices into the coordinate array for the whole buffer
+    # - indices into the line parts for *just* the sliced part
+    offsets_sliced = (offsets[0], offsets[1][1:])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0], offsets[1][:-1])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-1])
 
 
 def test_multipolygons():
@@ -382,6 +492,16 @@ def test_multipolygons():
     # in a roundtrip, missing geometries come back as empty
     arr[-2] = shapely.from_wkt("MULTIPOLYGON EMPTY")
     assert_geometries_equal(result, arr)
+
+    # sliced:
+    offsets_sliced = (offsets[0], offsets[1], offsets[2][1:])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0], offsets[1], offsets[2][:-3])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-3])
+    print(result)
 
 
 def test_mixture_point_multipoint():
@@ -465,4 +585,81 @@ def test_from_ragged_wrong_offsets():
             shapely.GeometryType.POINT,
             np.array([[0, 0], [0, 1]]),
             offsets=(np.array([0, 1]),),
+        )
+
+
+def test_from_ragged_crash_2284():
+    # caused segfault in shapely 2.1.0
+    # https://github.com/shapely/shapely/discussions/2284
+
+    # one of the geometries has more rings than the total number of geometries
+    coords = np.random.default_rng().random(120).reshape((60, 2))
+    offsets1 = np.array([0, 10, 20, 30, 40, 50, 60])
+    offsets2 = np.array([0, 1, 5, 6])
+
+    for _ in range(10):
+        polygons = shapely.from_ragged_array(
+            shapely.GeometryType.POLYGON, coords, (offsets1, offsets2)
+        )
+        # just ensure it didn't crash
+        assert len(polygons) == 3
+
+    offsets3 = np.array([0, 3])
+    for _ in range(10):
+        polygons = shapely.from_ragged_array(
+            shapely.GeometryType.MULTIPOLYGON, coords, (offsets1, offsets2, offsets3)
+        )
+        # just ensure it didn't crash
+        assert len(polygons) == 1
+
+
+def test_from_ragged_wrong_offsets_values():
+    # caused segfault in shapely 2.1.0
+
+    # outer offsets indicates more rings than the shape of the ring offsets
+    coords = np.random.default_rng().random(70).reshape((35, 2))
+    offsets1 = np.array([0, 10, 20], dtype=np.uint32)
+    offsets2 = np.array([0, 1, 5], dtype=np.uint32)
+    offsets3 = np.array([0, 2])
+
+    with pytest.raises(
+        ValueError, match="Number of rings indicated by the geometry offsets"
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.POLYGON, coords, (offsets1, offsets2)
+        )
+
+    with pytest.raises(
+        ValueError, match="Number of rings indicated by the part offsets"
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.MULTIPOLYGON, coords, (offsets1, offsets2, offsets3)
+        )
+
+    # inner offsets indicating more coordinats that the shape of the coordinates
+    coords = np.random.default_rng().random(70).reshape((35, 2))
+    offsets1 = np.array([0, 10, 40], dtype=np.uint32)
+    offsets2 = np.array([0, 1, 2], dtype=np.uint32)
+
+    with pytest.raises(
+        ValueError, match="Number of coordinates indicated by the linear offsets"
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.POLYGON, coords, (offsets1, offsets2)
+        )
+
+    with pytest.raises(
+        ValueError, match="Number of coordinates indicated by the linear offsets"
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.MULTIPOLYGON, coords, (offsets1, offsets2, offsets3)
+        )
+
+    # outer multipolygon offsets indicating too many parts
+    offsets3 = np.array([0, 3])
+    with pytest.raises(
+        ValueError, match="Number of geometry parts indicated by the geometry offsets"
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.MULTIPOLYGON, coords, (offsets1, offsets2, offsets3)
         )

@@ -56,3 +56,5 @@ cdef extern from "c_api.h":
         GEOSContextHandle_t ctx, const double* buf, unsigned int size,
         unsigned int dims, char is_ring, int handle_nan,
         GEOSCoordSequence** coord_seq) nogil
+    GEOSContextHandle_t PyGEOS_InitGEOSContext()
+    char* PyGEOS_InitGEOSErrorBuffer()

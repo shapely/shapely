@@ -46,7 +46,7 @@ class MultiPoint(BaseMultipartGeometry):
 
     __slots__ = []
 
-    def __new__(self, points=None):
+    def __new__(cls, points=None):
         """Create a new MultiPoint geometry."""
         if points is None:
             # allow creation of empty multipoints, to support unpickling

@@ -13,8 +13,10 @@ import numpy as np
 
 import shapely
 from shapely._geometry_helpers import _geom_factory
+from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area
 from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
+from shapely.decorators import deprecate_positional
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
 
 GEOMETRY_TYPES = [
@@ -27,6 +29,8 @@ GEOMETRY_TYPES = [
     "MultiPolygon",
     "GeometryCollection",
 ]
+
+_geos_ge_312 = shapely.geos_version >= (3, 12, 0)
 
 
 def geom_factory(g, parent=None):
@@ -43,7 +47,7 @@ def geom_factory(g, parent=None):
     warn(
         "The 'geom_factory' function is deprecated in Shapely 2.0, and will be "
         "removed in a future version",
-        DeprecationWarning,
+        FutureWarning,
         stacklevel=2,
     )
     return _geom_factory(g)
@@ -55,7 +59,7 @@ def dump_coords(geom):
         raise ValueError(
             "Must be instance of a geometry class; found " + geom.__class__.__name__
         )
-    elif geom.geom_type in ("Point", "LineString", "LinearRing"):
+    elif geom.geom_type in {"Point", "LineString", "LinearRing"}:
         return geom.coords[:]
     elif geom.geom_type == "Polygon":
         return geom.exterior.coords[:] + [i.coords[:] for i in geom.interiors]
@@ -96,7 +100,7 @@ class BaseGeometry(shapely.Geometry):
 
     __slots__ = []
 
-    def __new__(self):
+    def __new__(cls):
         """Directly calling the base class 'BaseGeometry()' is deprecated.
 
         This will raise an error in the future. To create an empty geometry,
@@ -113,20 +117,16 @@ class BaseGeometry(shapely.Geometry):
 
     @property
     def _ndim(self):
-        return shapely.get_coordinate_dimension(self)
+        return shapely.lib.get_coordinate_dimension_scalar(self)
 
     def __bool__(self):
         """Return True if the geometry is not empty, else False."""
         return self.is_empty is False
 
-    def __nonzero__(self):
-        """Return True if the geometry is not empty, else False."""
-        return self.__bool__()
-
     def __format__(self, format_spec):
         """Format a geometry using a format specification."""
         # bypass regexp for simple cases
-        if format_spec == "":
+        if not format_spec:
             return shapely.to_wkt(self, rounding_precision=-1)
         elif format_spec == "x":
             return shapely.to_wkb(self, hex=True).lower()
@@ -154,11 +154,11 @@ class BaseGeometry(shapely.Geometry):
         if not fmt_code:
             fmt_code = "g"
 
-        if fmt_code in ("g", "G"):
+        if fmt_code in {"g", "G"}:
             res = shapely.to_wkt(self, rounding_precision=prec, trim=True)
-        elif fmt_code in ("f", "F"):
+        elif fmt_code in {"f", "F"}:
             res = shapely.to_wkt(self, rounding_precision=prec, trim=False)
-        elif fmt_code in ("x", "X"):
+        elif fmt_code in {"x", "X"}:
             raise ValueError("hex representation does not specify precision")
         else:
             raise NotImplementedError(f"unhandled fmt_code: {fmt_code}")
@@ -216,7 +216,9 @@ class BaseGeometry(shapely.Geometry):
     @property
     def coords(self):
         """Access to geometry's coordinates (CoordinateSequence)."""
-        coords_array = shapely.get_coordinates(self, include_z=self.has_z)
+        has_z = self.has_z
+        has_m = self.has_m if _geos_ge_312 else False
+        coords_array = shapely.get_coordinates(self, include_z=has_z, include_m=has_m)
         return CoordinateSequence(coords_array)
 
     @property
@@ -325,7 +327,7 @@ class BaseGeometry(shapely.Geometry):
     @property
     def geom_type(self):
         """Name of the geometry's type, such as 'Point'."""
-        return GEOMETRY_TYPES[shapely.get_type_id(self)]
+        return GEOMETRY_TYPES[shapely.lib.get_type_id_scalar(self)]
 
     # Real-valued properties and methods
     # ----------------------------------
@@ -333,7 +335,7 @@ class BaseGeometry(shapely.Geometry):
     @property
     def area(self):
         """Unitless area of the geometry (float)."""
-        return float(shapely.area(self))
+        return shapely.lib.area_scalar(self)
 
     def distance(self, other):
         """Unitless distance to other geometry (float)."""
@@ -346,12 +348,12 @@ class BaseGeometry(shapely.Geometry):
     @property
     def length(self):
         """Unitless length of the geometry (float)."""
-        return float(shapely.length(self))
+        return shapely.lib.length_scalar(self)
 
     @property
     def minimum_clearance(self):
         """Unitless distance a node can be moved to produce an invalid geometry (float)."""  # noqa: E501
-        return float(shapely.minimum_clearance(self))
+        return shapely.lib.minimum_clearance_scalar(self)
 
     # Topological properties
     # ----------------------
@@ -364,7 +366,7 @@ class BaseGeometry(shapely.Geometry):
         collection of points. The boundary of a point is an empty (null)
         collection.
         """
-        return shapely.boundary(self)
+        return shapely.lib.boundary_scalar(self)
 
     @property
     def bounds(self):
@@ -374,21 +376,21 @@ class BaseGeometry(shapely.Geometry):
     @property
     def centroid(self):
         """Return the geometric center of the object."""
-        return shapely.centroid(self)
+        return shapely.lib.centroid_scalar(self)
 
     def point_on_surface(self):
         """Return a point guaranteed to be within the object, cheaply.
 
         Alias of `representative_point`.
         """
-        return shapely.point_on_surface(self)
+        return shapely.lib.point_on_surface_scalar(self)
 
     def representative_point(self):
         """Return a point guaranteed to be within the object, cheaply.
 
         Alias of `point_on_surface`.
         """
-        return shapely.point_on_surface(self)
+        return shapely.lib.point_on_surface_scalar(self)
 
     @property
     def convex_hull(self):
@@ -400,12 +402,12 @@ class BaseGeometry(shapely.Geometry):
         The convex hull of a three member multipoint, for example, is a
         triangular polygon.
         """
-        return shapely.convex_hull(self)
+        return shapely.lib.convex_hull_scalar(self)
 
     @property
     def envelope(self):
         """A figure that envelopes the geometry."""
-        return shapely.envelope(self)
+        return shapely.lib.envelope_scalar(self)
 
     @property
     def oriented_envelope(self):
@@ -425,7 +427,11 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `minimum_rotated_rectangle`.
         """
-        return shapely.oriented_envelope(self)
+        if shapely.lib.geos_version < (3, 12, 0):
+            f = _oriented_envelope_min_area
+        else:
+            f = shapely.lib.oriented_envelope_scalar
+        return f(self)
 
     @property
     def minimum_rotated_rectangle(self):
@@ -445,8 +451,19 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `oriented_envelope`.
         """
-        return shapely.oriented_envelope(self)
+        return self.oriented_envelope
 
+    # Note: future plan is to change this signature over a few releases:
+    # shapely 2.0:
+    #   buffer(self, geometry, distance, quad_segs=16, cap_style="round", ...)
+    # shapely 2.1: shows deprecation warning about positional 'cap_style', etc.
+    #   same signature as 2.0
+    # shapely 2.2(?): enforce keyword-only arguments after 'quad_segs'
+    #   buffer(self, geometry, distance, quad_segs=16, *, cap_style="round", ...)
+    @deprecate_positional(
+        ["cap_style", "join_style", "mitre_limit", "single_sided"],
+        category=DeprecationWarning,
+    )
     def buffer(
         self,
         distance,
@@ -467,9 +484,6 @@ class BaseGeometry(shapely.Geometry):
         ----------
         distance : float
             The distance to buffer around the object.
-        resolution : int, optional
-            The resolution of the buffer around each vertex of the
-            object.
         quad_segs : int, optional
             Sets the number of line segments used to approximate an
             angle fillet.
@@ -506,8 +520,8 @@ class BaseGeometry(shapely.Geometry):
             the regular buffer.  The End Cap Style for single-sided
             buffers is always ignored, and forced to the equivalent of
             CAP_FLAT.
-        quadsegs : int, optional
-            Deprecated alias for `quad_segs`.
+        quadsegs, resolution : int, optional
+            Deprecated aliases for `quad_segs`.
         **kwargs : dict, optional
             For backwards compatibility of renamed parameters. If an unsupported
             kwarg is passed, a `ValueError` will be raised.
@@ -520,6 +534,12 @@ class BaseGeometry(shapely.Geometry):
         -----
         The return value is a strictly two-dimensional geometry. All
         Z coordinates of the original geometry will be ignored.
+
+        .. deprecated:: 2.1.0
+            A deprecation warning is shown if ``quad_segs``,  ``cap_style``,
+            ``join_style``, ``mitre_limit`` or ``single_sided`` are
+            specified as positional arguments. In a future release, these will
+            need to be specified as keyword arguments.
 
         Examples
         --------
@@ -556,9 +576,13 @@ class BaseGeometry(shapely.Geometry):
             )
             quad_segs = quadsegs
 
-        # TODO deprecate `resolution` keyword for shapely 2.1
         resolution = kwargs.pop("resolution", None)
         if resolution is not None:
+            warn(
+                "The 'resolution' argument is deprecated. Use 'quad_segs' instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             quad_segs = resolution
         if kwargs:
             kwarg = list(kwargs.keys())[0]  # noqa
@@ -579,6 +603,15 @@ class BaseGeometry(shapely.Geometry):
             single_sided=single_sided,
         )
 
+    # Note: future plan is to change this signature over a few releases:
+    # shapely 2.0:
+    #   simplify(self, tolerance, preserve_topology=True)
+    # shapely 2.1: shows deprecation warning about positional 'preserve_topology'
+    #   same signature as 2.0
+    # shapely 2.2(?): enforce keyword-only arguments after 'tolerance'
+    #   simplify(self, tolerance, *, preserve_topology=True)
+
+    @deprecate_positional(["preserve_topology"], category=DeprecationWarning)
     def simplify(self, tolerance, preserve_topology=True):
         """Return a simplified geometry produced by the Douglas-Peucker algorithm.
 
@@ -604,11 +637,20 @@ class BaseGeometry(shapely.Geometry):
         <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
 
         """
-        return shapely.normalize(self)
+        return shapely.lib.normalize_scalar(self)
 
     # Overlay operations
     # ---------------------------
 
+    # Note: future plan is to change this signature over a few releases:
+    # shapely 2.0:
+    #   difference(self, other, grid_size=None)
+    # shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+    #   same signature as 2.0
+    # shapely 2.2(?): enforce keyword-only arguments after 'other'
+    #   difference(self, other, *, grid_size=None)
+
+    @deprecate_positional(["grid_size"], category=DeprecationWarning)
     def difference(self, other, grid_size=None):
         """Return the difference of the geometries.
 
@@ -616,6 +658,15 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.difference(self, other, grid_size=grid_size)
 
+    # Note: future plan is to change this signature over a few releases:
+    # shapely 2.0:
+    #   intersection(self, other, grid_size=None)
+    # shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+    #   same signature as 2.0
+    # shapely 2.2(?): enforce keyword-only arguments after 'other'
+    #   intersection(self, other, *, grid_size=None)
+
+    @deprecate_positional(["grid_size"], category=DeprecationWarning)
     def intersection(self, other, grid_size=None):
         """Return the intersection of the geometries.
 
@@ -623,6 +674,15 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.intersection(self, other, grid_size=grid_size)
 
+    # Note: future plan is to change this signature over a few releases:
+    # shapely 2.0:
+    #   symmetric_difference(self, other, grid_size=None)
+    # shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+    #   same signature as 2.0
+    # shapely 2.2(?): enforce keyword-only arguments after 'other'
+    #   symmetric_difference(self, other, *, grid_size=None)
+
+    @deprecate_positional(["grid_size"], category=DeprecationWarning)
     def symmetric_difference(self, other, grid_size=None):
         """Return the symmetric difference of the geometries.
 
@@ -630,6 +690,15 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.symmetric_difference(self, other, grid_size=grid_size)
 
+    # Note: future plan is to change this signature over a few releases:
+    # shapely 2.0:
+    #   union(self, other, grid_size=None)
+    # shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+    #   same signature as 2.0
+    # shapely 2.2(?): enforce keyword-only arguments after 'other'
+    #   union(self, other, *, grid_size=None)
+
+    @deprecate_positional(["grid_size"], category=DeprecationWarning)
     def union(self, other, grid_size=None):
         """Return the union of the geometries.
 
@@ -643,22 +712,22 @@ class BaseGeometry(shapely.Geometry):
     @property
     def has_z(self):
         """True if the geometry's coordinate sequence(s) have z values."""
-        return bool(shapely.has_z(self))
+        return shapely.lib.has_z_scalar(self)
 
     @property
     def has_m(self):
         """True if the geometry's coordinate sequence(s) have m values."""
-        return bool(shapely.has_m(self))
+        return shapely.lib.has_m_scalar(self)
 
     @property
     def is_empty(self):
         """True if the set of points in this geometry is empty, else False."""
-        return bool(shapely.is_empty(self))
+        return shapely.lib.is_empty_scalar(self)
 
     @property
     def is_ring(self):
         """True if the geometry is a closed ring, else False."""
-        return bool(shapely.is_ring(self))
+        return shapely.lib.is_ring_scalar(self)
 
     @property
     def is_closed(self):
@@ -668,7 +737,7 @@ class BaseGeometry(shapely.Geometry):
         """
         if self.geom_type == "LinearRing":
             return True
-        return bool(shapely.is_closed(self))
+        return shapely.lib.is_closed_scalar(self)
 
     @property
     def is_simple(self):
@@ -676,7 +745,7 @@ class BaseGeometry(shapely.Geometry):
 
         Simple means that any self-intersections are only at boundary points.
         """
-        return bool(shapely.is_simple(self))
+        return shapely.lib.is_simple_scalar(self)
 
     @property
     def is_valid(self):
@@ -684,7 +753,7 @@ class BaseGeometry(shapely.Geometry):
 
         The definition depends on sub-class.
         """
-        return bool(shapely.is_valid(self))
+        return shapely.lib.is_valid_scalar(self)
 
     # Binary predicates
     # -----------------
@@ -769,7 +838,7 @@ class BaseGeometry(shapely.Geometry):
         """
         return _maybe_unpack(shapely.dwithin(self, other, distance))
 
-    def equals_exact(self, other, tolerance=0.0, normalize=False):
+    def equals_exact(self, other, tolerance=0.0, *, normalize=False):
         """Return True if the geometries are equivalent within the tolerance.
 
         Refer to :func:`~shapely.equals_exact` for full documentation.
@@ -802,47 +871,9 @@ class BaseGeometry(shapely.Geometry):
         bool
 
         """
-        return _maybe_unpack(shapely.equals_exact(self, other, tolerance, normalize))
-
-    def almost_equals(self, other, decimal=6):
-        """Return True if all coordinates are equal to a specified decimal place.
-
-        .. deprecated:: 1.8.0
-            The 'almost_equals()' method is deprecated
-            and will be removed in Shapely 2.1 because the name is
-            confusing. The 'equals_exact()' method should be used
-            instead.
-
-        Refers to approximate coordinate equality, which requires
-        coordinates to be approximately equal and in the same order for
-        all components of a geometry.
-
-        Because of this it is possible for "equals()" to be True for two
-        geometries and "almost_equals()" to be False.
-
-        Examples
-        --------
-        >>> from shapely import LineString
-        >>> LineString(
-        ...     [(0, 0), (2, 2)]
-        ... ).equals_exact(
-        ...     LineString([(0, 0), (1, 1), (2, 2)]),
-        ...     1e-6
-        ... )
-        False
-
-        Returns
-        -------
-        bool
-
-        """
-        warn(
-            "The 'almost_equals()' method is deprecated and will be "
-            "removed in Shapely 2.1; use 'equals_exact()' instead",
-            ShapelyDeprecationWarning,
-            stacklevel=2,
+        return _maybe_unpack(
+            shapely.equals_exact(self, other, tolerance, normalize=normalize)
         )
-        return self.equals_exact(other, 0.5 * 10 ** (-decimal))
 
     def relate_pattern(self, other, pattern):
         """Return True if the DE-9IM relationship code satisfies the pattern."""
@@ -851,6 +882,15 @@ class BaseGeometry(shapely.Geometry):
     # Linear referencing
     # ------------------
 
+    # Note: future plan is to change this signature over a few releases:
+    # shapely 2.0:
+    #   line_locate_point(self, other, normalized=False)
+    # shapely 2.1: shows deprecation warning about positional 'normalized'
+    #   same signature as 2.0
+    # shapely 2.2(?): enforce keyword-only arguments after 'other'
+    #   line_locate_point(self, other, *, normalized=False)
+
+    @deprecate_positional(["normalized"], category=DeprecationWarning)
     def line_locate_point(self, other, normalized=False):
         """Return the distance of this geometry to a point nearest the specified point.
 
@@ -863,6 +903,15 @@ class BaseGeometry(shapely.Geometry):
             shapely.line_locate_point(self, other, normalized=normalized)
         )
 
+    # Note: future plan is to change this signature over a few releases:
+    # shapely 2.0:
+    #   project(self, other, normalized=False)
+    # shapely 2.1: shows deprecation warning about positional 'normalized'
+    #   same signature as 2.0
+    # shapely 2.2(?): enforce keyword-only arguments after 'other'
+    #   project(self, other, *, normalized=False)
+
+    @deprecate_positional(["normalized"], category=DeprecationWarning)
     def project(self, other, normalized=False):
         """Return the distance of geometry to a point nearest the specified point.
 
@@ -875,6 +924,15 @@ class BaseGeometry(shapely.Geometry):
             shapely.line_locate_point(self, other, normalized=normalized)
         )
 
+    # Note: future plan is to change this signature over a few releases:
+    # shapely 2.0:
+    #   line_interpolate_point(self, distance, normalized=False)
+    # shapely 2.1: shows deprecation warning about positional 'normalized'
+    #   same signature as 2.0
+    # shapely 2.2(?): enforce keyword-only arguments after 'distance'
+    #   line_interpolate_point(self, distance, *, normalized=False)
+
+    @deprecate_positional(["normalized"], category=DeprecationWarning)
     def line_interpolate_point(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry.
 
@@ -888,6 +946,15 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
+    # Note: future plan is to change this signature over a few releases:
+    # shapely 2.0:
+    #   interpolate(self, distance, normalized=False)
+    # shapely 2.1: shows deprecation warning about positional 'normalized'
+    #   same signature as 2.0
+    # shapely 2.2(?): enforce keyword-only arguments after 'distance'
+    #   interpolate(self, distance, *, normalized=False)
+
+    @deprecate_positional(["normalized"], category=DeprecationWarning)
     def interpolate(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry.
 
@@ -949,7 +1016,7 @@ class BaseGeometry(shapely.Geometry):
         <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
 
         """
-        return shapely.reverse(self)
+        return shapely.lib.reverse_scalar(self)
 
 
 class BaseMultipartGeometry(BaseGeometry):
@@ -985,7 +1052,7 @@ class BaseMultipartGeometry(BaseGeometry):
         return (
             type(other) is type(self)
             and len(self.geoms) == len(other.geoms)
-            and all(a == b for a, b in zip(self.geoms, other.geoms))
+            and all(a == b for a, b in zip(self.geoms, other.geoms, strict=False))
         )
 
     def __hash__(self):
@@ -1025,7 +1092,7 @@ class GeometrySequence:
         self._parent = parent
 
     def _get_geom_item(self, i):
-        return shapely.get_geometry(self._parent, i)
+        return shapely.lib.get_geometry_scalar(self._parent, int(i))
 
     def __iter__(self):
         """Iterate over the geometries in the sequence."""
@@ -1034,7 +1101,7 @@ class GeometrySequence:
 
     def __len__(self):
         """Return the number of geometries in the sequence."""
-        return shapely.get_num_geometries(self._parent)
+        return shapely.lib.get_num_geometries_scalar(self._parent)
 
     def __getitem__(self, key):
         """Access a geometry in the sequence by index or slice."""
@@ -1060,7 +1127,7 @@ class GeometrySequence:
 class EmptyGeometry(BaseGeometry):
     """An empty geometry."""
 
-    def __new__(self):
+    def __new__(cls):
         """Create an empty geometry."""
         warn(
             "The 'EmptyGeometry()' constructor to create an empty geometry is "

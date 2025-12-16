@@ -1,12 +1,22 @@
 """Set-theoretic operations on geometry objects."""
 
+import warnings
+
 import numpy as np
 
 from shapely import Geometry, GeometryType, lib
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import (
+    deprecate_positional,
+    multithreading_enabled,
+    requires_geos,
+)
 
 __all__ = [
+    "coverage_union",
+    "coverage_union_all",
     "difference",
+    "disjoint_subset_union",
+    "disjoint_subset_union_all",
     "intersection",
     "intersection_all",
     "symmetric_difference",
@@ -14,13 +24,19 @@ __all__ = [
     "unary_union",
     "union",
     "union_all",
-    "coverage_union",
-    "coverage_union_all",
-    "disjoint_subset_union",
-    "disjoint_subset_union_all",
 ]
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   difference(a, b, grid_size=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'b'
+#   difference(a, b, *, grid_size=None, **kwargs)
+
+
+@deprecate_positional(["grid_size"], category=DeprecationWarning)
 @multithreading_enabled
 def difference(a, b, grid_size=None, **kwargs):
     """Return the part of geometry A that does not intersect with geometry B.
@@ -42,6 +58,14 @@ def difference(a, b, grid_size=None, **kwargs):
         Precision grid size; will use the highest precision of the inputs by default.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``grid_size`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     See Also
     --------
@@ -76,6 +100,16 @@ def difference(a, b, grid_size=None, **kwargs):
     return lib.difference(a, b, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   intersection(a, b, grid_size=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'b'
+#   intersection(a, b, *, grid_size=None, **kwargs)
+
+
+@deprecate_positional(["grid_size"], category=DeprecationWarning)
 @multithreading_enabled
 def intersection(a, b, grid_size=None, **kwargs):
     """Return the geometry that is shared between input geometries.
@@ -95,6 +129,14 @@ def intersection(a, b, grid_size=None, **kwargs):
         Precision grid size; will use the highest precision of the inputs by default.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``grid_size`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     See Also
     --------
@@ -126,6 +168,16 @@ def intersection(a, b, grid_size=None, **kwargs):
     return lib.intersection(a, b, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   intersection_all(geometries, axis=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'axis' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometries'
+#   intersection_all(geometries, *, axis=None, **kwargs)
+
+
+@deprecate_positional(["axis"], category=DeprecationWarning)
 @multithreading_enabled
 def intersection_all(geometries, axis=None, **kwargs):
     """Return the intersection of multiple geometries.
@@ -145,6 +197,14 @@ def intersection_all(geometries, axis=None, **kwargs):
         first axis.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``axis`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     See Also
     --------
@@ -173,6 +233,16 @@ def intersection_all(geometries, axis=None, **kwargs):
     return lib.intersection_all(geometries, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   symmetric_difference(a, b, grid_size=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'b'
+#   symmetric_difference(a, b, *, grid_size=None, **kwargs)
+
+
+@deprecate_positional(["grid_size"], category=DeprecationWarning)
 @multithreading_enabled
 def symmetric_difference(a, b, grid_size=None, **kwargs):
     """Return the geometry with the portions of input geometries that do not intersect.
@@ -192,6 +262,14 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
         Precision grid size; will use the highest precision of the inputs by default.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``grid_size`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     See Also
     --------
@@ -223,6 +301,16 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
     return lib.symmetric_difference(a, b, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   symmetric_difference_all(geometries, axis=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'axis' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometries'
+#   symmetric_difference_all(geometries, *, axis=None, **kwargs)
+
+
+@deprecate_positional(["axis"], category=DeprecationWarning)
 @multithreading_enabled
 def symmetric_difference_all(geometries, axis=None, **kwargs):
     """Return the symmetric difference of multiple geometries.
@@ -230,6 +318,12 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     This function ignores None values when other Geometry elements are present.
     If all elements of the given axis are None an empty GeometryCollection is
     returned.
+
+    .. deprecated:: 2.1.0
+
+        This function behaves incorrectly and will be removed in a future
+        version. See https://github.com/shapely/shapely/issues/2027 for more
+        details.
 
     Parameters
     ----------
@@ -242,6 +336,14 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
         first axis.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``axis`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     See Also
     --------
@@ -263,6 +365,13 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     <GEOMETRYCOLLECTION EMPTY>
 
     """
+    warnings.warn(
+        "The symmetric_difference_all function behaves incorrectly and will be "
+        "removed in a future version. "
+        "See https://github.com/shapely/shapely/issues/2027 for more details.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     geometries = np.asarray(geometries)
     if axis is None:
         geometries = geometries.ravel()
@@ -272,6 +381,16 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     return lib.symmetric_difference_all(geometries, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   union(a, b, grid_size=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'b'
+#   union(a, b, *, grid_size=None, **kwargs)
+
+
+@deprecate_positional(["grid_size"], category=DeprecationWarning)
 @multithreading_enabled
 def union(a, b, grid_size=None, **kwargs):
     """Merge geometries into one.
@@ -291,6 +410,14 @@ def union(a, b, grid_size=None, **kwargs):
         Precision grid size; will use the highest precision of the inputs by default.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``grid_size`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     See Also
     --------
@@ -324,6 +451,16 @@ def union(a, b, grid_size=None, **kwargs):
     return lib.union(a, b, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   union_all(geometries, grid_size=None, axis=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometries'
+#   union_all(geometries, *, grid_size=None, axis=None, **kwargs)
+
+
+@deprecate_positional(["grid_size", "axis"], category=DeprecationWarning)
 @multithreading_enabled
 def union_all(geometries, grid_size=None, axis=None, **kwargs):
     """Return the union of multiple geometries.
@@ -354,6 +491,14 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
         first axis.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``grid_size`` or ``axis`` are
+        specified as positional arguments. In a future release, these will
+        need to be specified as keyword arguments.
 
     See Also
     --------
@@ -417,6 +562,9 @@ def coverage_union(a, b, **kwargs):
 
     This is an optimized version of union which assumes the polygons to be
     non-overlapping.
+    If this assumption is not met, the exact result is not guaranteed
+    (depending on the GEOS version, it may return the input unchanged or raise
+    an error).
 
     Parameters
     ----------
@@ -447,6 +595,16 @@ def coverage_union(a, b, **kwargs):
     return coverage_union_all([a, b], **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   coverage_union_all(geometries, axis=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'axis' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometries'
+#   coverage_union_all(geometries, *, axis=None, **kwargs)
+
+
+@deprecate_positional(["axis"], category=DeprecationWarning)
 @multithreading_enabled
 def coverage_union_all(geometries, axis=None, **kwargs):
     """Return the union of multiple polygons of a geometry collection.
@@ -469,6 +627,14 @@ def coverage_union_all(geometries, axis=None, **kwargs):
         first axis.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``axis`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     See Also
     --------
@@ -560,7 +726,7 @@ def disjoint_subset_union(a, b, **kwargs):
 
 @requires_geos("3.12.0")
 @multithreading_enabled
-def disjoint_subset_union_all(geometries, axis=None, **kwargs):
+def disjoint_subset_union_all(geometries, *, axis=None, **kwargs):
     """Return the union of multiple polygons.
 
     This is an optimized version of union which assumes inputs can be divided into

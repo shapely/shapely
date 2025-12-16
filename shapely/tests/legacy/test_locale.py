@@ -4,6 +4,8 @@ import locale
 import sys
 import unittest
 
+import pytest
+
 from shapely.wkt import dumps, loads
 
 # Set locale to one that uses a comma as decimal separator
@@ -20,7 +22,7 @@ do_test_locale = False
 
 
 def setUpModule():
-    global do_test_locale
+    global do_test_locale  # noqa: PLW0603
     for name in test_locales:
         try:
             test_locale = test_locales[name]
@@ -30,15 +32,11 @@ def setUpModule():
         except Exception:
             pass
     if not do_test_locale:
-        raise unittest.SkipTest("test locale not found")
+        pytest.skip("test locale not found")
 
 
 def tearDownModule():
-    if sys.platform == "win32" or sys.version_info[0:2] >= (3, 11):
-        locale.setlocale(locale.LC_ALL, "")
-    else:
-        # Deprecated since version 3.11, will be removed in version 3.13
-        locale.resetlocale()
+    locale.setlocale(locale.LC_ALL, "")
 
 
 class LocaleTestCase(unittest.TestCase):

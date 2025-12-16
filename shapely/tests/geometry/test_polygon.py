@@ -352,7 +352,7 @@ class TestPolygon:
             (0.0, 0.0),
         ]
 
-        ec = list(Point(0.0, 0.0).buffer(1.0, 1).exterior.coords)
+        ec = list(Point(0.0, 0.0).buffer(1.0, quad_segs=1).exterior.coords)
         assert isinstance(ec, list)  # TODO: this is a poor test
 
         # Test chained access to interiors
@@ -447,14 +447,14 @@ class TestLinearRingGetItem:
             LinearRing([(90.0, 10), (110.0, 10.0), (100.0, 30.0), (90.0, 10.0)]),
         ]
         g = Polygon(shell, holes)
-        t = [a.equals(b) for (a, b) in zip(g.interiors[1:], holes[1:])]
+        t = [a.equals(b) for (a, b) in zip(g.interiors[1:], holes[1:], strict=True)]
         assert all(t)
-        t = [a.equals(b) for (a, b) in zip(g.interiors[:-1], holes[:-1])]
+        t = [a.equals(b) for (a, b) in zip(g.interiors[:-1], holes[:-1], strict=True)]
         assert all(t)
-        t = [a.equals(b) for (a, b) in zip(g.interiors[::-1], holes[::-1])]
+        t = [a.equals(b) for (a, b) in zip(g.interiors[::-1], holes[::-1], strict=True)]
         assert all(t)
-        t = [a.equals(b) for (a, b) in zip(g.interiors[::2], holes[::2])]
+        t = [a.equals(b) for (a, b) in zip(g.interiors[::2], holes[::2], strict=True)]
         assert all(t)
-        t = [a.equals(b) for (a, b) in zip(g.interiors[:3], holes[:3])]
+        t = [a.equals(b) for (a, b) in zip(g.interiors[:3], holes[:3], strict=True)]
         assert all(t)
         assert g.interiors[3:] == holes[3:] == []

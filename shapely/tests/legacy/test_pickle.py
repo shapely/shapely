@@ -37,7 +37,7 @@ TEST_DATA = {
     "emptypoint": wkt.loads("POINT EMPTY"),
     "emptypolygon": wkt.loads("POLYGON EMPTY"),
 }
-TEST_NAMES, TEST_GEOMS = zip(*TEST_DATA.items())
+TEST_NAMES, TEST_GEOMS = zip(*TEST_DATA.items(), strict=True)
 
 
 @pytest.mark.parametrize("geom1", TEST_GEOMS, ids=TEST_NAMES)
@@ -62,7 +62,7 @@ def test_unpickle_pre_20(fname):
     expected = TEST_DATA[geom_type]
 
     with open(fname, "rb") as f:
-        with pytest.warns(UserWarning):
+        with pytest.warns(UserWarning, match="may be removed in a future version"):
             result = pickle.load(f)
 
     assert_geometries_equal(result, expected)

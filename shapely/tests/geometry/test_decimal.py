@@ -20,31 +20,31 @@ items2d = [
 
 items2d_mixed = [
     [
-        (Decimal(0.0), Decimal(0.0)),
-        (Decimal(70.0), 120.0),
-        (140.0, Decimal(0.0)),
+        (Decimal("0.0"), Decimal("0.0")),
+        (Decimal("70.0"), 120.0),
+        (140.0, Decimal("0.0")),
         (0.0, 0.0),
     ],
     [
-        (Decimal(60.0), Decimal(80.0)),
-        (Decimal(80.0), 80.0),
-        (70.0, Decimal(60.0)),
+        (Decimal("60.0"), Decimal("80.0")),
+        (Decimal("80.0"), 80.0),
+        (70.0, Decimal("60.0")),
         (60.0, 80.0),
     ],
 ]
 
 items2d_decimal = [
     [
-        (Decimal(0.0), Decimal(0.0)),
-        (Decimal(70.0), Decimal(120.0)),
-        (Decimal(140.0), Decimal(0.0)),
-        (Decimal(0.0), Decimal(0.0)),
+        (Decimal("0.0"), Decimal("0.0")),
+        (Decimal("70.0"), Decimal("120.0")),
+        (Decimal("140.0"), Decimal("0.0")),
+        (Decimal("0.0"), Decimal("0.0")),
     ],
     [
-        (Decimal(60.0), Decimal(80.0)),
-        (Decimal(80.0), Decimal(80.0)),
-        (Decimal(70.0), Decimal(60.0)),
-        (Decimal(60.0), Decimal(80.0)),
+        (Decimal("60.0"), Decimal("80.0")),
+        (Decimal("80.0"), Decimal("80.0")),
+        (Decimal("70.0"), Decimal("60.0")),
+        (Decimal("60.0"), Decimal("80.0")),
     ],
 ]
 
@@ -55,31 +55,31 @@ items3d = [
 
 items3d_mixed = [
     [
-        (Decimal(0.0), Decimal(0.0), Decimal(1)),
-        (Decimal(70.0), 120.0, Decimal(2)),
-        (140.0, Decimal(0.0), 3),
+        (Decimal("0.0"), Decimal("0.0"), Decimal(1)),
+        (Decimal("70.0"), 120.0, Decimal(2)),
+        (140.0, Decimal("0.0"), 3),
         (0.0, 0.0, 1),
     ],
     [
-        (Decimal(60.0), Decimal(80.0), Decimal(1)),
-        (Decimal(80.0), 80.0, 2),
-        (70.0, Decimal(60.0), Decimal(3)),
+        (Decimal("60.0"), Decimal("80.0"), Decimal(1)),
+        (Decimal("80.0"), 80.0, 2),
+        (70.0, Decimal("60.0"), Decimal(3)),
         (60.0, 80.0, 1),
     ],
 ]
 
 items3d_decimal = [
     [
-        (Decimal(0.0), Decimal(0.0), Decimal(1)),
-        (Decimal(70.0), Decimal(120.0), Decimal(2)),
-        (Decimal(140.0), Decimal(0.0), Decimal(3)),
-        (Decimal(0.0), Decimal(0.0), Decimal(1)),
+        (Decimal("0.0"), Decimal("0.0"), Decimal(1)),
+        (Decimal("70.0"), Decimal("120.0"), Decimal(2)),
+        (Decimal("140.0"), Decimal("0.0"), Decimal(3)),
+        (Decimal("0.0"), Decimal("0.0"), Decimal(1)),
     ],
     [
-        (Decimal(60.0), Decimal(80.0), Decimal(1)),
-        (Decimal(80.0), Decimal(80.0), Decimal(2)),
-        (Decimal(70.0), Decimal(60.0), Decimal(3)),
-        (Decimal(60.0), Decimal(80.0), Decimal(1)),
+        (Decimal("60.0"), Decimal("80.0"), Decimal(1)),
+        (Decimal("80.0"), Decimal("80.0"), Decimal(2)),
+        (Decimal("70.0"), Decimal("60.0"), Decimal(3)),
+        (Decimal("60.0"), Decimal("80.0"), Decimal(1)),
     ],
 ]
 
@@ -111,7 +111,7 @@ all_geoms = [
 ]
 
 
-@pytest.mark.parametrize("geoms", list(zip(*all_geoms)))
+@pytest.mark.parametrize("geoms", list(zip(*all_geoms, strict=True)))
 def test_decimal(geoms):
     assert geoms[0] == geoms[1] == geoms[2]
     assert geoms[3] == geoms[4] == geoms[5]

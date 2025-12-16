@@ -40,6 +40,8 @@ cdef extern from "geos_c.h":
     void GEOSGeom_destroy_r(GEOSContextHandle_t handle, GEOSGeometry* g) nogil
 
     # Coordinate sequences
+    const GEOSCoordSequence* GEOSGeom_getCoordSeq_r(GEOSContextHandle_t handle, const GEOSGeometry* g)
+    GEOSCoordSequence* GEOSCoordSeq_clone_r(GEOSContextHandle_t handle, const GEOSCoordSequence* s)
     GEOSCoordSequence* GEOSCoordSeq_create_r(GEOSContextHandle_t handle, unsigned int size, unsigned int dims) nogil
     void GEOSCoordSeq_destroy_r(GEOSContextHandle_t handle, GEOSCoordSequence* s) nogil
     int GEOSCoordSeq_setX_r(GEOSContextHandle_t handle, GEOSCoordSequence* s, unsigned int idx, double val) nogil
@@ -51,5 +53,4 @@ cdef extern from "geos_c.h":
 cdef class get_geos_handle:
     cdef GEOSContextHandle_t handle
     cdef char* last_error
-    cdef char* last_warning
     cdef GEOSContextHandle_t __enter__(self)

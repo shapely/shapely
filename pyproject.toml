@@ -5,7 +5,7 @@ requires = [
     # as oldest-support-numpy was (customizable with a NPY_TARGET_VERSION
     # define).
     "numpy>=1.25,<3",
-    "setuptools>=61.0.0",
+    "setuptools>=77.0.3",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -21,25 +21,24 @@ maintainers = [
 description = "Manipulation and analysis of geometric objects"
 readme = "README.rst"
 keywords = ["geometry", "topology", "gis"]
-license = {text = "BSD 3-Clause"}
+license = "BSD-3-Clause"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: Unix",
     "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-    "numpy>=1.21",
+    "numpy>=1.23",
 ]
 
 [project.optional-dependencies]
@@ -74,7 +73,7 @@ skip = ["pp*", "*_i686", "*_ppc64le", "*_s390x"]
 build-verbosity = 1
 test-requires = "pytest"
 test-command = "pytest --pyargs shapely.tests"
-free-threaded-support = true
+enable = ["cpython-freethreading"]
 
 [tool.coverage.run]
 source = ["shapely"]
@@ -115,7 +114,7 @@ select = [
     # implicit string concatenation
     "ISC",
     # type-checking imports
-    "TCH",
+    "TC",
     # comprehensions
     "C4",
     # Ruff-specific rules
@@ -138,28 +137,18 @@ ignore = [
     "B007",
     # get-attr-with-constant
     "B009",
-    # Only works with python >=3.10
-    "B905",
     # dict literals
     "C408",
+    # `import` should be at the top-level of a file
+    "PLC0415",
     # Too many arguments to function call
     "PLR0913",
     # Too many returns
     "PLR0911",
     # Too many branches
     "PLR0912",
-    # Too many statements
-    "PLR0915",
     # Magic number
     "PLR2004",
-    # Redefined loop name
-    "PLW2901",
-    # Global statements are discouraged
-    "PLW0603",
-    # compare-to-empty-string
-    "PLC1901",
-    # requiring | in isinstance
-    "UP038",
 
     ### Additional checks that don't pass yet
     # Useless statement
@@ -176,9 +165,11 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # ignore pydocstyle errors in tests
-"**/tests/*" = ["D"]
+"**/tests/*" = ["D", "PLC2801", "PLR6301"]
 # the order of imports in __init__ is a bit tricky, so keep manual
 "shapely/__init__.py" = ["F401", "F403", "I"]
+"shapely/ops.py" = ["PLR6301"]
+"shapely/geometry/base.py" = ["PLR0904"]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
@@ -186,3 +177,12 @@ extra-standard-library = ["packaging"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.ruff.lint.pylint]
+allow-dunder-method-names = [
+    "__array__",
+    "__array_ufunc__",
+    "__geo_interface__",
+    "_repr_svg_",
+]
+max-positional-args = 8  # TODO: revise with deprecate_positional changes

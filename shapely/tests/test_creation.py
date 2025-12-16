@@ -1,3 +1,5 @@
+"""See test_creation_indices.py for tests with 'indices' parameter."""
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -58,7 +60,7 @@ def test_points_invalid_ndim():
 
 
 @pytest.mark.skipif(
-    shapely.geos_version[:2] not in ((3, 10), (3, 11), (3, 12)),
+    shapely.geos_version[:2] not in {(3, 10), (3, 11), (3, 12)},
     reason="GEOS not in 3.10, 3.11, 3.12",
 )
 def test_points_nan_all_nan_becomes_empty():
@@ -67,7 +69,7 @@ def test_points_nan_all_nan_becomes_empty():
 
 
 @pytest.mark.skipif(
-    shapely.geos_version[:2] not in ((3, 10), (3, 11)),
+    shapely.geos_version[:2] not in {(3, 10), (3, 11)},
     reason="GEOS not in 3.10, 3.11",
 )
 def test_points_nan_3D_all_nan_becomes_empty_2D():
@@ -137,8 +139,8 @@ def test_points_handle_nan(coords, handle_nan, expected_wkt):
         [0, -np.inf],
     ],
 )
-def test_points_nan_handle_nan_err(coords):
-    with pytest.raises(ValueError, match=".*NaN.*"):
+def test_points_handle_nan_error(coords):
+    with pytest.raises(ValueError, match=r".*NaN.*"):
         shapely.points(coords, handle_nan="error")
 
 
@@ -248,7 +250,7 @@ def test_linestrings_invalid_ndim():
         [[float("nan"), float("nan")], [float("nan"), float("nan")]],
     ],
 )
-def test_linestrings_allow_nan(coords):
+def test_linestrings_handle_nan_allow(coords):
     with ignore_invalid():
         actual = shapely.linestrings(coords, handle_nan="allow")
     actual = shapely.get_coordinates(actual, include_z=len(coords[0]) == 3)
@@ -264,24 +266,24 @@ def test_linestrings_allow_nan(coords):
         [[0, 1], [2, 3], [2, float("nan")]],
     ],
 )
-def test_linestrings_skip_nan(coords):
+def test_linestrings_handle_nan_skip(coords):
     actual = shapely.linestrings(coords, handle_nan="skip")
     assert_geometries_equal(actual, LineString([(0, 1), (2, 3)]))
 
 
-def test_linestrings_skip_nan_invalid():
+def test_linestrings_handle_nan_skip_invalid():
     with pytest.raises(shapely.GEOSException):
         shapely.linestrings([[0, 1], [2, float("nan")]], handle_nan="skip")
 
 
-def test_linestrings_skip_nan_only_nan():
+def test_linestrings_handle_nan_skip_only_nan():
     # all-nan becomes an empty linestring
     actual = shapely.linestrings(np.full((3, 2), fill_value=np.nan), handle_nan="skip")
     assert actual.is_empty
 
 
-def test_linestrings_error_nan():
-    with pytest.raises(ValueError, match=".*NaN.*"):
+def test_linestrings_handle_nan_error():
+    with pytest.raises(ValueError, match=r".*NaN.*"):
         shapely.linestrings([[0, 1], [2, float("nan")], [2, 3]], handle_nan="error")
 
 
@@ -355,7 +357,7 @@ def test_linearrings_invalid_ndim():
     # too few ordinates
     coords3 = np.random.randn(10, 3, 1)
     with pytest.raises(ValueError, match=msg.format(1)):
-        shapely.linestrings(coords3)
+        shapely.linearrings(coords3)
 
 
 def test_linearrings_all_nan():
@@ -392,7 +394,7 @@ def test_linearrings_buffer(dim, order):
         [[0, 2, 5], [1, 2, float("nan")], [1, 3, 5], [0, 2, 5]],
     ],
 )
-def test_linearrings_allow_nan(coords):
+def test_linearrings_handle_nan_allow(coords):
     with ignore_invalid():
         actual = shapely.linearrings(coords, handle_nan="allow")
     actual = shapely.get_coordinates(actual, include_z=len(coords[0]) == 3)
@@ -409,23 +411,23 @@ def test_linearrings_allow_nan(coords):
         ([float("nan"), 0, 1, 2, 0], [3, 3, 4, 5, 3]),
     ],
 )
-def test_linearrings_skip_nan(x, y):
+def test_linearrings_handle_nan_skip(x, y):
     actual = shapely.linearrings(x, y, handle_nan="skip")
     assert_geometries_equal(actual, LinearRing([(0, 3), (1, 4), (2, 5), (0, 3)]))
 
 
-def test_linearrings_skip_nan_invalid():
+def test_linearrings_handle_nan_skip_invalid():
     with pytest.raises(ValueError):
         shapely.linearrings([0, float("nan"), 0], [3, 4, 3], handle_nan="skip")
 
 
-def test_linearrings_skip_nan_only_nan():
+def test_linearrings_handle_nan_skip_only_nan():
     actual = shapely.linearrings(np.full((5, 2), fill_value=np.nan), handle_nan="skip")
     assert actual.is_empty
 
 
-def test_linearrings_error_nan():
-    with pytest.raises(ValueError, match=".*NaN.*"):
+def test_linearrings_handle_nan_error():
+    with pytest.raises(ValueError, match=r".*NaN.*"):
         shapely.linearrings(
             [0, 1, float("nan"), 2, 0], [3, 4, 5, 5, 3], handle_nan="error"
         )
@@ -692,18 +694,27 @@ def test_box_nan(coords):
     assert shapely.box(*coords) is None
 
 
+def test_box_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `ccw` for `box` is deprecated"
+    ):
+        shapely.box(0, 0, 1, 1, True)
+
+
 def test_prepare():
     arr = np.array([shapely.points(1, 1), None, shapely.box(0, 0, 1, 1)])
     assert arr[0]._geom_prepared == 0
     assert arr[2]._geom_prepared == 0
-    shapely.prepare(arr)
+    actual = shapely.prepare(arr)
+    assert np.all(actual == [True, False, True])
     assert arr[0]._geom_prepared != 0
     assert arr[1] is None
     assert arr[2]._geom_prepared != 0
 
     # preparing again actually does nothing
     original = arr[0]._geom_prepared
-    shapely.prepare(arr)
+    actual = shapely.prepare(arr)
+    assert np.all(actual == [False, False, False])
     assert arr[0]._geom_prepared == original
 
 
@@ -712,11 +723,38 @@ def test_destroy_prepared():
     shapely.prepare(arr)
     assert arr[0]._geom_prepared != 0
     assert arr[2]._geom_prepared != 0
-    shapely.destroy_prepared(arr)
+    actual = shapely.destroy_prepared(arr)
+    assert np.all(actual == [True, False, True])
     assert arr[0]._geom_prepared == 0
     assert arr[1] is None
     assert arr[2]._geom_prepared == 0
-    shapely.destroy_prepared(arr)  # does not error
+    actual = shapely.destroy_prepared(arr)  # does not error
+    assert np.all(actual == [False, False, False])
+
+
+def test_prepare_scalar():
+    geom = shapely.Point(1, 1)
+    assert geom._geom_prepared == 0
+    actual = shapely.lib.prepare_scalar(geom)
+    assert actual is True
+    assert geom._geom_prepared != 0
+
+    # preparing again actually does nothing
+    original = geom._geom_prepared
+    actual = shapely.lib.prepare_scalar(geom)
+    assert actual is False
+    assert geom._geom_prepared == original
+
+
+def test_destroy_prepared_scalar():
+    geom = shapely.Point(1, 1)
+    shapely.lib.prepare_scalar(geom)
+    assert geom._geom_prepared != 0
+    actual = shapely.lib.destroy_prepared_scalar(geom)
+    assert actual is True
+    assert geom._geom_prepared == 0
+    actual = shapely.lib.destroy_prepared_scalar(geom)  # does not error
+    assert actual is False
 
 
 @pytest.mark.parametrize("geom_type", [None, GeometryType.MISSING, -1])

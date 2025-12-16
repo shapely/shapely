@@ -11,7 +11,6 @@ from numpy.testing import assert_array_equal
 
 import shapely
 from shapely import LineString, MultiPoint, Point, STRtree, box, geos_version
-from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     empty,
@@ -139,7 +138,7 @@ print("done")
 """
 
     filename = tmp_path / "unpickle-strtree.py"
-    with open(filename, "w") as out:
+    with open(filename, "w", encoding="utf-8") as out:
         out.write(unpickle_script)
 
     proc = subprocess.Popen(
@@ -391,7 +390,7 @@ def test_query_predicate_errors(tree, predicate, expected):
         assert_array_equal(tree.query(line_nan, predicate=predicate), expected)
 
 
-### predicate == 'intersects'
+# predicate == 'intersects'
 
 
 @pytest.mark.parametrize(
@@ -538,7 +537,7 @@ def test_query_intersects_polygons(poly_tree, geometry, expected):
     assert_array_equal(poly_tree.query(geometry, predicate="intersects"), expected)
 
 
-### predicate == 'within'
+# predicate == 'within'
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -649,7 +648,7 @@ def test_query_within_polygons(poly_tree, geometry, expected):
     assert_array_equal(poly_tree.query(geometry, predicate="within"), expected)
 
 
-### predicate == 'contains'
+# predicate == 'contains'
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -740,7 +739,7 @@ def test_query_contains_polygons(poly_tree, geometry, expected):
     assert_array_equal(poly_tree.query(geometry, predicate="contains"), expected)
 
 
-### predicate == 'overlaps'
+# predicate == 'overlaps'
 # Overlaps only returns results where geometries are of same dimensions
 # and do not completely contain each other.
 # See: https://postgis.net/docs/ST_Overlaps.html
@@ -834,7 +833,7 @@ def test_query_overlaps_polygons(poly_tree, geometry, expected):
     assert_array_equal(poly_tree.query(geometry, predicate="overlaps"), expected)
 
 
-### predicate == 'crosses'
+# predicate == 'crosses'
 # Only valid for certain geometry combinations
 # See: https://postgis.net/docs/ST_Crosses.html
 @pytest.mark.parametrize(
@@ -902,7 +901,7 @@ def test_query_crosses_polygons(poly_tree, geometry, expected):
     assert_array_equal(poly_tree.query(geometry, predicate="crosses"), expected)
 
 
-### predicate == 'touches'
+# predicate == 'touches'
 # See: https://postgis.net/docs/ST_Touches.html
 @pytest.mark.parametrize(
     "geometry,expected",
@@ -992,7 +991,7 @@ def test_query_touches_polygons(poly_tree, geometry, expected):
     assert_array_equal(poly_tree.query(geometry, predicate="touches"), expected)
 
 
-### predicate == 'covers'
+# predicate == 'covers'
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1087,7 +1086,7 @@ def test_query_covers_polygons(poly_tree, geometry, expected):
     assert_array_equal(poly_tree.query(geometry, predicate="covers"), expected)
 
 
-### predicate == 'covered_by'
+# predicate == 'covered_by'
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1210,7 +1209,7 @@ def test_query_covered_by_polygons(poly_tree, geometry, expected):
     assert_array_equal(poly_tree.query(geometry, predicate="covered_by"), expected)
 
 
-### predicate == 'contains_properly'
+# predicate == 'contains_properly'
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1325,19 +1324,9 @@ def test_query_contains_properly_polygons(poly_tree, geometry, expected):
     )
 
 
-### predicate = 'dwithin'
+# predicate = 'dwithin'
 
 
-@pytest.mark.skipif(geos_version >= (3, 10, 0), reason="GEOS >= 3.10")
-@pytest.mark.parametrize(
-    "geometry", [Point(0, 0), [Point(0, 0)], None, [None], empty, [empty]]
-)
-def test_query_dwithin_geos_version(tree, geometry):
-    with pytest.raises(UnsupportedGEOSVersionError, match="requires GEOS >= 3.10"):
-        tree.query(geometry, predicate="dwithin", distance=1)
-
-
-@pytest.mark.skipif(geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geometry,distance,match",
     [
@@ -1357,7 +1346,6 @@ def test_query_dwithin_invalid_distance(tree, geometry, distance, match):
         tree.query(geometry, predicate="dwithin", distance=distance)
 
 
-@pytest.mark.skipif(geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geometry,distance,expected",
     [
@@ -1431,7 +1419,6 @@ def test_query_dwithin_points(tree, geometry, distance, expected):
     )
 
 
-@pytest.mark.skipif(geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geometry,distance,expected",
     [
@@ -1462,7 +1449,6 @@ def test_query_dwithin_lines(line_tree, geometry, distance, expected):
     )
 
 
-@pytest.mark.skipif(geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geometry,distance,expected",
     [
@@ -1501,7 +1487,7 @@ def test_query_dwithin_polygons(poly_tree, geometry, distance, expected):
     )
 
 
-### STRtree nearest
+# STRtree nearest
 
 
 def test_nearest_empty_tree():
@@ -1923,13 +1909,13 @@ def test_query_nearest_all_matches(tree):
 
 
 def test_strtree_threaded_query():
-    ## Create data
+    # Create data
     polygons = shapely.polygons(np.random.randn(1000, 3, 2))
     # needs to be big enough to trigger the segfault
     N = 100_000
     points = shapely.points(4 * np.random.random(N) - 2, 4 * np.random.random(N) - 2)
 
-    ## Slice parts of the arrays -> 4x4 => 16 combinations
+    # Slice parts of the arrays -> 4x4 => 16 combinations
     n = int(len(polygons) / 4)
     polygons_parts = [
         polygons[:n],
@@ -1945,14 +1931,14 @@ def test_strtree_threaded_query():
         points[3 * n :],
     ]
 
-    ## Creating the trees in advance
+    # Creating the trees in advance
     trees = []
     for i in range(4):
         left = points_parts[i]
         tree = STRtree(left)
         trees.append(tree)
 
-    ## The function querying the trees in parallel
+    # The function querying the trees in parallel
 
     def thread_func(idxs):
         i, j = idxs

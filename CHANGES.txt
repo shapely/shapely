@@ -1,68 +1,57 @@
 Changes
 =======
 
-2.1.0 (unreleased)
+2.2.0 (unreleased)
+------------------
+
+Improved performance of the following geometry methods: `area`, `length`,
+`minimum_clearance`, `x`, `y`, `z`, `m`, `has_z`, `has_m`, `is_empty`, `is_ring`,
+`is_closed`, `is_simple`, `geom_type`, `__len__`, `_ndim`.
+Benchmarks showed a change of call duration
+from 2.6 microseconds to 0.2 microseconds (on the `Point.x` attribute).
+
+Improved performance by changing the GEOS context handling. Instead of initializing/finalizing
+on every call, GEOS contexts are reused through a threadlocal. It should give a performance
+increase of about 75 nanoseconds per call.
+
+Added `transform_coordseq`, which applies a transformation function per coordinate sequence
+in a more performant way than `shapely.ops.transform` does. `shapely.ops.transform` is now deprecated.
+
+Added return values to `prepare` and `destroy_prepared`. They now return whether something was done;
+calling `prepare` twice on a geometry will first return `True`, and then `False`.
+
+
+2.1.2 (2025-09-24)
+------------------
+
+Wheels are available for Python 3.14 (and still include GEOS 3.13.1).
+
+
+2.1.1 (2025-05-19)
 ------------------
 
 Bug fixes:
 
-- Prevent crash when serializing a number > 1e100 to WKT with GEOS < 3.13. (#1907)
-- Ensure ``plot_polygon`` does not color the interiors of polygons (#1933).
-- Fixes GeoJSON serialization of empty points (#2118)
-- Fixes `__geo_interface__` handling of empty points (#2120)
-- Fixes ``GeometryCollection()`` constructor accepting an array of geometries (#2017).
+- Fix performance degradation calling shapely functions (caused by deprecation
+  of certain positional arguments) (#2283).
+- Fix crash caused by `from_ragged_array()` (#2291).
+- Fix compilation error building with recent LLVM toolchain (#2293).
 
-Improvements:
 
-- Require GEOS >= 3.9, NumPy >= 1.21, and Python >= 3.10 (#1802, #1885, #2124)
-- Handle ``Feature`` type in ``shapely.geometry.shape`` (#1815)
-- Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and ``shapely.linearrings()``
-  to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
-  behaviour (allow) is backwards compatible (#1594).
-- Add an ``interleaved`` parameter to ``shapely.transform()`` allowing a transposed call
-  signature in the ``transformation`` function.
-- The ``include_z`` in ``shapely.transform()`` now also allows ``None``, which
-  lets it automatically detect the dimensionality of each input geometry.
-- Add parameters ``method`` and ``keep_collapsed`` to ``shapely.make_valid()`` (#1941)
-- Upgraded the GEOS version in the binary wheel distributions to 3.12.1.
-- Add ``disjoint_subset_union`` and ``disjoint_subset_union_all`` as an optimized
-  version of union and union_all, assuming inputs can be divided into subsets that do
-  not intersect. Requires at least GEOS 3.12.
-- The ``voronoi_polygons`` now accepts the ``ordered`` keyword, optionally forcing the
-  order of polygons within the GeometryCollection to follow the order of input
-  coordinates. Requires at least GEOS 3.12. (#1968)
-- Add option on ``invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
-- Add function ``minimum_clearance_line`` (#2106)
-- Add function ``maximum_inscribed_circle`` (#1307)
-- Add support to split polygons by multilinestrings (#2206)
-- Add function ``orient_polygons`` (#2147)
-- Add function ``coverage_simplify`` to allow topological simplification of polygonal
-  coverages (#1969)
+2.1.0 (2025-04-03)
+------------------
 
-Breaking changes in GEOS 3.12:
+Shapely 2.1.0 is a feature release with various new functions,
+improvements and bug fixes. Highlights include initial support for geometries
+with M or ZM values, functionality for coverage validation and
+simplification, and a set of new top-level functions.
 
-- ``oriented_envelope`` / ``minimum_rotated_rectangle`` changed its implementation
-  in GEOS 3.12. Be aware that results will change when updating GEOS. Coincidentally
-  the implementation is similar to the shapely 1.x approach. (#1885)
-- ``get_coordinate_dimension`` / ``has_z`` now considers geometries three dimensional if
-  they have a NaN z coordinate. (#1885)
-- ``voronoi_polygons`` changed its output from a LINESTRING to a MULTILINESTRING in case
-  ``only_edges=True``. (#1885)
-- The WKT representation of a MULTIPOINT changed from for example "MULTIPOINT (0 0, 1 1)"
-  to "MULTIPOINT ((0 0), (1 1))". (#1885)
+Shapely supports Python >= 3.10, and binary wheels on PyPI include GEOS 3.13.1
+and are now also provided for musllinux (Alpine) x86_64 platforms.
 
-Deprecations:
+For a full changelog, see
+https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-1-0
 
-- The ``shapely.geos`` module is deprecated. All GEOS-version related attributes are
-  available directly from the top-level ``shapely`` namespace as well (already since
-  shapely 2.0) (#2145).
-- The ``shapely.vectorized`` module is deprecated. The two functions (``contains and
-  ``touches``) can be replaced by the top-level vectorized functions ``contains_xy``
-  and ``intersects_xy`` (#1630).
-
-Packaging:
-
-- Binary wheels are now built for musllinux (Alpine) x86_64 platforms (#1996).
 
 2.0.7 (2025-01-30)
 ------------------

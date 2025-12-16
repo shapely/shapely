@@ -8,7 +8,6 @@ from shapely._enum import ParamEnum
 # include ragged array functions here for reference documentation purpose
 from shapely._ragged_array import from_ragged_array, to_ragged_array
 from shapely.decorators import requires_geos
-from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "from_geojson",
@@ -56,7 +55,8 @@ def to_wkt(
         The rounding precision when writing the WKT string. Set to a value of
         -1 to indicate the full precision.
     trim : bool, default True
-        If True, trim unnecessary decimals (trailing zeros).
+        If True, trim unnecessary decimals (trailing zeros). If False,
+        use fixed-precision number formatting.
     output_dimension : int, default None
         The output dimension for the WKT string. Supported values are 2, 3 and
         4 for GEOS 3.12+. Default None will automatically choose 3 or 4,
@@ -188,10 +188,6 @@ def to_wkb(
         raise TypeError("include_srid only accepts scalar values")
     if not np.isscalar(flavor):
         raise TypeError("flavor only accepts scalar values")
-    if lib.geos_version < (3, 10, 0) and flavor == "iso":
-        raise UnsupportedGEOSVersionError(
-            'The "iso" option requires at least GEOS 3.10.0'
-        )
     if flavor == "iso" and include_srid:
         raise ValueError('flavor="iso" and include_srid=True cannot be used together')
     flavor = WKBFlavorOptions.get_value(flavor)
@@ -207,7 +203,6 @@ def to_wkb(
     )
 
 
-@requires_geos("3.10.0")
 def to_geojson(geometry, indent=None, **kwargs):
     """Convert to the GeoJSON representation of a Geometry.
 
@@ -285,6 +280,7 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
           unclosed rings). If this is not possible, they are returned as
           ``None`` without a warning. Requires GEOS >= 3.11.
 
+          .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -328,6 +324,7 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
           unclosed rings). If this is not possible, they are returned as
           ``None`` without a warning. Requires GEOS >= 3.11.
 
+          .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 

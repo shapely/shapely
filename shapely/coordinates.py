@@ -3,23 +3,46 @@
 import numpy as np
 
 import shapely
-from shapely import lib
+from shapely import GeometryType, lib
+from shapely.decorators import deprecate_positional
 
-__all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
+__all__ = [
+    "count_coordinates",
+    "get_coordinates",
+    "set_coordinates",
+    "transform",
+    "transform_coordseq",
+]
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0: only supported XY and XYZ geometries
+#   transform(geometry, transformation, include_z=False)
+# shapely 2.1: shows deprecation warning about positional 'include_z' arg
+#   transform(geometry, transformation, include_z=False, *, interleaved=True)
+# shapely 2.2(?): enforce keyword-only arguments after 'transformation'
+#   transform(geometry, transformation, *, include_z=False, interleaved=True)
+
+
+@deprecate_positional(["include_z"], category=DeprecationWarning)
 def transform(
     geometry,
     transformation,
     include_z: bool | None = False,
+    *,
     interleaved: bool = True,
 ):
-    """Apply a function to the coordinates of a geometry.
+    """Apply a transformation to the coordinates in a geometry or geometry array.
 
     With the default of ``include_z=False``, all returned geometries will be
     two-dimensional; the third dimension will be discarded, if present.
     When specifying ``include_z=True``, the returned geometries preserve
     the dimensionality of the respective input geometries.
+
+    This function differs with `transform_coordseq` in the following ways:
+
+    - It accepts arrays of Geometry objects.
+    - The number of coordinates per Geometry is not allowed to change.
 
     Parameters
     ----------
@@ -41,14 +64,25 @@ def transform(
         guaranteed result, it is recommended to specify ``include_z`` explicitly.
     interleaved : bool, default True
         If set to False, the transformation function should accept 2 or 3 separate
-        one-dimensional arrays (x, y and optional z) instead of a single
-        two-dimensional array.
+        one-dimensional coordinate arrays as arguments (x, y and optional z) instead
+        of a single one. The return value must be a tuple of (x, y and optional z).
+
 
         .. versionadded:: 2.1.0
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``include_z`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     See Also
     --------
-    has_z
+    has_z : Returns a copy of a geometry array with a function applied to its
+        coordinates.
+    transform_coordseq : Transform single Geometry objects, optionally resizing them.
 
     Examples
     --------
@@ -99,13 +133,18 @@ interleaved=False, include_z=True)
         has_z = shapely.has_z(geometry_arr)
         result = np.empty_like(geometry_arr)
         result[has_z] = transform(
-            geometry_arr[has_z], transformation, True, interleaved
+            geometry_arr[has_z], transformation, include_z=True, interleaved=interleaved
         )
         result[~has_z] = transform(
-            geometry_arr[~has_z], transformation, False, interleaved
+            geometry_arr[~has_z],
+            transformation,
+            include_z=False,
+            interleaved=interleaved,
         )
     else:
-        coordinates = lib.get_coordinates(geometry_arr, include_z, False)
+        # TODO: expose include_m
+        include_m = False
+        coordinates = lib.get_coordinates(geometry_arr, include_z, include_m, False)
         if interleaved:
             new_coordinates = transformation(coordinates)
         else:
@@ -135,6 +174,118 @@ interleaved=False, include_z=True)
     return result
 
 
+def transform_coordseq(
+    geom: shapely.Geometry | None,
+    transformation,
+    *,
+    include_z: bool | None = False,
+    interleaved: bool = True,
+):
+    """Apply a transformation to the coordinate sequences of a single geometry.
+
+    The transformation function is applied per coordinate sequence. For polygons this
+    means: per ring. For collections this means: per element.
+
+    This function differs with `transform` in the following ways:
+
+    - It only accepts scalar Geometry objects, not arrays.
+    - The number of coordinate pairs per coordinate sequence is allowed to change.
+
+    The `transform` function is the more performant option, so we recommend using this
+    function when changing the number of coordinate pairs.
+
+    Parameters
+    ----------
+    geom : Geometry or None
+    transformation : function
+        A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
+        atransform_coordseqnother (N, 2) or (N, 3) ndarray of float64.
+        The function may change the value of N.
+    include_z : bool, optional, default False
+        If False, always return 2D geometries.
+        If True, the data being passed to the
+        transformation function will include the third dimension
+        (if a geometry has no third dimension, the z-coordinates
+        will be NaN). If None, will infer the dimensionality using
+        ``has_z``. Note that this inference
+        can be unreliable with empty geometries or NaN coordinates: for a
+        guaranteed result, it is recommended to specify ``include_z`` explicitly.
+    interleaved : bool, default True
+        If set to False, the transformation function should accept 2 or 3 separate
+        one-dimensional coordinate arrays as arguments (x, y and optional z) instead
+        of a single one. The return value must be a tuple of (x, y and optional z).
+
+    See Also
+    --------
+    has_z : Returns a copy of a geometry array with a function applied to its
+        coordinates.
+    transform : Transform arrays of Geometry objects.
+
+    Examples
+    --------
+    >>> import shapely
+    >>> from shapely import LineString, Point
+
+    Reduce a linestring to only its first 2 points:
+
+    >>> shapely.transform_coordseq(LineString([(2, 2), (4, 4), (6, 6)]), \
+    lambda coords: coords[:2])
+    <LINESTRING (2 2, 4 4)>
+
+    The same with a function that accepts separate x, y arrays:
+
+    >>> shapely.transform_coordseq(LineString([(2, 2), (4, 4), (6, 6)]), \
+    lambda x, y: (x[:2], y[:2]), interleaved=False)
+    <LINESTRING (2 2, 4 4)>
+    """
+    if geom is None:
+        return geom
+    if geom.is_empty:
+        if include_z is True:
+            return shapely.force_3d(geom)
+        elif include_z is False:
+            return shapely.force_2d(geom)
+        else:
+            return geom
+    if include_z is None:
+        include_z = geom.has_z
+
+    def _transform_internal(simple_geom):
+        coords = get_coordinates(simple_geom, include_z=include_z)
+        if interleaved:
+            return transformation(coords)
+        else:
+            return zip(*transformation(*coords.T), strict=False)
+
+    geom_type = shapely.get_type_id(geom)
+    if geom_type in (
+        GeometryType.POINT,
+        GeometryType.LINESTRING,
+        GeometryType.LINEARRING,
+    ):
+        return type(geom)(_transform_internal(geom))
+    elif geom_type == GeometryType.POLYGON:
+        shell = type(geom.exterior)(_transform_internal(geom.exterior))
+        holes = [type(ring)(_transform_internal(ring)) for ring in geom.interiors]
+        return type(geom)(shell, holes)
+    elif geom_type in (
+        GeometryType.MULTIPOINT,
+        GeometryType.MULTILINESTRING,
+        GeometryType.MULTIPOLYGON,
+        GeometryType.GEOMETRYCOLLECTION,
+    ):
+        return type(geom)(
+            [
+                transform_coordseq(
+                    part, transformation, include_z=include_z, interleaved=interleaved
+                )
+                for part in geom.geoms
+            ]
+        )
+    else:
+        raise TypeError(f"Type {geom_type} not recognized")
+
+
 def count_coordinates(geometry):
     """Count the number of coordinate pairs in a geometry array.
 
@@ -160,32 +311,57 @@ def count_coordinates(geometry):
     return lib.count_coordinates(np.asarray(geometry, dtype=np.object_))
 
 
-def get_coordinates(geometry, include_z=False, return_index=False):
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0: only supported XY and XYZ geometries
+#   get_coordinates(geometry, include_z=False, return_index=False)
+# shapely 2.1: shows deprecation warning about positional 'include_z' and 'return_index'
+#   get_coordinates(geometry, include_z=False, return_index=False, *, include_m=False)
+# shapely 2.2(?): enforce keyword-only arguments after 'geometry'
+#   get_coordinates(geometry, *, include_z=False, include_m=False, return_index=False)
+
+
+@deprecate_positional(["include_z", "return_index"], category=DeprecationWarning)
+def get_coordinates(geometry, include_z=False, return_index=False, *, include_m=False):
     """Get coordinates from a geometry array as an array of floats.
 
     The shape of the returned array is (N, 2), with N being the number of
-    coordinate pairs. With the default of ``include_z=False``, three-dimensional
-    data is ignored. When specifying ``include_z=True``, the shape of the
-    returned array is (N, 3).
+    coordinate pairs. The shape of the data may also be (N, 3) or (N, 4),
+    depending on ``include_z`` and ``include_m`` options.
 
     Parameters
     ----------
     geometry : Geometry or array_like
         Geometry or geometries to get the coordinates of.
-    include_z : bool, default False
-        If, True include the third dimension in the output. If a geometry
-        has no third dimension, the z-coordinates will be NaN.
+    include_z, include_m : bool, default False
+        If both are False, return XY (2D) geometries.
+        If both are True, return XYZM (4D) geometries.
+        If either are True, return XYZ or XYM (3D) geometries.
+        If a geometry has no Z or M dimension, extra coordinate data will be NaN.
+
+        .. versionadded:: 2.1.0
+            The ``include_m`` parameter was added to support XYM (3D) and
+            XYZM (4D) geometries available with GEOS 3.12.0 or later.
+            With older GEOS versions, M dimension coordinates will be NaN.
+
     return_index : bool, default False
         If True, also return the index of each returned geometry as a separate
         ndarray of integers. For multidimensional arrays, this indexes into the
         flattened array (in C contiguous order).
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``include_z`` or ``return_index`` are
+        specified as positional arguments. In a future release, these will
+        need to be specified as keyword arguments.
+
     Examples
     --------
     >>> import shapely
     >>> from shapely import LineString, Point
-    >>> shapely.get_coordinates(Point(0, 0)).tolist()
-    [[0.0, 0.0]]
+    >>> shapely.get_coordinates(Point(1, 2)).tolist()
+    [[1.0, 2.0]]
     >>> shapely.get_coordinates(LineString([(2, 2), (4, 4)])).tolist()
     [[2.0, 2.0], [4.0, 4.0]]
     >>> shapely.get_coordinates(None)
@@ -193,12 +369,20 @@ def get_coordinates(geometry, include_z=False, return_index=False):
 
     By default the third dimension is ignored:
 
-    >>> shapely.get_coordinates(Point(0, 0, 0)).tolist()
-    [[0.0, 0.0]]
-    >>> shapely.get_coordinates(Point(0, 0, 0), include_z=True).tolist()
-    [[0.0, 0.0, 0.0]]
+    >>> shapely.get_coordinates(Point(1, 2, 3)).tolist()
+    [[1.0, 2.0]]
+    >>> shapely.get_coordinates(Point(1, 2, 3), include_z=True).tolist()
+    [[1.0, 2.0, 3.0]]
 
-    When return_index=True, indexes are returned also:
+    If geometries don't have Z or M dimension, these values will be NaN:
+
+    >>> pt = Point(1, 2)
+    >>> shapely.get_coordinates(pt, include_z=True).tolist()
+    [[1.0, 2.0, nan]]
+    >>> shapely.get_coordinates(pt, include_z=True, include_m=True).tolist()
+    [[1.0, 2.0, nan, nan]]
+
+    When ``return_index=True``, indexes are returned also:
 
     >>> geometries = [LineString([(2, 2), (4, 4)]), Point(0, 0)]
     >>> coordinates, index = shapely.get_coordinates(geometries, return_index=True)
@@ -207,7 +391,7 @@ def get_coordinates(geometry, include_z=False, return_index=False):
 
     """
     return lib.get_coordinates(
-        np.asarray(geometry, dtype=np.object_), include_z, return_index
+        np.asarray(geometry, dtype=np.object_), include_z, include_m, return_index
     )
 
 
@@ -264,8 +448,7 @@ def set_coordinates(geometry, coordinates):
     coordinates = np.atleast_2d(np.asarray(coordinates)).astype(np.float64)
     if coordinates.ndim != 2:
         raise ValueError(
-            "The coordinate array should have dimension of 2 "
-            f"(has {coordinates.ndim})"
+            f"The coordinate array should have dimension of 2 (has {coordinates.ndim})"
         )
     n_coords = lib.count_coordinates(geometry_arr)
     if (coordinates.shape[0] != n_coords) or (coordinates.shape[1] not in {2, 3}):

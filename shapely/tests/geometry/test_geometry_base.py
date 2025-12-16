@@ -1,4 +1,5 @@
 import platform
+import sys
 import weakref
 
 import numpy as np
@@ -17,6 +18,7 @@ from shapely import (
 )
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.testing import assert_geometries_equal
+from shapely.tests.common import ignore_invalid
 
 
 def test_polygon():
@@ -85,7 +87,6 @@ def test_type_deprecated():
     assert geom_type == geom.geom_type
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_segmentize():
     line = LineString([(0, 0), (0, 10)])
     result = line.segmentize(max_segment_length=5)
@@ -112,7 +113,6 @@ def test_binary_op_grid_size(op, grid_size):
     assert result == expected
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_dwithin():
     point = Point(1, 1)
     line = LineString([(0, 0), (0, 10)])
@@ -128,11 +128,33 @@ def test_contains_properly():
 
 
 @pytest.mark.parametrize(
-    "op", ["convex_hull", "envelope", "oriented_envelope", "minimum_rotated_rectangle"]
+    "op",
+    [
+        "boundary",
+        "centroid",
+        "convex_hull",
+        "envelope",
+        "oriented_envelope",
+        "minimum_rotated_rectangle",
+    ],
 )
 def test_constructive_properties(op):
     geom = LineString([(0, 0), (0, 10), (10, 10)])
-    result = getattr(geom, op)
+    with ignore_invalid(
+        op in ["oriented_envelope", "minimum_rotated_rectangle"]
+        and sys.platform == "darwin"
+        and shapely.geos_version > (3, 12, 0),
+        divide=True,
+    ):
+        result = getattr(geom, op)
+        expected = getattr(shapely, op)(geom)
+    assert result == expected
+
+
+@pytest.mark.parametrize("op", ["normalize", "point_on_surface", "reverse"])
+def test_constructive_methods(op):
+    geom = LineString([(0, 0), (0, 10), (10, 10)])
+    result = getattr(geom, op)()
     expected = getattr(shapely, op)(geom)
     assert result == expected
 
@@ -170,13 +192,7 @@ def test_array_argument_binary_predicates(op):
 @pytest.mark.parametrize(
     "op, kwargs",
     [
-        pytest.param(
-            "dwithin",
-            dict(distance=0.5),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10"
-            ),
-        ),
+        ("dwithin", dict(distance=0.5)),
         ("equals_exact", dict(tolerance=0.01)),
         ("relate_pattern", dict(pattern="T*F**F***")),
     ],
@@ -277,3 +293,93 @@ def test_array_argument_buffer():
     # check scalar
     result = point.buffer(distances[0])
     assert isinstance(result, Polygon)
+
+
+def test_buffer_deprecate_positional():
+    point = Point(1, 1)
+    with pytest.deprecated_call(
+        match="positional argument `cap_style` for `buffer` is deprecated"
+    ):
+        point.buffer(1.0, 8, "round")
+    with pytest.deprecated_call(
+        match="positional arguments `cap_style` and `join_style` "
+        "for `buffer` are deprecated"
+    ):
+        point.buffer(1.0, 8, "round", "round")
+    with pytest.deprecated_call():
+        point.buffer(1.0, 8, "round", "round", 5.0)
+    with pytest.deprecated_call():
+        point.buffer(1.0, 8, "round", "round", 5.0, False)
+
+
+def test_simplify_deprecate_positional():
+    linestring = LineString([(0, 0), (1, 1)])
+    with pytest.deprecated_call(
+        match="positional argument `preserve_topology` for `simplify` is deprecated"
+    ):
+        linestring.simplify(1.0, True)
+
+
+def test_difference_deprecate_positional():
+    point = Point(1, 1)
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `difference` is deprecated"
+    ):
+        point.difference(point, None)
+
+
+def test_intersection_deprecate_positional():
+    point = Point(1, 1)
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `intersection` is deprecated"
+    ):
+        point.intersection(point, None)
+
+
+def test_symmetric_difference_deprecate_positional():
+    point = Point(1, 1)
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `symmetric_difference` is deprecated"
+    ):
+        point.symmetric_difference(point, None)
+
+
+def test_union_deprecate_positional():
+    point = Point(1, 1)
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `union` is deprecated"
+    ):
+        point.union(point, None)
+
+
+def test_line_locate_point_deprecate_positional():
+    line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
+    with pytest.deprecated_call(
+        match="positional argument `normalized` for `line_locate_point` is deprecated"
+    ):
+        line_string.line_locate_point(Point(1, 1), False)
+
+
+def test_project_deprecate_positional():
+    line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
+    with pytest.deprecated_call(
+        match="positional argument `normalized` for `project` is deprecated"
+    ):
+        line_string.project(Point(1, 1), False)
+
+
+def test_line_interpolate_point_deprecate_positional():
+    line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
+    with pytest.deprecated_call(
+        match="positional argument `normalized` for `line_interpolate_point` "
+        "is deprecated"
+    ):
+        line_string.line_interpolate_point(0, False)
+
+
+def test_interpolate_deprecate_positional():
+    line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
+    with pytest.deprecated_call(
+        match="positional argument `normalized` for `interpolate` is deprecated"
+    ):
+        line_string.interpolate(0, False)

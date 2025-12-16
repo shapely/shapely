@@ -8,8 +8,21 @@ from shapely import lib
 from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
-    "has_z",
+    "contains",
+    "contains_properly",
+    "contains_xy",
+    "covered_by",
+    "covers",
+    "crosses",
+    "disjoint",
+    "dwithin",
+    "equals",
+    "equals_exact",
+    "equals_identical",
     "has_m",
+    "has_z",
+    "intersects",
+    "intersects_xy",
     "is_ccw",
     "is_closed",
     "is_empty",
@@ -21,24 +34,11 @@ __all__ = [
     "is_valid",
     "is_valid_input",
     "is_valid_reason",
-    "crosses",
-    "contains",
-    "contains_xy",
-    "contains_properly",
-    "covered_by",
-    "covers",
-    "disjoint",
-    "dwithin",
-    "equals",
-    "intersects",
-    "intersects_xy",
     "overlaps",
-    "touches",
-    "within",
-    "equals_exact",
-    "equals_identical",
     "relate",
     "relate_pattern",
+    "touches",
+    "within",
 ]
 
 
@@ -305,6 +305,7 @@ def is_prepared(geometry, **kwargs):
     >>> shapely.is_prepared(Point(0, 0))
     False
     >>> shapely.prepare(geometry)
+    True
     >>> shapely.is_prepared(geometry)
     True
     >>> shapely.is_prepared(None)
@@ -1035,7 +1036,7 @@ def within(a, b, **kwargs):
 
 
 @multithreading_enabled
-def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
+def equals_exact(a, b, tolerance=0.0, *, normalize=False, **kwargs):
     """Return True if the geometries are structurally equivalent within a given
     tolerance.
 
@@ -1121,7 +1122,7 @@ def equals_identical(a, b, **kwargs):
     This function is the vectorized equivalent of scalar equality of
     geometry objects (``a == b``, i.e. ``__eq__``).
 
-    .. versionadded:: 2.1
+    .. versionadded:: 2.1.0
 
     Parameters
     ----------
@@ -1207,7 +1208,6 @@ def relate_pattern(a, b, pattern, **kwargs):
 
 
 @multithreading_enabled
-@requires_geos("3.10.0")
 def dwithin(a, b, distance, **kwargs):
     """Return True if the geometries are within a given distance.
 

@@ -5,22 +5,22 @@ import numpy as np
 from shapely import Geometry, GeometryType, lib
 from shapely._enum import ParamEnum
 from shapely._geometry_helpers import collections_1d, simple_geometries_1d
-from shapely.decorators import multithreading_enabled
+from shapely.decorators import deprecate_positional, multithreading_enabled
 from shapely.io import from_wkt
 
 __all__ = [
-    "points",
-    "linestrings",
-    "linearrings",
-    "polygons",
-    "multipoints",
-    "multilinestrings",
-    "multipolygons",
-    "geometrycollections",
     "box",
-    "prepare",
     "destroy_prepared",
     "empty",
+    "geometrycollections",
+    "linearrings",
+    "linestrings",
+    "multilinestrings",
+    "multipoints",
+    "multipolygons",
+    "points",
+    "polygons",
+    "prepare",
 ]
 
 
@@ -40,9 +40,26 @@ def _xyz_to_coords(x, y, z):
     return np.stack(coords, axis=-1)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   points(coords, y=None, z=None, indices=None, out=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'indices' arg
+#   points(coords, y=None, z=None, indices=None, *, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+# shapely 2.2(?): enforce keyword-only arguments after 'z'
+#   points(coords, y=None, z=None, *, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+
+
+@deprecate_positional(["indices"], category=DeprecationWarning)
 @multithreading_enabled
 def points(
-    coords, y=None, z=None, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs
+    coords,
+    y=None,
+    z=None,
+    indices=None,
+    *,
+    handle_nan=HandleNaN.allow,
+    out=None,
+    **kwargs,
 ):
     """Create an array of points.
 
@@ -111,9 +128,26 @@ def points(
         )
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'indices' arg
+#   linestrings(coords, y=None, z=None, indices=None, *, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+# shapely 2.2(?): enforce keyword-only arguments after 'z'
+#   linestrings(coords, y=None, z=None, *, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+
+
+@deprecate_positional(["indices"], category=DeprecationWarning)
 @multithreading_enabled
 def linestrings(
-    coords, y=None, z=None, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs
+    coords,
+    y=None,
+    z=None,
+    indices=None,
+    *,
+    handle_nan=HandleNaN.allow,
+    out=None,
+    **kwargs,
 ):
     """Create an array of linestrings.
 
@@ -188,9 +222,26 @@ def linestrings(
         )
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'indices' arg
+#   linearrings(coords, y=None, z=None, indices=None, *, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+# shapely 2.2(?): enforce keyword-only arguments after 'z'
+#   linearrings(coords, y=None, z=None, *, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+
+
+@deprecate_positional(["indices"], category=DeprecationWarning)
 @multithreading_enabled
 def linearrings(
-    coords, y=None, z=None, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs
+    coords,
+    y=None,
+    z=None,
+    indices=None,
+    *,
+    handle_nan=HandleNaN.allow,
+    out=None,
+    **kwargs,
 ):
     """Create an array of linearrings.
 
@@ -269,8 +320,18 @@ def linearrings(
         )
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   polygons(geometries, holes=None, indices=None, out=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'indices' arg
+#   polygons(geometries, holes=None, indices=None, *, out=None, **kwargs)
+# shapely 2.2(?): enforce keyword-only arguments after 'holes'
+#   polygons(geometries, holes=None, *, indices=None, out=None, **kwargs)
+
+
+@deprecate_positional(["indices"], category=DeprecationWarning)
 @multithreading_enabled
-def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
+def polygons(geometries, holes=None, indices=None, *, out=None, **kwargs):
     """Create an array of polygons.
 
     Parameters
@@ -297,6 +358,14 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``indices`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     Examples
     --------
@@ -365,6 +434,16 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
     return lib.polygons(geometries, holes, out=out, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   box(xmin, ymin, xmax, ymax, ccw=True, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'ccw' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'ymax'
+#   box(xmin, ymin, xmax, ymax, *, ccw=True, **kwargs)
+
+
+@deprecate_positional(["ccw"], category=DeprecationWarning)
 @multithreading_enabled
 def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
     """Create box polygons.
@@ -387,6 +466,14 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``ccw`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     Examples
     --------
     >>> import shapely
@@ -399,8 +486,18 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
     return lib.box(xmin, ymin, xmax, ymax, ccw, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   multipoints(geometries, indices=None, out=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'indices' arg
+#   multipoints(geometries, indices=None, *, out=None, **kwargs)
+# shapely 2.2(?): enforce keyword-only arguments after 'indices'
+#   multipoints(geometries, *, indices=None, out=None, **kwargs)
+
+
+@deprecate_positional(["indices"], category=DeprecationWarning)
 @multithreading_enabled
-def multipoints(geometries, indices=None, out=None, **kwargs):
+def multipoints(geometries, indices=None, *, out=None, **kwargs):
     """Create multipoints from arrays of points.
 
     Parameters
@@ -418,6 +515,14 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``indices`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     Examples
     --------
@@ -466,8 +571,18 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
         return collections_1d(geometries, indices, typ, out=out)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   multilinestrings(geometries, indices=None, out=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'indices' arg
+#   multilinestrings(geometries, indices=None, *, out=None, **kwargs)
+# shapely 2.2(?): enforce keyword-only arguments after 'indices'
+#   multilinestrings(geometries, *, indices=None, out=None, **kwargs)
+
+
+@deprecate_positional(["indices"], category=DeprecationWarning)
 @multithreading_enabled
-def multilinestrings(geometries, indices=None, out=None, **kwargs):
+def multilinestrings(geometries, indices=None, *, out=None, **kwargs):
     """Create multilinestrings from arrays of linestrings.
 
     Parameters
@@ -485,6 +600,14 @@ def multilinestrings(geometries, indices=None, out=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``indices`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     See Also
     --------
@@ -504,8 +627,18 @@ def multilinestrings(geometries, indices=None, out=None, **kwargs):
         return collections_1d(geometries, indices, typ, out=out)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   multipolygons(geometries, indices=None, out=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'indices' arg
+#   multipolygons(geometries, indices=None, *, out=None, **kwargs)
+# shapely 2.2(?): enforce keyword-only arguments after 'indices'
+#   multipolygons(geometries, *, indices=None, out=None, **kwargs)
+
+
+@deprecate_positional(["indices"], category=DeprecationWarning)
 @multithreading_enabled
-def multipolygons(geometries, indices=None, out=None, **kwargs):
+def multipolygons(geometries, indices=None, *, out=None, **kwargs):
     """Create multipolygons from arrays of polygons.
 
     Parameters
@@ -524,6 +657,14 @@ def multipolygons(geometries, indices=None, out=None, **kwargs):
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``indices`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     See Also
     --------
     multipoints
@@ -541,6 +682,16 @@ def multipolygons(geometries, indices=None, out=None, **kwargs):
         return collections_1d(geometries, indices, typ, out=out)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   geometrycollections(geometries, indices=None, out=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'indices' arg
+#   geometrycollections(geometries, indices=None, *, out=None, **kwargs)
+# shapely 2.2(?): enforce keyword-only arguments after 'indices'
+#   geometrycollections(geometries, *, indices=None, out=None, **kwargs)
+
+
+@deprecate_positional(["indices"], category=DeprecationWarning)
 @multithreading_enabled
 def geometrycollections(geometries, indices=None, out=None, **kwargs):
     """Create geometrycollections from arrays of geometries.
@@ -560,6 +711,14 @@ def geometrycollections(geometries, indices=None, out=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``indices`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     See Also
     --------
@@ -588,7 +747,9 @@ def prepare(geometry, **kwargs):
     it is efficient to call this function on an array that partially contains
     prepared geometries.
 
-    This function does not return any values; geometries are modified in place.
+    This function returns True where geometries were prepared, and False otherwise.
+    When it returns False, this does not mean that the function failed; it merely
+    indicates that the geometry was already prepared.
 
     Parameters
     ----------
@@ -608,11 +769,12 @@ def prepare(geometry, **kwargs):
     >>> from shapely import Point
     >>> poly = shapely.buffer(Point(1.0, 1.0), 1)
     >>> shapely.prepare(poly)
+    True
     >>> shapely.contains_properly(poly, [Point(0.0, 0.0), Point(0.5, 0.5)]).tolist()
     [False, True]
 
     """
-    lib.prepare(geometry, **kwargs)
+    return lib.prepare(geometry, **kwargs)
 
 
 def destroy_prepared(geometry, **kwargs):
@@ -621,6 +783,9 @@ def destroy_prepared(geometry, **kwargs):
     Note that the prepared geometry will always be cleaned up if the geometry itself
     is dereferenced. This function needs only be called in very specific circumstances,
     such as freeing up memory without losing the geometries, or benchmarking.
+
+    This function returns True where prepared geometries were destroyed, and False
+    otherwise.
 
     Parameters
     ----------
@@ -634,7 +799,7 @@ def destroy_prepared(geometry, **kwargs):
     prepare
 
     """
-    lib.destroy_prepared(geometry, **kwargs)
+    return lib.destroy_prepared(geometry, **kwargs)
 
 
 def empty(shape, geom_type=None, order="C"):

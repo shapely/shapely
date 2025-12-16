@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 log.addHandler(ch)
 
-MIN_GEOS_VERSION = "3.9"
+MIN_GEOS_VERSION = "3.10"
 
 if "all" in sys.warnoptions:
     # show GEOS messages in console with: python -W all
@@ -74,7 +74,7 @@ def get_ext_options():
             # silence warnings
             ("NPY_NO_DEPRECATED_API", "0"),
             # minimum numpy version
-            ("NPY_TARGET_VERSION", "NPY_1_20_API_VERSION"),
+            ("NPY_TARGET_VERSION", "NPY_1_23_API_VERSION"),
         ],
         "include_dirs": ["./src"],
         "library_dirs": [],
@@ -156,12 +156,20 @@ else:
             sources=[
                 "src/c_api.c",
                 "src/coords.c",
+                "src/geom_arr.c",
                 "src/geos.c",
                 "src/lib.c",
                 "src/pygeom.c",
                 "src/pygeos.c",
+                "src/signal_checks.c",
                 "src/strtree.c",
                 "src/ufuncs.c",
+                "src/geos_funcs_Y_d.c",
+                "src/geos_funcs_Y_Y.c",
+                "src/geos_funcs_Y_b.c",
+                "src/geos_funcs_Y_i.c",
+                "src/geos_funcs_Yi_Y.c",
+                "src/geos_funcs_O_b.c",
                 "src/vector.c",
             ],
             **ext_options,

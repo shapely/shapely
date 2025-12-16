@@ -60,18 +60,18 @@ def __getattr__(name):
     import warnings
 
     # Alias Shapely 1.8 error classes to ShapelyError with deprecation warning
-    if name in [
+    if name in {
         "ReadingError",
         "WKBReadingError",
         "WKTReadingError",
         "PredicateError",
         "InvalidGeometryError",
-    ]:
+    }:
         warnings.warn(
             f"{name} is deprecated and will be removed in a future version. "
-            "Use ShapelyError instead (functions previously raising {name} "
+            f"Use ShapelyError instead (functions previously raising {name} "
             "will now raise a ShapelyError instead).",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return ShapelyError

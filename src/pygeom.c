@@ -58,8 +58,8 @@ static void GeometryObject_dealloc(GeometryObject* self) {
     PyObject_ClearWeakRefs((PyObject*)self);
   }
   if (self->ptr != NULL) {
-    // not using GEOS_INIT, but using global context instead
-    GEOSContextHandle_t ctx = geos_context[0];
+    // use threadlocal GEOS context
+    GEOSContextHandle_t ctx = init_geos_context();
     GEOSGeom_destroy_r(ctx, self->ptr);
     if (self->ptr_prepared != NULL) {
       GEOSPreparedGeom_destroy_r(ctx, self->ptr_prepared);
@@ -308,8 +308,9 @@ static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
   GEOSWKBReader* reader = NULL;
 
   PyErr_WarnFormat(PyExc_UserWarning, 0,
-                   "Unpickling a shapely <2.0 geometry object. Please save the pickle "
-                   "again; shapely 2.1 will not have this compatibility.");
+                   "Unpickling a shapely <2.0 geometry object. "
+                   "Please save the pickle again as this compatibility may be "
+                   "removed in a future version of shapely.");
 
   /* Cast the PyObject bytes to char */
   if (!PyBytes_Check(value)) {
@@ -410,8 +411,24 @@ int __Pyx_InBases(PyTypeObject* a, PyTypeObject* b) {
   return b == &PyBaseObject_Type;
 }
 
-/* Get a GEOSGeometry pointer from a GeometryObject, or NULL if the input is
+
+/* Get a GEOSGeometry pointer from a PyObject, or NULL if the input is
 Py_None. Returns 0 on error, 1 on success. */
+char ShapelyGetGeometry(PyObject* obj, const GEOSGeometry** out) {
+  // Numpy treats NULL the same as Py_None
+  if ((obj == NULL) || ((PyObject*)obj == Py_None)) {
+    *out = NULL;
+    return 1;
+  }
+  PyTypeObject* type = ((PyObject*)obj)->ob_type;
+  if ((type != &GeometryType) && !(__Pyx_InBases(type, &GeometryType))) {
+    return 0;
+  } else {
+    *out = ((GeometryObject*)obj)->ptr;
+    return 1;
+  }
+}
+/* deprecated version of ShapelyGetGeometry with incorrect type signature */
 char get_geom(GeometryObject* obj, GEOSGeometry** out) {
   // Numpy treats NULL the same as Py_None
   if ((obj == NULL) || ((PyObject*)obj == Py_None)) {
@@ -429,6 +446,22 @@ char get_geom(GeometryObject* obj, GEOSGeometry** out) {
 
 /* Get a GEOSGeometry AND GEOSPreparedGeometry pointer from a GeometryObject,
 or NULL if the input is Py_None. Returns 0 on error, 1 on success. */
+char ShapelyGetGeometryWithPrepared(PyObject* obj, const GEOSGeometry** out, const GEOSPreparedGeometry** prep) {
+  if (!ShapelyGetGeometry(obj, out)) {
+    // It is not a GeometryObject / None: Error
+    return 0;
+  }
+  if (*out != NULL) {
+    // Only if it is not None, fill the prepared geometry
+    *prep = ((GeometryObject*)obj)->ptr_prepared;
+  } else {
+    *prep = NULL;
+  }
+  return 1;
+}
+
+
+/* deprecated version of ShapelyGetGeometry with incorrect type signature */
 char get_geom_with_prepared(GeometryObject* obj, GEOSGeometry** out,
                             GEOSPreparedGeometry** prep) {
   if (!get_geom(obj, out)) {

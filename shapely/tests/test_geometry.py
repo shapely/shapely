@@ -18,7 +18,6 @@ from shapely.tests.common import (
     geometry_collection,
     geometry_collection_z,
     ignore_invalid,
-    ignore_warnings,
     line_string,
     line_string_nan,
     line_string_z,
@@ -365,8 +364,15 @@ def test_get_parts_None(geom):
 
 @pytest.mark.parametrize("geom", ["foo", ["foo"], 42])
 def test_get_parts_invalid_geometry(geom):
-    with pytest.raises(TypeError, match="One of the arguments is of incorrect type."):
+    with pytest.raises(TypeError, match="One of the arguments is of incorrect type"):
         shapely.get_parts(geom)
+
+
+def test_get_parts_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `return_index` for `get_parts` is deprecated"
+    ):
+        shapely.get_parts(multi_point, False)
 
 
 @pytest.mark.parametrize(
@@ -431,6 +437,13 @@ def test_get_rings_invalid_dimensions(geom):
         shapely.get_parts(geom)
 
 
+def test_get_rings_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `return_index` for `get_rings` is deprecated"
+    ):
+        shapely.get_rings(polygon, False)
+
+
 def test_get_precision():
     geometries = all_types + (point_z, empty_point, empty_line_string, empty_polygon)
     # default is 0
@@ -451,14 +464,11 @@ def test_set_precision(mode):
     initial_geometry = Point(0.9, 0.9)
     assert shapely.get_precision(initial_geometry) == 0
 
-    with ignore_warnings((3, 10, 0), UserWarning):
-        # GEOS < 3.10 emits warning for 'pointwise'
-        geometry = shapely.set_precision(initial_geometry, 0, mode=mode)
+    geometry = shapely.set_precision(initial_geometry, 0, mode=mode)
     assert shapely.get_precision(geometry) == 0
     assert_geometries_equal(geometry, initial_geometry)
 
-    with ignore_warnings((3, 10, 0), UserWarning):
-        geometry = shapely.set_precision(initial_geometry, 1, mode=mode)
+    geometry = shapely.set_precision(initial_geometry, 1, mode=mode)
     assert shapely.get_precision(geometry) == 1
     assert_geometries_equal(geometry, Point(1, 1))
     # original should remain unchanged
@@ -477,9 +487,7 @@ def test_set_precision_drop_coords():
 
 @pytest.mark.parametrize("mode", ("valid_output", "pointwise", "keep_collapsed"))
 def test_set_precision_z(mode):
-    with ignore_warnings((3, 10, 0), UserWarning):
-        # GEOS < 3.10 emits warning for 'pointwise'
-        geometry = shapely.set_precision(Point(0.9, 0.9, 0.9), 1, mode=mode)
+    geometry = shapely.set_precision(Point(0.9, 0.9, 0.9), 1, mode=mode)
     assert shapely.get_precision(geometry) == 1
     assert_geometries_equal(geometry, Point(1, 1, 0.9))
 
@@ -500,6 +508,7 @@ def test_set_precision_grid_size_nan():
     assert shapely.set_precision(Point(0.9, 0.9), np.nan) is None
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize(
     "geometry,mode,expected",
     [
@@ -513,14 +522,10 @@ def test_set_precision_grid_size_nan():
                 ]
             ),
         ),
-        pytest.param(
+        (
             Polygon([(2, 2), (4, 2), (3.2, 3), (4, 4), (2, 4), (2.8, 3), (2, 2)]),
             "pointwise",
             Polygon([(2, 2), (4, 2), (3, 3), (4, 4), (2, 4), (3, 3), (2, 2)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 10, 0),
-                reason="pointwise does not work pre-GEOS 3.10",
-            ),
         ),
         (
             Polygon([(2, 2), (4, 2), (3.2, 3), (4, 4), (2, 4), (2.8, 3), (2, 2)]),
@@ -533,60 +538,41 @@ def test_set_precision_grid_size_nan():
             ),
         ),
         (LineString([(0, 0), (0.1, 0.1)]), "valid_output", LineString()),
-        pytest.param(
+        (
             LineString([(0, 0), (0.1, 0.1)]),
             "pointwise",
             LineString([(0, 0), (0, 0)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 10, 0),
-                reason="pointwise does not work pre-GEOS 3.10",
-            ),
         ),
         (
             LineString([(0, 0), (0.1, 0.1)]),
             "keep_collapsed",
             LineString([(0, 0), (0, 0)]),
         ),
-        pytest.param(
+        (
             LinearRing([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "valid_output",
             LinearRing(),
-            marks=pytest.mark.skipif(
-                shapely.geos_version == (3, 10, 0), reason="Segfaults on GEOS 3.10.0"
-            ),
         ),
-        pytest.param(
+        (
             LinearRing([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "pointwise",
             LinearRing([(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 10, 0),
-                reason="pointwise does not work pre-GEOS 3.10",
-            ),
         ),
-        pytest.param(
+        (
             LinearRing([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "keep_collapsed",
             # See https://trac.osgeo.org/geos/ticket/1135#comment:5
             LineString([(0, 0), (0, 0), (0, 0)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 10, 0),
-                reason="this collapsed into an invalid linearring pre-GEOS 3.10",
-            ),
         ),
         (
             Polygon([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "valid_output",
             Polygon(),
         ),
-        pytest.param(
+        (
             Polygon([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "pointwise",
             Polygon([(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 10, 0),
-                reason="pointwise does not work pre-GEOS 3.10",
-            ),
         ),
         (
             Polygon([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
@@ -598,12 +584,8 @@ def test_set_precision_grid_size_nan():
 def test_set_precision_collapse(geometry, mode, expected):
     """Lines and polygons collapse to empty geometries if vertices are too close"""
     actual = shapely.set_precision(geometry, 1, mode=mode)
-    assert_geometries_equal(
-        # force to 2D because of various dimension issues; GEOS GH-1152
-        shapely.force_2d(actual),
-        expected,
-        normalize=shapely.geos_version == (3, 9, 0),
-    )
+    # force to 2D because of various dimension issues; GEOS GH-1152
+    assert_geometries_equal(shapely.force_2d(actual), expected)
 
 
 def test_set_precision_intersection():
@@ -630,18 +612,6 @@ def set_precision_preserve_topology(preserve_topology):
             LineString([(0, 0), (0.1, 0.1)]),
             1.0,
             preserve_topology=preserve_topology,
-        )
-    assert_geometries_equal(shapely.force_2d(actual), LineString())
-
-
-@pytest.mark.skipif(shapely.geos_version >= (3, 10, 0), reason="GEOS >= 3.10")
-def set_precision_pointwise_pre_310():
-    # using 'pointwise' emits a warning
-    with pytest.warns(UserWarning):
-        actual = shapely.set_precision(
-            LineString([(0, 0), (0.1, 0.1)]),
-            1.0,
-            mode="pointwise",
         )
     assert_geometries_equal(shapely.force_2d(actual), LineString())
 

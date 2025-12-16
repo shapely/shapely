@@ -3,21 +3,22 @@
 import numpy as np
 
 import shapely
-from shapely.algorithms.cga import signed_area
+from shapely import _geometry_helpers
+from shapely.algorithms.cga import _orient_polygon, signed_area  # noqa
 from shapely.errors import TopologicalError
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
 
-__all__ = ["orient", "Polygon", "LinearRing"]
+__all__ = ["LinearRing", "Polygon", "orient"]
 
 
 def _unpickle_linearring(wkb):
     linestring = shapely.from_wkb(wkb)
-    srid = shapely.get_srid(linestring)
-    linearring = shapely.linearrings(shapely.get_coordinates(linestring))
+    srid = shapely.lib.get_srid_scalar(linestring)
+    linearring = _geometry_helpers.linestring_to_linearring(linestring)
     if srid:
-        linearring = shapely.set_srid(linearring, srid)
+        linearring = shapely.lib.set_srid_scalar(linearring, int(srid))
     return linearring
 
 
@@ -62,7 +63,7 @@ class LinearRing(LineString):
 
     __slots__ = []
 
-    def __new__(self, coordinates=None):
+    def __new__(cls, coordinates=None):
         """Create a new LinearRing geometry."""
         if coordinates is None:
             # empty geometry
@@ -164,7 +165,7 @@ class InteriorRingSequence:
             raise StopIteration
 
     def __len__(self):
-        return shapely.get_num_interior_rings(self._parent)
+        return shapely.lib.get_num_interior_rings_scalar(self._parent)
 
     def __getitem__(self, key):
         m = self.__len__()
@@ -186,7 +187,7 @@ class InteriorRingSequence:
             raise TypeError("key must be an index or slice")
 
     def _get_ring(self, i):
-        return shapely.get_interior_ring(self._parent, i)
+        return shapely.lib.get_interior_ring_scalar(self._parent, int(i))
 
 
 class Polygon(BaseGeometry):
@@ -234,7 +235,7 @@ class Polygon(BaseGeometry):
 
     __slots__ = []
 
-    def __new__(self, shell=None, holes=None):
+    def __new__(cls, shell=None, holes=None):
         """Create a new Polygon geometry."""
         if shell is None:
             # empty geometry
@@ -261,7 +262,7 @@ class Polygon(BaseGeometry):
     @property
     def exterior(self):
         """Return the exterior ring of the polygon."""
-        return shapely.get_exterior_ring(self)
+        return shapely.lib.get_exterior_ring_scalar(self)
 
     @property
     def interiors(self):
@@ -333,20 +334,27 @@ shapely.lib.registry[3] = Polygon
 
 
 def orient(polygon, sign=1.0):
-    """Return an oriented polygon."""
-    if polygon.is_empty:
-        return polygon
+    """Return an oriented polygon.
 
-    s = float(sign)
-    rings = []
-    ring = polygon.exterior
-    if signed_area(ring) / s >= 0.0:
-        rings.append(ring)
+    It is recommended to use :func:`shapely.orient_polygons` instead.
+
+    Parameters
+    ----------
+    polygon : shapely.Polygon
+    sign : float, default 1.
+        The sign of the result's signed area.
+        A non-negative sign means that the coordinates of the geometry's exterior
+        rings will be oriented counter-clockwise.
+
+    Returns
+    -------
+    Geometry or array_like
+
+    Refer to :func:`shapely.orient_polygons` for full documentation.
+
+    """
+    if shapely.lib.geos_version < (3, 12, 0):
+        f = _orient_polygon
     else:
-        rings.append(list(ring.coords)[::-1])
-    for ring in polygon.interiors:
-        if signed_area(ring) / s <= 0.0:
-            rings.append(ring)
-        else:
-            rings.append(list(ring.coords)[::-1])
-    return Polygon(rings[0], rings[1:])
+        f = shapely.lib.orient_polygons_scalar
+    return f(polygon, int(sign < 0.0))

@@ -8,10 +8,13 @@ class CoordinateSequence:
 
     Examples
     --------
-      >>> from shapely.wkt import loads
-      >>> g = loads('POINT (0.0 0.0)')
-      >>> list(g.coords)
-      [(0.0, 0.0)]
+    >>> from shapely.wkt import loads
+    >>> g = loads('POINT (0.0 0.0)')
+    >>> list(g.coords)
+    [(0.0, 0.0)]
+    >>> g = loads('POINT M (1 2 4)')
+    >>> g.coords[:]
+    [(1.0, 2.0, 4.0)]
 
     """
 
@@ -106,7 +109,7 @@ class CoordinateSequence:
     @property
     def xy(self):
         """X and Y arrays."""
-        m = self.__len__()
+        m = len(self)
         x = array("d")
         y = array("d")
         for i in range(m):

@@ -12,23 +12,11 @@
 #include <numpy/ufuncobject.h>
 
 #include "fast_loop_macros.h"
+#include "geom_arr.h"
 #include "geos.h"
 #include "pygeos.h"
 #include "pygeom.h"
-
-/* This initializes a global value for interrupt checking */
-int check_signals_interval[1] = {10000};
-unsigned long main_thread_id[1] = {0};
-
-PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
-
-  if (!PyArg_ParseTuple(args, "ik", check_signals_interval, main_thread_id)) {
-    return NULL;
-  }
-
-  Py_INCREF(Py_None);
-  return Py_None;
-}
+#include "signal_checks.h"
 
 #define OUTPUT_Y                                         \
   PyObject* ret = GeometryObject_FromGEOS(ret_ptr, ctx); \
@@ -70,185 +58,6 @@ PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
       errstate = PGERR_PYSIGNAL;                    \
     };                                              \
   }
-
-/* This version of CHECK_SIGNALS is to be used in a context without GIL
- * the GIL is only acquired if the current thread is the main thread (else,
- * signals won't be set anyway)
- */
-
-#define CHECK_SIGNALS_THREADS(I)                            \
-  if (((I + 1) % check_signals_interval[0]) == 0) {         \
-    if (PyThread_get_thread_ident() == main_thread_id[0]) { \
-      Py_BLOCK_THREADS;                                     \
-      if (PyErr_CheckSignals() == -1) {                     \
-        errstate = PGERR_PYSIGNAL;                          \
-      }                                                     \
-      Py_UNBLOCK_THREADS;                                   \
-    }                                                       \
-  }
-
-static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,
-                            npy_intp count) {
-  npy_intp i;
-  PyObject* ret;
-  PyObject** out;
-
-  GEOS_INIT;
-
-  for (i = 0; i < count; i++, ptr += stride) {
-    ret = GeometryObject_FromGEOS(array[i], ctx);
-    out = (PyObject**)ptr;
-    Py_XDECREF(*out);
-    *out = ret;
-  }
-
-  GEOS_FINISH;
-}
-
-/* Define the geom -> bool functions (Y_b) */
-static void* is_empty_data[1] = {GEOSisEmpty_r};
-/* the GEOSisSimple_r function fails on geometrycollections */
-static char GEOSisSimpleAllTypes_r(void* context, void* geom) {
-  int type = GEOSGeomTypeId_r(context, geom);
-  if (type == -1) {
-    return 2;  // Predicates use a return value of 2 for errors
-  } else if (type == 7) {
-    return 0;
-  } else {
-    return GEOSisSimple_r(context, geom);
-  }
-}
-static void* is_simple_data[1] = {GEOSisSimpleAllTypes_r};
-static void* is_ring_data[1] = {GEOSisRing_r};
-static void* has_z_data[1] = {GEOSHasZ_r};
-#if GEOS_SINCE_3_12_0
-static void* has_m_data[1] = {GEOSHasM_r};
-#endif
-/* the GEOSisClosed_r function fails on non-linestrings */
-static char GEOSisClosedAllTypes_r(void* context, void* geom) {
-  int type = GEOSGeomTypeId_r(context, geom);
-  if (type == -1) {
-    return 2;  // Predicates use a return value of 2 for errors
-  } else if ((type == 1) || (type == 2) || (type == 5)) {
-    return GEOSisClosed_r(context, geom);
-  } else {
-    return 0;
-  }
-}
-static void* is_closed_data[1] = {GEOSisClosedAllTypes_r};
-static void* is_valid_data[1] = {GEOSisValid_r};
-
-static char GEOSGeom_isCCW_r(void* context, void* geom) {
-  const GEOSCoordSequence* coord_seq;
-  char is_ccw = 2;  // return value of 2 means GEOSException
-  int i;
-
-  // Return False for non-linear geometries
-  i = GEOSGeomTypeId_r(context, geom);
-  if (i == -1) {
-    return 2;
-  }
-  if ((i != GEOS_LINEARRING) && (i != GEOS_LINESTRING)) {
-    return 0;
-  }
-
-  // Return False for lines with fewer than 4 points
-  i = GEOSGeomGetNumPoints_r(context, geom);
-  if (i == -1) {
-    return 2;
-  }
-  if (i < 4) {
-    return 0;
-  }
-
-  // Get the coordinatesequence and call isCCW()
-  coord_seq = GEOSGeom_getCoordSeq_r(context, geom);
-  if (coord_seq == NULL) {
-    return 2;
-  }
-  if (!GEOSCoordSeq_isCCW_r(context, coord_seq, &is_ccw)) {
-    return 2;
-  }
-  return is_ccw;
-}
-static void* is_ccw_data[1] = {GEOSGeom_isCCW_r};
-
-typedef char FuncGEOS_Y_b(void* context, void* a);
-static char Y_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
-static void Y_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_Y_b* func = (FuncGEOS_Y_b*)data;
-  GEOSGeometry* in1 = NULL;
-  char ret;
-
-  GEOS_INIT_THREADS;
-
-  UNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      goto finish;
-    }
-    /* get the geometry; return on error */
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      goto finish;
-    }
-    if (in1 == NULL) {
-      /* in case of a missing value: return 0 (False) */
-      ret = 0;
-    } else {
-      /* call the GEOS function */
-      ret = func(ctx, in1);
-      /* finish for illegal values */
-      if (ret == 2) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-    }
-    *(npy_bool*)op1 = ret;
-  }
-
-finish:
-  GEOS_FINISH_THREADS;
-}
-static PyUFuncGenericFunction Y_b_funcs[1] = {&Y_b_func};
-
-/* Define the object -> bool functions (O_b) which do not raise on non-geom objects*/
-static char IsMissing(void* context, PyObject* obj) {
-  GEOSGeometry* g = NULL;
-  if (!get_geom((GeometryObject*)obj, &g)) {
-    return 0;
-  };
-  return g == NULL;  // get_geom sets g to NULL for None input
-}
-static void* is_missing_data[1] = {IsMissing};
-static char IsGeometry(void* context, PyObject* obj) {
-  GEOSGeometry* g = NULL;
-  if (!get_geom((GeometryObject*)obj, &g)) {
-    return 0;
-  }
-  return g != NULL;
-}
-static void* is_geometry_data[1] = {IsGeometry};
-static char IsValidInput(void* context, PyObject* obj) {
-  GEOSGeometry* g = NULL;
-  return get_geom((GeometryObject*)obj, &g);
-}
-static void* is_valid_input_data[1] = {IsValidInput};
-typedef char FuncGEOS_O_b(void* context, PyObject* obj);
-static char O_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
-static void O_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_O_b* func = (FuncGEOS_O_b*)data;
-  GEOS_INIT_THREADS;
-  UNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      break;
-    }
-    *(npy_bool*)op1 = func(ctx, *(PyObject**)ip1);
-  }
-  GEOS_FINISH_THREADS;
-}
-static PyUFuncGenericFunction O_b_funcs[1] = {&O_b_func};
 
 /* Define the geom, geom -> bool functions (YY_b) */
 static void* equals_data[1] = {GEOSEquals_r};
@@ -389,7 +198,7 @@ static void* intersects_xy_data[1] = {GEOSPreparedIntersectsXY_r};
 static void* contains_xy_data[1] = {GEOSPreparedContains_r};
 static void* intersects_xy_data[1] = {GEOSPreparedIntersects_r};
 #endif
-typedef char FuncGEOS_Ydd_b(void* context, void* pg, double x, double y);
+typedef char FuncGEOS_Ydd_b(void* context, const void* pg, double x, double y);
 static char Ydd_b_p_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL};
 static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
 #if GEOS_SINCE_3_12_0
@@ -466,208 +275,6 @@ finish:
 }
 static PyUFuncGenericFunction Ydd_b_p_funcs[1] = {&Ydd_b_p_func};
 
-static char is_prepared_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
-static void is_prepared_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                             void* data) {
-  GEOSGeometry* in1 = NULL;
-  GEOSPreparedGeometry* in1_prepared = NULL;
-
-  GEOS_INIT_THREADS;
-
-  UNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      break;
-    }
-    /* get the geometry: return on error */
-    if (!get_geom_with_prepared(*(GeometryObject**)ip1, &in1, &in1_prepared)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      break;
-    }
-    *(npy_bool*)op1 = (in1_prepared != NULL);
-  }
-
-  GEOS_FINISH_THREADS;
-}
-static PyUFuncGenericFunction is_prepared_funcs[1] = {&is_prepared_func};
-
-/* Define the geom -> geom functions (Y_Y) */
-static void* envelope_data[1] = {GEOSEnvelope_r};
-static void* convex_hull_data[1] = {GEOSConvexHull_r};
-static void* GEOSBoundaryAllTypes_r(void* context, void* geom) {
-  char typ = GEOSGeomTypeId_r(context, geom);
-  if (typ == 7) {
-    /* return None for geometrycollections */
-    return NULL;
-  } else {
-    return GEOSBoundary_r(context, geom);
-  }
-}
-static void* boundary_data[1] = {GEOSBoundaryAllTypes_r};
-static void* unary_union_data[1] = {GEOSUnaryUnion_r};
-static void* point_on_surface_data[1] = {GEOSPointOnSurface_r};
-static void* centroid_data[1] = {GEOSGetCentroid_r};
-static void* line_merge_data[1] = {GEOSLineMerge_r};
-static void* minimum_clearance_line_data[1] = {GEOSMinimumClearanceLine_r};
-static void* node_data[1] = {GEOSNode_r};
-static void* extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
-static void* GetExteriorRing(void* context, void* geom) {
-  char typ = GEOSGeomTypeId_r(context, geom);
-  if (typ != 3) {
-    return NULL;
-  }
-  void* ret = (void*)GEOSGetExteriorRing_r(context, geom);
-  /* Create a copy of the obtained geometry */
-  if (ret != NULL) {
-    ret = GEOSGeom_clone_r(context, ret);
-  }
-  return ret;
-}
-static void* get_exterior_ring_data[1] = {GetExteriorRing};
-/* the normalize function acts in-place */
-static void* GEOSNormalize_r_with_clone(void* context, void* geom) {
-  int ret;
-  void* new_geom = GEOSGeom_clone_r(context, geom);
-  if (new_geom == NULL) {
-    return NULL;
-  }
-  ret = GEOSNormalize_r(context, new_geom);
-  if (ret == -1) {
-    GEOSGeom_destroy_r(context, new_geom);
-    return NULL;
-  }
-  return new_geom;
-}
-static void* normalize_data[1] = {GEOSNormalize_r_with_clone};
-static void* force_2d_data[1] = {PyGEOSForce2D};
-static void* build_area_data[1] = {GEOSBuildArea_r};
-static void* make_valid_data[1] = {GEOSMakeValid_r};
-static void* coverage_union_data[1] = {GEOSCoverageUnion_r};
-static void* GEOSMinimumBoundingCircleWithReturn(void* context, void* geom) {
-  GEOSGeometry* center = NULL;
-  double radius;
-  GEOSGeometry* ret = GEOSMinimumBoundingCircle_r(context, geom, &radius, &center);
-  if (ret == NULL) {
-    return NULL;
-  }
-  GEOSGeom_destroy_r(context, center);
-  return ret;
-}
-static void* minimum_bounding_circle_data[1] = {GEOSMinimumBoundingCircleWithReturn};
-static void* reverse_data[1] = {GEOSReverse_r};
-static void* oriented_envelope_data[1] = {GEOSMinimumRotatedRectangle_r};
-#if GEOS_SINCE_3_11_0
-static void* line_merge_directed_data[1] = {GEOSLineMergeDirected_r};
-#endif
-#if GEOS_SINCE_3_12_0
-static void* disjoint_subset_union_data[1] = {GEOSDisjointSubsetUnion_r};
-#endif  // GEOS_SINCE_3_12_0
-typedef void* FuncGEOS_Y_Y(void* context, void* a);
-static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
-static void Y_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_Y_Y* func = (FuncGEOS_Y_Y*)data;
-  GEOSGeometry* in1 = NULL;
-  GEOSGeometry** geom_arr;
-
-  CHECK_NO_INPLACE_OUTPUT(1);
-
-  // allocate a temporary array to store output GEOSGeometry objects
-  geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  CHECK_ALLOC(geom_arr);
-
-  GEOS_INIT_THREADS;
-
-  UNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    // get the geometry: return on error
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    if (in1 == NULL) {
-      // in case of a missing value: return NULL (None)
-      geom_arr[i] = NULL;
-    } else {
-      geom_arr[i] = func(ctx, in1);
-      // NULL means: exception, but for some functions it may also indicate a
-      // "missing value" (None) (GetExteriorRing, GEOSBoundaryAllTypes_r)
-      // So: check the last_error before setting error state
-      if ((geom_arr[i] == NULL) && (last_error[0] != 0)) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        break;
-      }
-    }
-  }
-
-  GEOS_FINISH_THREADS;
-
-  // fill the numpy array with PyObjects while holding the GIL
-  if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[1], steps[1], dimensions[0]);
-  }
-  free(geom_arr);
-}
-static PyUFuncGenericFunction Y_Y_funcs[1] = {&Y_Y_func};
-
-/* Define the geom -> no return value functions (Y) */
-static char PrepareGeometryObject(void* ctx, GeometryObject* geom) {
-  if (geom->ptr_prepared == NULL) {
-    geom->ptr_prepared = (GEOSPreparedGeometry*)GEOSPrepare_r(ctx, geom->ptr);
-    if (geom->ptr_prepared == NULL) {
-      return PGERR_GEOS_EXCEPTION;
-    }
-  }
-  return PGERR_SUCCESS;
-}
-static char DestroyPreparedGeometryObject(void* ctx, GeometryObject* geom) {
-  if (geom->ptr_prepared != NULL) {
-    GEOSPreparedGeom_destroy_r(ctx, geom->ptr_prepared);
-    geom->ptr_prepared = NULL;
-  }
-  return PGERR_SUCCESS;
-}
-
-static void* prepare_data[1] = {PrepareGeometryObject};
-static void* destroy_prepared_data[1] = {DestroyPreparedGeometryObject};
-typedef char FuncPyGEOS_Y(void* ctx, GeometryObject* geom);
-static char Y_dtypes[1] = {NPY_OBJECT};
-static void Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncPyGEOS_Y* func = (FuncPyGEOS_Y*)data;
-  GEOSGeometry* in1 = NULL;
-  GeometryObject* geom_obj = NULL;
-
-  GEOS_INIT;
-
-  NO_OUTPUT_LOOP {
-    CHECK_SIGNALS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      goto finish;
-    }
-    geom_obj = *(GeometryObject**)ip1;
-    if (!get_geom(geom_obj, &in1)) {
-      errstate = PGERR_GEOS_EXCEPTION;
-      goto finish;
-    }
-    if (in1 != NULL) {
-      errstate = func(ctx, geom_obj);
-      if (errstate != PGERR_SUCCESS) {
-        goto finish;
-      }
-    }
-  }
-
-finish:
-
-  GEOS_FINISH;
-}
-static PyUFuncGenericFunction Y_funcs[1] = {&Y_func};
-
 /* Define the geom, double -> geom functions (Yd_Y) */
 static void* GEOSInterpolateProtectEmpty_r(void* context, void* geom, double d) {
   char errstate = geos_interpolate_checker(context, geom);
@@ -734,10 +341,7 @@ static void* GEOSMaximumInscribedCircleWithDefaultTolerance(void* context, void*
   return GEOSMaximumInscribedCircle_r(context, a, tolerance);
 }
 static void* maximum_inscribed_circle_data[1] = {GEOSMaximumInscribedCircleWithDefaultTolerance};
-
-#if GEOS_SINCE_3_10_0
 static void* segmentize_data[1] = {GEOSDensify_r};
-#endif
 
 #if GEOS_SINCE_3_11_0
 static void* remove_repeated_points_data[1] = {GEOSRemoveRepeatedPoints_r};
@@ -795,162 +399,6 @@ static void Yd_Y_func(char** args, const npy_intp* dimensions, const npy_intp* s
   free(geom_arr);
 }
 static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
-
-/* Define the geom, int -> geom functions (Yi_Y) */
-/* We add bound and type checking to the various indexing functions */
-static void* GetPointN(void* context, void* geom, int n) {
-  char typ = GEOSGeomTypeId_r(context, geom);
-  int size, i;
-  if ((typ != 1) && (typ != 2)) {
-    return NULL;
-  }
-  size = GEOSGeomGetNumPoints_r(context, geom);
-  if (size == -1) {
-    return NULL;
-  }
-  if (n < 0) {
-    /* Negative indexing: we get it for free */
-    i = size + n;
-  } else {
-    i = n;
-  }
-  if ((i < 0) || (i >= size)) {
-    /* Important, could give segfaults else */
-    return NULL;
-  }
-  return GEOSGeomGetPointN_r(context, geom, i);
-}
-static void* get_point_data[1] = {GetPointN};
-static void* GetInteriorRingN(void* context, void* geom, int n) {
-  char typ = GEOSGeomTypeId_r(context, geom);
-  int size, i;
-  if (typ != 3) {
-    return NULL;
-  }
-  size = GEOSGetNumInteriorRings_r(context, geom);
-  if (size == -1) {
-    return NULL;
-  }
-  if (n < 0) {
-    /* Negative indexing: we get it for free */
-    i = size + n;
-  } else {
-    i = n;
-  }
-  if ((i < 0) || (i >= size)) {
-    /* Important, could give segfaults else */
-    return NULL;
-  }
-  void* ret = (void*)GEOSGetInteriorRingN_r(context, geom, i);
-  /* Create a copy of the obtained geometry */
-  if (ret != NULL) {
-    ret = GEOSGeom_clone_r(context, ret);
-  }
-  return ret;
-}
-static void* get_interior_ring_data[1] = {GetInteriorRingN};
-static void* GetGeometryN(void* context, void* geom, int n) {
-  int size, i;
-  size = GEOSGetNumGeometries_r(context, geom);
-  if (size == -1) {
-    return NULL;
-  }
-  if (n < 0) {
-    /* Negative indexing: we get it for free */
-    i = size + n;
-  } else {
-    i = n;
-  }
-  if ((i < 0) || (i >= size)) {
-    /* Important, could give segfaults else */
-    return NULL;
-  }
-  void* ret = (void*)GEOSGetGeometryN_r(context, geom, i);
-  /* Create a copy of the obtained geometry */
-  if (ret != NULL) {
-    ret = GEOSGeom_clone_r(context, ret);
-  }
-  return ret;
-}
-static void* get_geometry_data[1] = {GetGeometryN};
-/* the set srid function acts in-place */
-static void* GEOSSetSRID_r_with_clone(void* context, void* geom, int srid) {
-  void* ret = GEOSGeom_clone_r(context, geom);
-  if (ret == NULL) {
-    return NULL;
-  }
-  GEOSSetSRID_r(context, ret, srid);
-  return ret;
-}
-static void* set_srid_data[1] = {GEOSSetSRID_r_with_clone};
-#if GEOS_SINCE_3_12_0
-static void* GEOSOrientPolygons_r_with_clone(void* context, void* geom, int exteriorCW) {
-  int ret;
-  void* cloned = GEOSGeom_clone_r(context, geom);
-  if (cloned == NULL) {
-    return NULL;
-  }
-  ret = GEOSOrientPolygons_r(context, cloned, exteriorCW);
-  if (ret == -1) {
-    return NULL;
-  }
-  return cloned;
-}
-static void* orient_polygons_data[1] = {GEOSOrientPolygons_r_with_clone};
-#endif
-typedef void* FuncGEOS_Yi_Y(void* context, void* a, int b);
-static char Yi_Y_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
-static void Yi_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_Yi_Y* func = (FuncGEOS_Yi_Y*)data;
-  GEOSGeometry* in1 = NULL;
-  GEOSGeometry** geom_arr;
-
-  CHECK_NO_INPLACE_OUTPUT(2);
-
-  // allocate a temporary array to store output GEOSGeometry objects
-  geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  CHECK_ALLOC(geom_arr);
-
-  GEOS_INIT_THREADS;
-
-  BINARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    // get the geometry: return on error
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    int in2 = *(int*)ip2;
-    if (in1 == NULL) {
-      // in case of a missing value: return NULL (None)
-      geom_arr[i] = NULL;
-    } else {
-      geom_arr[i] = func(ctx, in1, in2);
-      // NULL means: exception, but for some functions it may also indicate a
-      // "missing value" (None) (GetPointN, GetInteriorRingN, GetGeometryN)
-      // So: check the last_error before setting error state
-      if ((geom_arr[i] == NULL) && (last_error[0] != 0)) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        break;
-      }
-    }
-  }
-
-  GEOS_FINISH_THREADS;
-
-  // fill the numpy array with PyObjects while holding the GIL
-  if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
-  }
-  free(geom_arr);
-}
-static PyUFuncGenericFunction Yi_Y_funcs[1] = {&Yi_Y_func};
 
 /* Define the geom, geom -> geom functions (YY_Y) */
 static void* intersection_data[1] = {GEOSIntersection_r};
@@ -1076,209 +524,6 @@ finish:
   free(geom_arr);
 }
 static PyUFuncGenericFunction Y_Y_reduce_funcs[1] = {&Y_Y_reduce_func};
-
-/* Define the geom -> double functions (Y_d) */
-static int GetX(void* context, void* a, double* b) {
-  char typ = GEOSGeomTypeId_r(context, a);
-  if (typ != 0) {
-    *(double*)b = NPY_NAN;
-    return 1;
-  } else {
-    return GEOSGeomGetX_r(context, a, b);
-  }
-}
-static void* get_x_data[1] = {GetX};
-static int GetY(void* context, void* a, double* b) {
-  char typ = GEOSGeomTypeId_r(context, a);
-  if (typ != 0) {
-    *(double*)b = NPY_NAN;
-    return 1;
-  } else {
-    return GEOSGeomGetY_r(context, a, b);
-  }
-}
-static void* get_y_data[1] = {GetY};
-static int GetZ(void* context, void* a, double* b) {
-  char typ = GEOSGeomTypeId_r(context, a);
-  if (typ != 0) {
-    *(double*)b = NPY_NAN;
-    return 1;
-  } else {
-    return GEOSGeomGetZ_r(context, a, b);
-  }
-}
-static void* get_z_data[1] = {GetZ};
-#if GEOS_SINCE_3_12_0
-static int GetM(void* context, void* a, double* b) {
-  char typ = GEOSGeomTypeId_r(context, a);
-  if (typ != 0) {
-    *(double*)b = NPY_NAN;
-    return 1;
-  } else {
-    return GEOSGeomGetM_r(context, a, b);
-  }
-}
-static void* get_m_data[1] = {GetM};
-#endif
-static void* area_data[1] = {GEOSArea_r};
-static void* length_data[1] = {GEOSLength_r};
-
-static int GetPrecision(void* context, void* a, double* b) {
-  // GEOS returns -1 on error; 0 indicates double precision; > 0 indicates a precision
-  // grid size was set for this geometry.
-  double out = GEOSGeom_getPrecision_r(context, a);
-  if (out == -1) {
-    return 0;
-  }
-  *(double*)b = out;
-  return 1;
-}
-static void* get_precision_data[1] = {GetPrecision};
-static int MinimumClearance(void* context, void* a, double* b) {
-  // GEOSMinimumClearance deviates from the pattern of returning 0 on exception and 1 on
-  // success for functions that return an int (it follows pattern for boolean functions
-  // returning char 0/1 and 2 on exception)
-  int retcode = GEOSMinimumClearance_r(context, a, b);
-  if (retcode == 2) {
-    return 0;
-  } else {
-    return 1;
-  }
-}
-static void* minimum_clearance_data[1] = {MinimumClearance};
-static int GEOSMinimumBoundingRadius(void* context, GEOSGeometry* geom, double* radius) {
-  GEOSGeometry* center = NULL;
-  GEOSGeometry* ret = GEOSMinimumBoundingCircle_r(context, geom, radius, &center);
-  if (ret == NULL) {
-    return 0;  // exception code
-  }
-  GEOSGeom_destroy_r(context, center);
-  GEOSGeom_destroy_r(context, ret);
-  return 1;  // success code
-}
-static void* minimum_bounding_radius_data[1] = {GEOSMinimumBoundingRadius};
-typedef int FuncGEOS_Y_d(void* context, void* a, double* b);
-static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
-static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_Y_d* func = (FuncGEOS_Y_d*)data;
-  GEOSGeometry* in1 = NULL;
-
-  GEOS_INIT_THREADS;
-
-  UNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      goto finish;
-    }
-    /* get the geometry: return on error */
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      goto finish;
-    }
-    if (in1 == NULL) {
-      *(double*)op1 = NPY_NAN;
-    } else {
-      /* let the GEOS function set op1; return on error */
-      if (func(ctx, in1, (npy_double*)op1) == 0) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-    }
-  }
-
-finish:
-  GEOS_FINISH_THREADS;
-}
-static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
-
-/* Define the geom -> int functions (Y_i) */
-/* data values are GEOS func, GEOS error code, return value when input is None */
-static void* get_type_id_func_tuple[3] = {GEOSGeomTypeId_r, (void*)-1, (void*)-1};
-static void* get_type_id_data[1] = {get_type_id_func_tuple};
-
-static void* get_dimensions_func_tuple[3] = {GEOSGeom_getDimensions_r, (void*)0,
-                                             (void*)-1};
-static void* get_dimensions_data[1] = {get_dimensions_func_tuple};
-
-static void* get_coordinate_dimension_func_tuple[3] = {GEOSGeom_getCoordinateDimension_r,
-                                                       (void*)-1, (void*)-1};
-static void* get_coordinate_dimension_data[1] = {get_coordinate_dimension_func_tuple};
-
-static void* get_srid_func_tuple[3] = {GEOSGetSRID_r, (void*)0, (void*)-1};
-static void* get_srid_data[1] = {get_srid_func_tuple};
-
-static int GetNumPoints(void* context, void* geom, int n) {
-  char typ = GEOSGeomTypeId_r(context, geom);
-  if ((typ == 1) || (typ == 2)) { /* Linestring & Linearring */
-    return GEOSGeomGetNumPoints_r(context, geom);
-  } else {
-    return 0;
-  }
-}
-static void* get_num_points_func_tuple[3] = {GetNumPoints, (void*)-1, (void*)0};
-static void* get_num_points_data[1] = {get_num_points_func_tuple};
-
-static int GetNumInteriorRings(void* context, void* geom) {
-  char typ = GEOSGeomTypeId_r(context, geom);
-  if (typ == 3) { /* Polygon */
-    return GEOSGetNumInteriorRings_r(context, geom);
-  } else {
-    return 0;
-  }
-}
-static void* get_num_interior_rings_func_tuple[3] = {GetNumInteriorRings, (void*)-1,
-                                                     (void*)0};
-static void* get_num_interior_rings_data[1] = {get_num_interior_rings_func_tuple};
-
-static void* get_num_geometries_func_tuple[3] = {GEOSGetNumGeometries_r, (void*)-1,
-                                                 (void*)0};
-static void* get_num_geometries_data[1] = {get_num_geometries_func_tuple};
-
-static void* get_num_coordinates_func_tuple[3] = {GEOSGetNumCoordinates_r, (void*)-1,
-                                                  (void*)0};
-static void* get_num_coordinates_data[1] = {get_num_coordinates_func_tuple};
-
-typedef int FuncGEOS_Y_i(void* context, void* a);
-static char Y_i_dtypes[2] = {NPY_OBJECT, NPY_INT};
-static void Y_i_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_Y_i* func = ((FuncGEOS_Y_i**)data)[0];
-  int errcode = (int)((int**)data)[1];
-  int none_value = (int)((int**)data)[2];
-
-  GEOSGeometry* in1 = NULL;
-  int result;
-
-  GEOS_INIT_THREADS;
-
-  UNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      goto finish;
-    }
-    /* get the geometry: return on error */
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      goto finish;
-    }
-    if (in1 == NULL) {
-      /* None results in 0 for counting functions, -1 otherwise */
-      *(npy_int*)op1 = none_value;
-    } else {
-      result = func(ctx, in1);
-      // Check last_error if the result equals errcode.
-      // Otherwise we can't be sure if it is an exception
-      if ((result == errcode) && (last_error[0] != 0)) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-      *(npy_int*)op1 = result;
-    }
-  }
-
-finish:
-  GEOS_FINISH_THREADS;
-}
-static PyUFuncGenericFunction Y_i_funcs[1] = {&Y_i_func};
 
 /* Define the geom, geom -> double functions (YY_d) */
 static void* distance_data[1] = {GEOSDistance_r};
@@ -1620,8 +865,6 @@ static void buffer_func(char** args, const npy_intp* dimensions, const npy_intp*
 }
 static PyUFuncGenericFunction buffer_funcs[1] = {&buffer_func};
 
-#if GEOS_SINCE_3_10_0
-
 static char make_valid_with_params_inner(void* ctx, GEOSMakeValidParams* params,
                                          void* ip1, GEOSGeometry** geom_arr,
                                          npy_intp i) {
@@ -1707,8 +950,6 @@ static void make_valid_with_params_func(char** args, const npy_intp* dimensions,
   free(geom_arr);
 }
 static PyUFuncGenericFunction make_valid_with_params_funcs[1] = {&make_valid_with_params_func};
-
-#endif  // GEOS_SINCE_3_10_0
 
 static char offset_curve_dtypes[6] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT,
                                       NPY_INT,    NPY_DOUBLE, NPY_OBJECT};
@@ -1998,8 +1239,6 @@ finish:
 }
 static PyUFuncGenericFunction equals_exact_funcs[1] = {&equals_exact_func};
 
-#if GEOS_SINCE_3_10_0
-
 static char dwithin_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_BOOL};
 static void dwithin_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   GEOSGeometry *in1 = NULL, *in2 = NULL;
@@ -2049,8 +1288,6 @@ finish:
   GEOS_FINISH_THREADS;
 }
 static PyUFuncGenericFunction dwithin_funcs[1] = {&dwithin_func};
-
-#endif  // GEOS_SINCE_3_10_0
 
 static char delaunay_triangles_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
 static void delaunay_triangles_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
@@ -2443,6 +1680,236 @@ finish:
 }
 static PyUFuncGenericFunction polygonize_full_funcs[1] = {&polygonize_full_func};
 
+#if GEOS_SINCE_3_12_0
+
+static char coverage_is_valid_dtypes[3] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL};
+static void coverage_is_valid_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                   void* data) {
+  GEOSGeometry* geom = NULL;
+  GEOSGeometry* collection = NULL;
+  GEOSGeometry** collection_parts;
+  unsigned int n_parts;
+  unsigned int n_geoms;
+  int ret;
+
+  if (steps[1] != 0) {
+    PyErr_Format(PyExc_ValueError, "coverage_is_valid function called with non-scalar gap_width");
+    return;
+  }
+  double gap_width = *(double*)args[1];
+
+  GEOS_INIT_THREADS;
+
+  GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
+  if (geoms == NULL) {
+    errstate = PGERR_NO_MALLOC;
+    goto finish;
+  }
+
+  BINARY_SINGLE_COREDIM_LOOP_OUTER {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
+    cp1 = ip1;
+    n_geoms = 0;
+    BINARY_SINGLE_COREDIM_LOOP_INNER {
+      if (!get_geom(*(GeometryObject**)cp1, &geom)) {
+        errstate = PGERR_NOT_A_GEOMETRY;
+        goto finish;
+      }
+      if (geom == NULL) {
+        continue;
+      }
+      // we do not clone the geometries, so have to release the collection later
+      geoms[n_geoms] = geom;
+      n_geoms++;
+    }
+    collection =
+        GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, geoms, n_geoms);
+    if (collection == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+
+    ret = GEOSCoverageIsValid_r(ctx, collection, gap_width, NULL);
+    if (ret == 2) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+    *(npy_bool*)op1 = ret;
+    collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
+    GEOSFree_r(ctx, collection_parts);
+    GEOSGeom_destroy_r(ctx, collection);
+    collection = NULL;
+  }
+
+finish:
+  if (collection != NULL) {
+    collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
+    GEOSFree_r(ctx, collection_parts);
+    GEOSGeom_destroy_r(ctx, collection);
+  }
+  if (geoms != NULL) {
+    free(geoms);
+  }
+  GEOS_FINISH_THREADS;
+}
+static PyUFuncGenericFunction coverage_is_valid_funcs[1] = {&coverage_is_valid_func};
+
+
+static char coverage_invalid_edges_dtypes[3] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
+static void coverage_invalid_edges_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                   void* data) {
+  GEOSGeometry* geom = NULL;
+  GEOSGeometry* collection = NULL;
+  GEOSGeometry** collection_parts;
+  GEOSGeometry* result_collection = NULL;
+  GEOSGeometry** result_collection_parts;
+  unsigned int n_parts, n_parts_result;
+  unsigned int n_geoms;
+  int ret;
+
+  if (steps[1] != 0) {
+    PyErr_Format(PyExc_ValueError, "coverage_invalid_edges function called with non-scalar gap_width");
+    return;
+  }
+  double gap_width = *(double*)args[1];
+
+  // allocate a temporary array to store input GEOSGeometry objects
+  GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
+  CHECK_ALLOC(geoms);
+
+  GEOS_INIT;
+
+  npy_intp ocs1 = steps[4];
+  BINARY_SINGLE_COREDIM_LOOP_OUTER {
+    Py_BEGIN_ALLOW_THREADS;
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
+    cp1 = ip1;
+    n_geoms = 0;
+    BINARY_SINGLE_COREDIM_LOOP_INNER {
+      if (!get_geom(*(GeometryObject**)cp1, &geom)) {
+        errstate = PGERR_NOT_A_GEOMETRY;
+        goto finish;
+      }
+      if (geom == NULL) {
+        continue;
+      }
+      // we do not clone the geometries, so have to release the collection later
+      geoms[n_geoms] = geom;
+      n_geoms++;
+    }
+    collection =
+        GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, geoms, n_geoms);
+    if (collection == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+
+    ret = GEOSCoverageIsValid_r(ctx, collection, gap_width, &result_collection);
+    if ((ret == 2) || (result_collection == NULL)) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+
+    Py_END_ALLOW_THREADS;
+    result_collection_parts = GEOSGeom_releaseCollection_r(ctx, result_collection, &n_parts_result);
+    geom_arr_to_npy(result_collection_parts, op1, ocs1, n_parts_result);
+    GEOSFree_r(ctx, result_collection_parts);
+    GEOSGeom_destroy_r(ctx, result_collection);
+    result_collection = NULL;
+
+    collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
+    GEOSFree_r(ctx, collection_parts);
+    GEOSGeom_destroy_r(ctx, collection);
+    collection = NULL;
+  }
+
+finish:
+  if (collection != NULL) {
+    collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
+    GEOSFree_r(ctx, collection_parts);
+    GEOSGeom_destroy_r(ctx, collection);
+  }
+  if (result_collection != NULL) {
+    result_collection_parts = GEOSGeom_releaseCollection_r(ctx, result_collection, &n_parts_result);
+    GEOSFree_r(ctx, result_collection_parts);
+    GEOSGeom_destroy_r(ctx, result_collection);
+  }
+  if (geoms != NULL) {
+    free(geoms);
+  }
+  GEOS_FINISH;
+}
+static PyUFuncGenericFunction coverage_invalid_edges_funcs[1] = {&coverage_invalid_edges_func};
+
+static char coverage_simplify_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
+static void coverage_simplify_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                    void* data) {
+  GEOSGeometry* in1 = NULL;
+  GEOSGeometry** geom_arr;
+  int geom_type;
+
+  CHECK_NO_INPLACE_OUTPUT(3);
+
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * dimensions[0]);
+  CHECK_ALLOC(geom_arr);
+
+  GEOS_INIT_THREADS;
+
+  TERNARY_LOOP {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+    // get the geometry: return on error
+    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+    double in2 = *(double*)ip2;
+    npy_bool in3 = !(*(npy_bool*)ip3);
+
+    // Validate the geometries in the collection
+    int num_geoms = GEOSGetNumGeometries_r(ctx, in1);
+    for (int j = 0; j < num_geoms; j++) {
+      const GEOSGeometry* geom = GEOSGetGeometryN_r(ctx, in1, j);
+      geom_type = GEOSGeomTypeId_r(ctx, geom);
+      if (geom_type != GEOS_POLYGON && geom_type != GEOS_MULTIPOLYGON) {
+        errstate = PGERR_GEOMETRY_TYPE;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        goto finish;
+      }
+    }
+
+    geom_arr[i] = GEOSCoverageSimplifyVW_r(ctx, in1, in2, (int)in3);
+    if (geom_arr[i] == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+  }
+
+finish:
+  GEOS_FINISH_THREADS;
+
+  // fill the numpy array with PyObjects while holding the GIL
+  if (errstate == PGERR_SUCCESS) {
+    geom_arr_to_npy(geom_arr, args[3], steps[3], dimensions[0]);
+  }
+  free(geom_arr);
+}
+static PyUFuncGenericFunction coverage_simplify_funcs[1] = {&coverage_simplify_func};
+
+#endif  // GEOS_SINCE_3_12_0
+
 static char shortest_line_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static void shortest_line_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                void* data) {
@@ -2527,7 +1994,7 @@ static void set_precision_func(char** args, const npy_intp* dimensions, const np
 
   /* preserve topology flag
    * flags:
-   * - 0: default (from GEOS 3.10 this is named GEOS_PREC_VALID_OUTPUT)
+   * - 0: GEOS_PREC_VALID_OUTPUT (default)
    * - 1: GEOS_PREC_NO_TOPO
    * - 2: GEOS_PREC_KEEP_COLLAPSED
    */
@@ -2536,7 +2003,8 @@ static void set_precision_func(char** args, const npy_intp* dimensions, const np
     return;
   }
   flags = *(int*)args[2];
-  if (!((flags == 0) || (flags == GEOS_PREC_NO_TOPO) ||
+  if (!((flags == GEOS_PREC_VALID_OUTPUT) ||
+        (flags == GEOS_PREC_NO_TOPO) ||
         (flags == GEOS_PREC_KEEP_COLLAPSED))) {
     PyErr_Format(PyExc_ValueError, "set_precision function called with illegal mode");
     return;
@@ -3280,9 +2748,7 @@ static char to_wkb_dtypes[7] = {NPY_OBJECT, NPY_BOOL, NPY_INT,
                                 NPY_OBJECT};
 static void to_wkb_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4], *op1 = args[6];
-#if GEOS_SINCE_3_10_0
   char *ip6 = args[5];
-#endif
   npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4],
            is6 = steps[5], os1 = steps[6];
   npy_intp n = dimensions[0];
@@ -3314,10 +2780,7 @@ static void to_wkb_func(char** args, const npy_intp* dimensions, const npy_intp*
     GEOSWKBWriter_setByteOrder_r(ctx, writer, *(int*)ip4);
   }
   GEOSWKBWriter_setIncludeSRID_r(ctx, writer, *(npy_bool*)ip5);
-
-#if GEOS_SINCE_3_10_0
   GEOSWKBWriter_setFlavor_r(ctx, writer, *(int*)ip6);
-#endif
 
   // Check if the above functions caused a GEOS exception
   if (last_error[0] != 0) {
@@ -3464,8 +2927,6 @@ finish:
 }
 static PyUFuncGenericFunction to_wkt_funcs[1] = {&to_wkt_func};
 
-#if GEOS_SINCE_3_10_0
-
 static char from_geojson_dtypes[3] = {NPY_OBJECT, NPY_UINT8, NPY_OBJECT};
 static void from_geojson_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                               void* data) {
@@ -3560,7 +3021,6 @@ static void to_geojson_func(char** args, const npy_intp* dimensions, const npy_i
   int indent;
   GEOSGeoJSONWriter* writer;
   char* geojson;
-  char point_empty_error;
 
   if (is2 != 0) {
     PyErr_Format(PyExc_ValueError, "to_geojson indent parameter must be a scalar");
@@ -3610,88 +3070,6 @@ finish:
 }
 static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
 
-#endif  // GEOS_SINCE_3_10_0
-
-#if GEOS_SINCE_3_12_0
-static char coverage_simplify_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
-static void coverage_simplify_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                                    void* data) {
-  GEOSGeometry* in1 = NULL;
-  GEOSGeometry** geom_arr;
-
-  CHECK_NO_INPLACE_OUTPUT(3);
-
-  // allocate a temporary array to store output GEOSGeometry objects
-  geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  CHECK_ALLOC(geom_arr);
-
-  GEOS_INIT_THREADS;
-
-  TERNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    // get the geometry: return on error
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    double in2 = *(double*)ip2;
-    npy_bool in3 = !(*(npy_bool*)ip3);
-
-    int isValid = 1;
-    int numGeoms = GEOSGetNumGeometries_r(ctx, in1);
-    for (int j = 0; j < numGeoms; j++) {
-      GEOSGeometry* geom = GEOSGetGeometryN_r(ctx, in1, j);
-      if (GEOSGeomTypeId_r(ctx, geom) != GEOS_POLYGON && GEOSGeomTypeId_r(ctx, geom) != GEOS_MULTIPOLYGON) {
-          isValid = 0;
-          break;
-      }
-    }
-    if (isValid) {
-      geom_arr[i] = GEOSCoverageSimplifyVW_r(ctx, in1, in2, (int)in3);
-      if (geom_arr[i] == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        break;
-      }
-    } else {
-      geom_arr[i] = GEOSGeom_clone_r(ctx, in1);
-    }
-
-  }
-
-
-  GEOS_FINISH_THREADS;
-
-  // fill the numpy array with PyObjects while holding the GIL
-  if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[3], steps[3], dimensions[0]);
-  }
-  free(geom_arr);
-}
-static PyUFuncGenericFunction coverage_simplify_funcs[1] = {&coverage_simplify_func};
-
-#endif  // GEOS_SINCE_3_12_0
-/*
-TODO polygonizer functions
-TODO prepared geometry predicate functions
-TODO relate functions
-*/
-
-#define DEFINE_Y_b(NAME)                                                       \
-  ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, NAME##_data, Y_b_dtypes, 1, 1, 1, \
-                                  PyUFunc_None, #NAME, NULL, 0);               \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
-#define DEFINE_O_b(NAME)                                                       \
-  ufunc = PyUFunc_FromFuncAndData(O_b_funcs, NAME##_data, O_b_dtypes, 1, 1, 1, \
-                                  PyUFunc_None, #NAME, NULL, 0);               \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
 #define DEFINE_YY_b(NAME)                                                        \
   ufunc = PyUFunc_FromFuncAndData(YY_b_funcs, NAME##_data, YY_b_dtypes, 1, 2, 1, \
                                   PyUFunc_None, #NAME, "", 0);                   \
@@ -3705,21 +3083,6 @@ TODO relate functions
 #define DEFINE_Ydd_b_p(NAME)                                                           \
   ufunc = PyUFunc_FromFuncAndData(Ydd_b_p_funcs, NAME##_data, Ydd_b_p_dtypes, 1, 3, 1, \
                                   PyUFunc_None, #NAME, "", 0);                         \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
-#define DEFINE_Y_Y(NAME)                                                       \
-  ufunc = PyUFunc_FromFuncAndData(Y_Y_funcs, NAME##_data, Y_Y_dtypes, 1, 1, 1, \
-                                  PyUFunc_None, #NAME, "", 0);                 \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
-#define DEFINE_Y(NAME)                                                                   \
-  ufunc = PyUFunc_FromFuncAndData(Y_funcs, NAME##_data, Y_dtypes, 1, 1, 0, PyUFunc_None, \
-                                  #NAME, "", 0);                                         \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
-#define DEFINE_Yi_Y(NAME)                                                        \
-  ufunc = PyUFunc_FromFuncAndData(Yi_Y_funcs, NAME##_data, Yi_Y_dtypes, 1, 2, 1, \
-                                  PyUFunc_None, #NAME, "", 0);                   \
   PyDict_SetItemString(d, #NAME, ufunc)
 
 #define DEFINE_Yd_Y(NAME)                                                        \
@@ -3745,11 +3108,6 @@ TODO relate functions
 
 #define DEFINE_Y_B(NAME)                                                       \
   ufunc = PyUFunc_FromFuncAndData(Y_B_funcs, NAME##_data, Y_B_dtypes, 1, 1, 1, \
-                                  PyUFunc_None, #NAME, "", 0);                 \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
-#define DEFINE_Y_i(NAME)                                                       \
-  ufunc = PyUFunc_FromFuncAndData(Y_i_funcs, NAME##_data, Y_i_dtypes, 1, 1, 1, \
                                   PyUFunc_None, #NAME, "", 0);                 \
   PyDict_SetItemString(d, #NAME, ufunc)
 
@@ -3788,19 +3146,6 @@ TODO relate functions
 int init_ufuncs(PyObject* m, PyObject* d) {
   PyObject* ufunc;
 
-  DEFINE_Y_b(is_ccw);
-  DEFINE_Y_b(is_empty);
-  DEFINE_Y_b(is_simple);
-  DEFINE_Y_b(is_geometry);
-  DEFINE_Y_b(is_ring);
-  DEFINE_Y_b(has_z);
-  DEFINE_Y_b(is_closed);
-  DEFINE_Y_b(is_valid);
-
-  DEFINE_O_b(is_geometry);
-  DEFINE_O_b(is_missing);
-  DEFINE_O_b(is_valid_input);
-
   DEFINE_YY_b_p(disjoint);
   DEFINE_YY_b_p(touches);
   DEFINE_YY_b_p(intersects);
@@ -3815,35 +3160,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YY_b_p(covered_by);
   DEFINE_Ydd_b_p(contains_xy);
   DEFINE_Ydd_b_p(intersects_xy);
-  DEFINE_CUSTOM(is_prepared, 1);
-
-  DEFINE_Y_Y(envelope);
-  DEFINE_Y_Y(convex_hull);
-  DEFINE_Y_Y(boundary);
-  DEFINE_Y_Y(unary_union);
-  DEFINE_Y_Y(point_on_surface);
-  DEFINE_Y_Y(centroid);
-  DEFINE_Y_Y(line_merge);
-  DEFINE_Y_Y(minimum_clearance_line);
-  DEFINE_Y_Y(node);
-  DEFINE_Y_Y(extract_unique_points);
-  DEFINE_Y_Y(get_exterior_ring);
-  DEFINE_Y_Y(normalize);
-  DEFINE_Y_Y(force_2d);
-  DEFINE_Y_Y(oriented_envelope);
-  DEFINE_Y_Y(reverse);
-  DEFINE_Y_Y(make_valid);
-  DEFINE_Y_Y(build_area);
-  DEFINE_Y_Y(coverage_union);
-  DEFINE_Y_Y(minimum_bounding_circle);
-
-  DEFINE_Y(prepare);
-  DEFINE_Y(destroy_prepared);
-
-  DEFINE_Yi_Y(get_point);
-  DEFINE_Yi_Y(get_interior_ring);
-  DEFINE_Yi_Y(get_geometry);
-  DEFINE_Yi_Y(set_srid);
 
   DEFINE_Yd_Y(line_interpolate_point);
   DEFINE_Yd_Y(line_interpolate_point_normalized);
@@ -3861,24 +3177,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
   DEFINE_Y_Y_reduce(intersection_all);
   DEFINE_Y_Y_reduce(symmetric_difference_all);
-
-  DEFINE_Y_d(get_precision);
-  DEFINE_Y_d(get_x);
-  DEFINE_Y_d(get_y);
-  DEFINE_Y_d(get_z);
-  DEFINE_Y_d(area);
-  DEFINE_Y_d(length);
-  DEFINE_Y_d(minimum_clearance);
-  DEFINE_Y_d(minimum_bounding_radius);
-
-  DEFINE_Y_i(get_type_id);
-  DEFINE_Y_i(get_dimensions);
-  DEFINE_Y_i(get_coordinate_dimension);
-  DEFINE_Y_i(get_srid);
-  DEFINE_Y_i(get_num_points);
-  DEFINE_Y_i(get_num_interior_rings);
-  DEFINE_Y_i(get_num_geometries);
-  DEFINE_Y_i(get_num_coordinates);
 
   DEFINE_YY_d(distance);
   DEFINE_YY_d(frechet_distance);
@@ -3923,26 +3221,21 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YYd_Y(symmetric_difference_prec);
   DEFINE_YYd_Y(union_prec);
 
-#if GEOS_SINCE_3_10_0
   DEFINE_CUSTOM(make_valid_with_params, 3);
   DEFINE_Yd_Y(segmentize);
   DEFINE_CUSTOM(dwithin, 3);
   DEFINE_CUSTOM(from_geojson, 2);
   DEFINE_CUSTOM(to_geojson, 2);
-#endif
 
 #if GEOS_SINCE_3_11_0
   DEFINE_Yd_Y(remove_repeated_points);
-  DEFINE_Y_Y(line_merge_directed);
   DEFINE_CUSTOM(concave_hull, 3);
 #endif
 
 #if GEOS_SINCE_3_12_0
+  DEFINE_GENERALIZED(coverage_is_valid, 2, "(d),()->()");
+  DEFINE_GENERALIZED(coverage_invalid_edges, 2, "(d),()->(d)");
   DEFINE_CUSTOM(coverage_simplify, 3);
-  DEFINE_Y_Y(disjoint_subset_union);
-  DEFINE_Y_b(has_m);
-  DEFINE_Y_d(get_m);
-  DEFINE_Yi_Y(orient_polygons);
 #endif
 
   Py_DECREF(ufunc);
