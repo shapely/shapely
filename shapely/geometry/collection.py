@@ -20,7 +20,7 @@ class GeometryCollection(BaseMultipartGeometry):
 
     See Also
     --------
-    geometrycollections : Create geometrycollections from arrays of geometries.
+    geometrycollections : Create an array of GeometryCollections.
     empty : Create a geometry array prefilled with None or with empty geometries.
 
     Examples

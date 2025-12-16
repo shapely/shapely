@@ -149,9 +149,9 @@ def linestrings(
     out=None,
     **kwargs,
 ):
-    """Create an array of linestrings.
+    """Create an array of LineStrings.
 
-    This function will raise an exception if a linestring contains less than
+    This function will raise an exception if a LineString contains less than
     two points.
 
     Parameters
@@ -694,7 +694,7 @@ def multipolygons(geometries, indices=None, *, out=None, **kwargs):
 @deprecate_positional(["indices"], category=DeprecationWarning)
 @multithreading_enabled
 def geometrycollections(geometries, indices=None, out=None, **kwargs):
-    """Create geometrycollections from arrays of geometries.
+    """Create an array of GeometryCollections.
 
     Parameters
     ----------

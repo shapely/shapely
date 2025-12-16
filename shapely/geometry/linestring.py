@@ -26,7 +26,7 @@ class LineString(BaseGeometry):
 
     See Also
     --------
-    linestrings : Create an array of linestrings.
+    linestrings : Create an array of LineStrings.
     empty : Create a geometry array prefilled with None or with empty geometries.
 
     Examples
