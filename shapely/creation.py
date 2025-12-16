@@ -102,7 +102,7 @@ def points(
 
     See Also
     --------
-    multipoints
+    multipoints : Create an array of MultiPoints.
 
     Examples
     --------
@@ -380,7 +380,7 @@ def polygons(geometries, holes=None, indices=None, *, out=None, **kwargs):
 
     See Also
     --------
-    linearrings
+    linearrings : Create an array of LinearRings.
 
     Examples
     --------
@@ -489,6 +489,10 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
         positional argument. This will need to be specified as a keyword
         argument in a future release.
 
+    See Also
+    --------
+    polygons : Create an array of Polygons.
+
     Examples
     --------
     >>> import shapely
@@ -541,7 +545,7 @@ def multipoints(geometries, indices=None, *, out=None, **kwargs):
 
     See Also
     --------
-    points
+    points : Create an array of Points.
 
     Examples
     --------
@@ -687,8 +691,8 @@ def multipolygons(geometries, indices=None, *, out=None, **kwargs):
 
     See Also
     --------
-    multipoints
-    polygons
+    multipoints : Create an array of MultiPoints.
+    polygons : Create an array of Polygons.
 
     """
     typ = GeometryType.MULTIPOLYGON
@@ -743,7 +747,7 @@ def geometrycollections(geometries, indices=None, out=None, **kwargs):
 
     See Also
     --------
-    multipoints
+    multipoints : Create an array of MultiPoints.
 
     """
     typ = GeometryType.GEOMETRYCOLLECTION
@@ -817,7 +821,8 @@ def destroy_prepared(geometry, **kwargs):
 
     See Also
     --------
-    prepare
+    prepare : Prepare a geometry, improving performance of other operations.
+    is_prepared : Identify whether a geometry is prepared already.
 
     """
     return lib.destroy_prepared(geometry, **kwargs)
