@@ -199,8 +199,8 @@ def linestrings(
 
     See Also
     --------
-    linearrings
-    multilinestrings
+    linearrings : Create an array of LinearRings.
+    multilinestrings : Create an array of MultiLineStrings.
 
     Examples
     --------
@@ -301,9 +301,9 @@ def linearrings(
 
     See Also
     --------
-    linestrings
-    polygons
-    multipolygons
+    linestrings : Create an array of LineStrings.
+    polygons : Create an array of Polygons.
+    multipolygons : Create an array of MultiPolygons.
 
     Examples
     --------
@@ -634,8 +634,8 @@ def multilinestrings(geometries, indices=None, *, out=None, **kwargs):
 
     See Also
     --------
-    linestrings
-    multipoints
+    linestrings : Create an array of LineStrings.
+    multipoints : Create an array of MultiPoints.
 
     """
     typ = GeometryType.MULTILINESTRING
