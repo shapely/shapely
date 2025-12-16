@@ -6,7 +6,8 @@ Changes
 
 Improved performance of the following geometry methods: `area`, `length`,
 `minimum_clearance`, `x`, `y`, `z`, `m`, `has_z`, `has_m`, `is_empty`, `is_ring`,
-`is_closed`, `is_simple`. Benchmarks showed a change of call duration
+`is_closed`, `is_simple`, `geom_type`, `__len__`, `_ndim`.
+Benchmarks showed a change of call duration
 from 2.6 microseconds to 0.2 microseconds (on the `Point.x` attribute).
 
 Improved performance by changing the GEOS context handling. Instead of initializing/finalizing
@@ -15,6 +16,9 @@ increase of about 75 nanoseconds per call.
 
 Added `transform_coordseq`, which applies a transformation function per coordinate sequence
 in a more performant way than `shapely.ops.transform` does. `shapely.ops.transform` is now deprecated.
+
+Added return values to `prepare` and `destroy_prepared`. They now return whether something was done;
+calling `prepare` twice on a geometry will first return `True`, and then `False`.
 
 Bug fixes:
 

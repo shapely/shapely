@@ -1,12 +1,19 @@
-ARG BASEIMAGE=quay.io/pypa/manylinux2014_x86_64:latest
+ARG BASEIMAGE=quay.io/pypa/manylinux_2_28_x86_64:latest
 ARG GEOS_VERSION=3.13.1
 
 FROM $BASEIMAGE
 ARG GEOS_VERSION
+# Workaround -- https://github.com/pypa/manylinux/issues/1886
+RUN if [ "${AUDITWHEEL_POLICY}" == "manylinux_2_28" ] && \
+            [ -f "/etc/ld.so.conf.d/00-manylinux.conf" ] && \
+            [ -d "/usr/local/lib64" ]; then \
+        echo "/usr/local/lib64" >> /etc/ld.so.conf.d/00-manylinux.conf && \
+        ldconfig; \
+    fi
 ENV GEOS_VERSION=${GEOS_VERSION}
-RUN curl -OL --retry 5 https://download.osgeo.org/geos/geos-$GEOS_VERSION.tar.bz2
-RUN tar xfj geos-$GEOS_VERSION.tar.bz2 && rm geos-$GEOS_VERSION.tar.bz2
-RUN cmake -DCMAKE_BUILD_TYPE=Release -S geos-$GEOS_VERSION -B build
+RUN curl -LOSs --retry 5 https://download.osgeo.org/geos/geos-$GEOS_VERSION.tar.bz2
+RUN tar xfj geos-$GEOS_VERSION.tar.bz2 && rm -f geos-$GEOS_VERSION.tar.bz2
+RUN cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -S geos-$GEOS_VERSION -B build
 RUN cmake --build build -j 4
 RUN cmake --install build
 RUN cd build && ctest --output-on-failure
