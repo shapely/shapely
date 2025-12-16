@@ -26,7 +26,7 @@ class MultiLineString(BaseMultipartGeometry):
 
     See Also
     --------
-    multilinestrings : Create multilinestrings from arrays of linestrings.
+    multilinestrings : Create an array of MultiLineStrings.
     empty : Create a geometry array prefilled with None or with empty geometries.
 
     Examples

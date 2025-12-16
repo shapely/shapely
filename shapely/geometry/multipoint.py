@@ -28,7 +28,7 @@ class MultiPoint(BaseMultipartGeometry):
 
     See Also
     --------
-    multipoints : Create multipoints from arrays of points.
+    multipoints : Create an array of MultiPoints.
     empty : Create a geometry array prefilled with None or with empty geometries.
 
     Examples
