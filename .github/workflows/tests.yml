@@ -93,7 +93,7 @@ jobs:
           allow-prereleases: true
 
       - name: Cache GEOS and pip packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: ${{ matrix.os }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}
           path: |
