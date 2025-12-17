@@ -432,16 +432,18 @@ def test_difference_dim_empty_result(request, geom):
     """Test that difference preserves coordinate dimension
     even when result is empty.
 
-    Was fixed for points in GEOS 3.12.
+    Was fixed in GEOS 3.12.
 
     Reference: https://github.com/shapely/shapely/issues/1686
     """
     exp_dim = shapely.get_coordinate_dimension(geom)
 
-    if shapely.geos_version < (3, 12, 0) and exp_dim == 3:
+    if shapely.geos_version < (3, 12, 0) and (
+        isinstance(geom, LineString) or exp_dim == 3
+    ):
         request.node.add_marker(
             pytest.xfail(
-                "GEOS < 3.12 does not preserve point dimension on empty result"
+                "GEOS < 3.12 does not always preserve dimension on empty result"
             )
         )
 
