@@ -17,6 +17,10 @@ increase of about 75 nanoseconds per call.
 Added `transform_coordseq`, which applies a transformation function per coordinate sequence
 in a more performant way than `shapely.ops.transform` does. `shapely.ops.transform` is now deprecated.
 
+Added return values to `prepare` and `destroy_prepared`. They now return whether something was done;
+calling `prepare` twice on a geometry will first return `True`, and then `False`.
+
+
 2.1.2 (2025-09-24)
 ------------------
 
