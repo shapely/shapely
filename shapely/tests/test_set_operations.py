@@ -436,7 +436,9 @@ def test_difference_dim_empty_result(request, geom):
 
     Reference: https://github.com/shapely/shapely/issues/1686
     """
-    if shapely.geos_version < (3, 12, 0) and isinstance(geom, Point):
+    exp_dim = shapely.get_coordinate_dimension(geom)
+
+    if shapely.geos_version < (3, 12, 0) and exp_dim == 3:
         request.node.add_marker(
             pytest.xfail(
                 "GEOS < 3.12 does not preserve point dimension on empty result"
@@ -444,7 +446,6 @@ def test_difference_dim_empty_result(request, geom):
         )
 
     result = geom.difference(geom)
-    exp_dim = shapely.get_coordinate_dimension(geom)
     assert shapely.get_coordinate_dimension(result) == exp_dim
     assert result.is_empty
 
