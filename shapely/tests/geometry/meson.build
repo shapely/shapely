@@ -1,0 +1,21 @@
+py.install_sources([
+    '__init__.py',
+    'test_collection.py',
+    'test_coords.py',
+    'test_decimal.py',
+    'test_emptiness.py',
+    'test_equality.py',
+    'test_format.py',
+    'test_geometry_base.py',
+    'test_hash.py',
+    'test_linestring.py',
+    'test_multi.py',
+    'test_multilinestring.py',
+    'test_multipoint.py',
+    'test_multipolygon.py',
+    'test_point.py',
+    'test_polygon.py',
+  ],
+  subdir: 'shapely/tests/geometry',
+  install_tag: 'tests'
+)

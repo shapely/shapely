@@ -29,8 +29,9 @@ from shapely.geometry import (
     LinearRing,
 )
 
-from shapely import _version
+# TODO: re-enable dynamic version
+__version__ = "2.2.0.dev0"  # keep in sync with `project.version` in pyproject.toml
+__git_version__ = ""
 
-__version__ = _version.get_versions()["version"]
 
 setup_signal_checks()
