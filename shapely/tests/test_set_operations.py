@@ -426,13 +426,15 @@ def test_difference_deprecate_positional():
         Point(0, 0, 0),
         LineString([[2, 0], [0, 2]]),
         LineString([[2, 0, 0], [0, 2, 0]]),
+        Polygon([[0, 0], [2, 0], [0, 2], [0, 0]]),
+        Polygon([[0, 0, 0], [2, 0, 0], [0, 2, 0], [0, 0, 0]]),
     ],
 )
 def test_difference_dim_empty_result(request, geom):
     """Test that difference preserves coordinate dimension
     even when result is empty.
 
-    Was fixed in GEOS 3.12.
+    Was fixed for all situations starting from GEOS 3.12.
 
     Reference: https://github.com/shapely/shapely/issues/1686
     """
