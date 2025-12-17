@@ -428,9 +428,12 @@ def test_difference_deprecate_positional():
         LineString([[2, 0, 0], [0, 2, 0]]),
     ],
 )
+@pytest.mark.xfail(shapely.geos_version < (3, 12, 0), reason="fixed in GEOS >= 3.12")
 def test_difference_dim_empty_result(geom):
     """Test that difference preserves coordinate dimension
     even when result is empty.
+
+    Was fixed for points in GEOS 3.12.
 
     Reference: https://github.com/shapely/shapely/issues/1686
     """
