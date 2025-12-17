@@ -105,14 +105,13 @@ jobs:
         if: ${{ startsWith(matrix.os, 'windows') }}
 
       - name: Install GEOS
-        run: |
-          bash ci/install_geos.sh
+        run: bash ci/install_geos.sh
 
       - name: Install python dependencies
         run: |
           python -m pip install --disable-pip-version-check --upgrade pip
           pip config set global.progress_bar off
-          pip install --upgrade wheel setuptools
+          pip install -r requirements-dev.txt
           if [ -z "${{ matrix.numpy }}" ]; then
             pip install --upgrade --pre pytest pytest-cov coveralls;
             pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython numpy
@@ -128,37 +127,20 @@ jobs:
           pip list
 
       - name: Set environment variables (Linux)
-        run: |
-          echo "${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_PATH
-          echo "LD_LIBRARY_PATH=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: echo "LD_LIBRARY_PATH=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
 
       - name: Set environment variables (macOS)
-        run: |
-          echo "${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_PATH
-          echo "LDFLAGS=-Wl,-rpath,${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
         if: ${{ startsWith(matrix.os, 'macos') }}
-
-      # Windows requires special treatment:
-      # - geos-config does not exist, so we specify include and library paths
-      # - Python ignores the PATH for finding DLLs, so we copy them into the package
-      - name: Set environment variables + copy DLLs (Windows)
-        run: |
-          cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll shapely
-          echo 'GEOS_LIBRARY_PATH=${{ env.GEOS_INSTALL }}\lib' >> $GITHUB_ENV
-          echo 'GEOS_INCLUDE_PATH=${{ env.GEOS_INSTALL }}\include' >> $GITHUB_ENV
-        if: ${{ startsWith(matrix.os, 'windows') }}
+        run: echo "LDFLAGS=-Wl,-rpath,${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
 
       - name: Build and install Shapely
-        # for the numpy nightly build, we temporarily need to build without
-        # the standard build isolation based on build-system.requires, to
-        # ensure we build against numpy nightly (numpy 2.0 compat)
-        run: |
-          if [ -z "${{ matrix.numpy }}" ]; then
-            pip install -v -e . --no-build-isolation
-          else
-            pip install -v -e .
-          fi
+        run: >
+          pip install --verbose --no-build-isolation
+          -Csetup-args="-Dcmake_prefix_path=${{ env.GEOS_INSTALL }}"
+          -Ccompile-args="--verbose"
+          -Ceditable-verbose=true
+          --editable .
 
       - name: Overview of the Python environment (pip list)
         run: pip list

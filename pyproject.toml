@@ -5,13 +5,14 @@ requires = [
     # as oldest-support-numpy was (customizable with a NPY_TARGET_VERSION
     # define).
     "numpy>=1.25,<3",
-    "setuptools>=77.0.3",
+    "meson-python>=0.13.1",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "mesonpy"
 
 [project]
 name = "shapely"
-dynamic = ["version"]
+# dynamic = ["version"]  # TODO: re-enable dynamic version
+version = "2.2.0.dev0"  # keep in sync with `__version__` in shapely/__init__.py
 authors = [
     {name = "Sean Gillies"},
 ]
@@ -36,9 +37,9 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.11"  # keep in sync with `min_python_version` in meson.build
 dependencies = [
-    "numpy>=1.23",
+    "numpy>=1.23",  # keep in sync with `min_numpy_version` in meson.build
 ]
 
 [project.optional-dependencies]
@@ -59,21 +60,30 @@ docs = [
 Documentation = "https://shapely.readthedocs.io/"
 Repository = "https://github.com/shapely/shapely"
 
-[tool.setuptools]
-include-package-data = false
-
-[tool.setuptools.packages.find]
-include = ["shapely", "shapely.*"]
-
-[tool.setuptools.package-data]
-"shapely" = ["*.pxd"]
-
 [tool.cibuildwheel]
 skip = ["pp*", "*_i686", "*_ppc64le", "*_s390x"]
 build-verbosity = 1
+before-build = "pip install -r requirements-dev.txt"
+build-frontend = { name = "pip", args = ["--no-build-isolation"] }
 test-requires = "pytest"
 test-command = "pytest --pyargs shapely.tests"
 enable = ["cpython-freethreading"]
+
+[tool.cibuildwheel.windows]
+before-build = "pip install -r requirements-dev.txt delvewheel"
+config-settings = { setup-args = ["--vsenv"] }
+
+[[tool.cibuildwheel.overrides]]
+select = "*-manylinux*"
+manylinux-x86_64-image = "manylinux_2_34"  # AlmaLinux 9
+manylinux-aarch64-image = "manylinux_2_34"  # AlmaLinux 9
+before-build = "dnf -y install geos-devel"
+inherit.before-build = "prepend"
+
+[[tool.cibuildwheel.overrides]]
+select = "*-musllinux*"
+before-build = "apk add geos-dev"
+inherit.before-build = "prepend"
 
 [tool.coverage.run]
 source = ["shapely"]
@@ -84,6 +94,10 @@ include = ["docs"]
 ignore = ["D000", "D004"]
 allow-long-titles = true
 max-line-length = 79
+
+# uncomment to clear build cache with local builds
+#[tool.meson-python.args]
+#setup = ["--clearcache"]
 
 [tool.ruff]
 line-length = 88
