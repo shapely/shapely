@@ -233,8 +233,8 @@ def to_geojson(geometry, indent=None, **kwargs):
 
     See Also
     --------
-    mapping : Return a GeoJSON-like mapping of a Geometry or object
-        which implements __geo_interface__.
+    shapely.geometry.mapping : Return a GeoJSON-like mapping of a Geometry or
+        object which implements __geo_interface__.
 
     Examples
     --------
