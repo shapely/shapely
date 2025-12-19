@@ -214,6 +214,12 @@ def to_geojson(geometry, indent=None, **kwargs):
     - Geometries of type LINEARRING: these are output as 'null'.
     - Three-dimensional geometries: the third dimension is ignored.
 
+    Note that ``to_geojson`` does not enforce the winding order of polygons to
+    be compliant with the `RFC 7946 <https://geojson.org/>`__ GeoJSON
+    specification. If you want this, you can first order exterior rings
+    counterclockwise, and interior rings (holes) clockwise with
+    :func:`shapely.orient_polygons`.
+
     Parameters
     ----------
     geometry : str, bytes or array_like
@@ -224,6 +230,11 @@ def to_geojson(geometry, indent=None, **kwargs):
         selects the most compact representation.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    See Also
+    --------
+    mapping : Return a GeoJSON-like mapping of a Geometry or object
+        which implements __geo_interface__.
 
     Examples
     --------
