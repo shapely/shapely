@@ -20,6 +20,10 @@ in a more performant way than `shapely.ops.transform` does. `shapely.ops.transfo
 Added return values to `prepare` and `destroy_prepared`. They now return whether something was done;
 calling `prepare` twice on a geometry will first return `True`, and then `False`.
 
+Bug fixes:
+
+- Fix `split` does not split self intersecting lines if point on start or end
+  coordinate (#2381).
 
 2.1.2 (2025-09-24)
 ------------------
