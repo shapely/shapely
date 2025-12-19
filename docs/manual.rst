@@ -2526,9 +2526,9 @@ first use the :func:`prepared.prep` function.
   <shapely.prepared.PreparedGeometry object at 0x...>
   >>> hits = filter(prepared_polygon.contains, points)
 
-You can use the same :ref:`predicates` on prepared geometries as on normal geometries.
-All have exactly the same arguments and usage as their counterparts in
-non-prepared geometric objects, but execution will be faster.
+You can use the same :ref:`binary-predicates` on prepared geometries as on
+normal geometries. All have exactly the same arguments and usage as their
+counterparts in non-prepared geometric objects, but execution will be faster.
 
 Diagnostics
 -----------
