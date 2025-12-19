@@ -138,7 +138,6 @@ class TestSplitLine(TestSplitGeometry):
         self.helper(self.ls, splitter, 1)
 
     def test_split_line_with_multipoint(self):
-        """
         # points on line interior --> return 4 segments
         splitter = MultiPoint([(1, 1), (1.5, 1.5), (0.5, 0.5)])
         self.helper(self.ls, splitter, 4)
@@ -146,7 +145,6 @@ class TestSplitLine(TestSplitGeometry):
         # points on line interior and boundary -> return 2 segments
         splitter = MultiPoint([(1, 1), (3, 4)])
         self.helper(self.ls, splitter, 2)
-        """
 
         # point on linear interior but twice --> return 2 segments
         splitter = MultiPoint([(1, 1), (1.5, 1.5), (1, 1)])
