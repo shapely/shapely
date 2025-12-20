@@ -207,8 +207,8 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
     considered. The parameter 'densify' makes this approximation less coarse by
     splitting the line segments between vertices before computing the distance.
 
-    This implementation computes the undirected or symmetric Hausdorff
-    distance, meaning that the distance from A to B is the same as from B to A.
+    This implementation is undirected or symmetric Hausdorff, meaning that the
+    distance from A to B is the same as from B to A.
 
     Parameters
     ----------
