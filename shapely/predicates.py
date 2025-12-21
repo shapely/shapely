@@ -1182,9 +1182,6 @@ def equals_identical(a, b, **kwargs):
 def relate(a, b, **kwargs):
     """Return a string representation of the DE-9IM intersection matrix.
 
-    If you need to test multiple geometries against the same geometry A, you
-    can improve performance by preparing A in advance using :func:`prepare`.
-
     Parameters
     ----------
     a, b : Geometry or array_like
@@ -1194,7 +1191,7 @@ def relate(a, b, **kwargs):
 
     See Also
     --------
-    prepare : improve performance by preparing ``a`` (the first argument)
+    relate_pattern : check if the DE-9IM relationship code satisfies a pattern
 
     Examples
     --------
@@ -1220,9 +1217,6 @@ def relate_pattern(a, b, pattern, **kwargs):
     (uppercase ``T`` or ``F``), or a wildcard (``*``). For example,
     the pattern for the ``within`` predicate is ``'T*F**F***'``.
 
-    If you need to test multiple geometries against the same geometry A, you
-    can improve performance by preparing A in advance using :func:`prepare`.
-
     Parameters
     ----------
     a, b : Geometry or array_like
@@ -1231,6 +1225,10 @@ def relate_pattern(a, b, pattern, **kwargs):
         The pattern to match the DE-9IM relationship code against.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    See Also
+    --------
+    relate : get the DE-9IM relationship code string
 
     Examples
     --------
