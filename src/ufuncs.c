@@ -1317,7 +1317,7 @@ static void relate_func(char** args, const npy_intp* dimensions, const npy_intp*
   char* pattern;
   GEOSGeometry *in1 = NULL, *in2 = NULL;
   GEOSPreparedGeometry* in1_prepared = NULL;
-  
+
   GEOS_INIT;
 
   BINARY_LOOP {
