@@ -435,8 +435,7 @@ def test_difference_deprecate_positional():
     reason="GEOS < 3.12 does not always preserve dimension on empty result",
 )
 def test_difference_dim_empty_result(geom):
-    """Test that difference preserves coordinate dimension
-    even when result is empty.
+    """Test that difference preserves coordinate dimension even when result is empty.
 
     Was fixed for all situations starting from GEOS 3.12.
 
