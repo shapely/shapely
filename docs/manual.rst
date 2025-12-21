@@ -239,9 +239,8 @@ General Attributes and Methods
 .. method:: object.hausdorff_distance(other)
 
   Returns the Hausdorff distance (``float``) to the `other` geometric object.
-  The Hausdorff distance between two geometries is the furthest distance that
-  a point on either geometry can be from the nearest point to it on the other
-  geometry.
+
+  Check out :func:`shapely.hausdorff_distance` for more details.
 
   `New in Shapely 1.6.0`
 
