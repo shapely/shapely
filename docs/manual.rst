@@ -2831,6 +2831,12 @@ The GeoJSON-like mapping of a geometric object can be obtained using
   Returns a GeoJSON-like mapping from a Geometry or any object which
   implements ``__geo_interface__``.
 
+  Note that ``mapping`` does not enforce the winding order of polygons to be
+  compliant with the `RFC 7946 <https://geojson.org/>`__ GeoJSON
+  specification. If you want this, you can first order exterior rings
+  counterclockwise, and interior rings (holes) clockwise with
+  :func:`shapely.orient_polygons`.
+
   `New in version 1.2.3`.
 
   For example, using the same `GeoThing` class:
