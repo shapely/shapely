@@ -2,8 +2,6 @@
 
 .. include:: ../CREDITS.txt
 
-.. include:: ../FAQ.rst
-
 
 .. toctree::
    :caption: User Guide
@@ -11,7 +9,7 @@
 
    installation
    User Manual <manual>
-   FAQ
+   Frequently Asked Questions <faq>
    migration
    migration_pygeos
    release
