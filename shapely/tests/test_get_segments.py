@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from shapely import get_segments, get_z
-from shapely.errors import GeometryTypeError
+from shapely import get_segments
+from shapely._geometry import _create_segments
 from shapely.geometry import LineString
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
@@ -71,74 +71,10 @@ out_ring_nan = [
         [[line_string, linear_ring], np.array(out_elbow + out_ring)],
     ],
 )
-def test_get_segments_defaults(geoms, expected):
-    actual = get_segments(geoms)
+@pytest.mark.parametrize("create_style", ["loop", "list-comprehension", "map"])
+def test_get_segments_defaults(geoms, expected, create_style):
+    actual = get_segments(geoms, create_style=create_style)
     assert_geometries_equal(actual, expected)
-
-
-@pytest.mark.parametrize(
-    "geoms,expected",
-    [
-        #[line_string_z, np.array(out_elbow_z)],
-        #[[line_string_z], np.array(out_elbow_z)],
-        #[[line_string_z, line_string_z], np.array(out_elbow_z + out_elbow_z)],
-        #[line_string_z, np.array(out_elbow_z)],
-        #[line_string_m, np.array(out_elbow_z)],
-        #[line_string_zm, np.array(out_elbow_z)],
-        [linear_ring, np.array(out_ring_z)],
-        [linear_ring, np.array(out_ring_nan)],
-        #[[line_string_z, linear_ring], np.array(out_elbow_z + out_ring_nan)],
-    ],
-)
-def test_get_segments_include_z(geoms, expected):
-    expected_z = get_z(expected)
-    
-    
-    print(f"\n\n{expected=}\n\n")
-    print(f"\n\n{expected_z=}\n\n")
-    
-    actual = get_segments(geoms, include_z=True)
-    actual_z = get_z(actual)
-
-    assert_geometries_equal(actual, expected)
-    
-    
-    
-    print(f"\n\n{actual=}\n\n")
-    print(f"\n\n{actual_z=}\n\n")
-    
-    np.testing.assert_array_equal(actual_z, expected_z)
-    
-    stop
-
-
-
-
-
-
-
-'''
-@pytest.mark.parametrize(
-    "geoms,expected",
-    [
-        [line_string, np.array(out_elbow)],
-        [[line_string], np.array(out_elbow)],
-        [[line_string, line_string], np.array(out_elbow + out_elbow)],
-        [line_string_z, np.array(out_elbow)],
-        [line_string_m, np.array(out_elbow)],
-        [line_string_zm, np.array(out_elbow)],
-        [linear_ring, np.array(out_ring)],
-        [[line_string, linear_ring], np.array(out_elbow + out_ring)],
-    ],
-)
-def test_get_segments_defaults(geoms, expected):
-    actual = get_segments(geoms)
-    assert_geometries_equal(actual, expected)
-'''
-
-
-
-
 
 
 @pytest.mark.parametrize(
@@ -181,3 +117,9 @@ def test_ragged_array(geoms):
 def test_non_linear(geoms):
     with pytest.raises(ValueError, match=r"Geometry type is not supported"):
         get_segments(geoms)
+
+
+def test_create_segments():
+    expected = np.array(out_elbow)
+    actual = _create_segments(np.array([p1, p2, p3]), False)
+    assert_geometries_equal(actual, expected)

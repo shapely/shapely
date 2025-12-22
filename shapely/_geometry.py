@@ -1,4 +1,5 @@
 from enum import IntEnum
+from functools import partial
 
 import numpy as np
 
@@ -9,8 +10,6 @@ from shapely.decorators import (
     multithreading_enabled,
     requires_geos,
 )
-from shapely.errors import GeometryTypeError
-
 
 __all__ = [
     "GeometryType",
@@ -1024,6 +1023,7 @@ def get_segments(
     *,
     include_z=False,
     return_index=False,
+    create_style="loop",  ############################## temporary
     **kwargs,
 ):
     """Get segments of each input linear geometry object.
@@ -1099,17 +1099,8 @@ def get_segments(
     [<LINESTRING Z (0 0 NaN, 1 1 NaN)>, <LINESTRING Z (1 1 NaN, 2 2 NaN)>]
 
     """
-
-    def _return_input_index(idx):
-        """Create and return the index location of the original input geometry."""
-        uidx = np.unique_counts(idx)
-
-        return np.repeat(uidx.values, uidx.counts - 1)
-
-    # ensure array-type
     geometry = np.asarray(geometry, dtype=np.object_)
     geometry = np.atleast_1d(geometry)
-
     if geometry.ndim != 1:
         raise ValueError("Array should be one dimensional")
 
@@ -1129,28 +1120,40 @@ def get_segments(
     idx_splitter = np.unique(idx_coords.reshape(n_xys, 1), return_index=True)[1][1:]
     xys_by_input_feature = np.split(xys, idx_splitter)
 
+    ############################################################################
+    # LOOP -----------------------------------------------------
+    if create_style == "loop":
+        lines = []
+        for _xys in xys_by_input_feature:
+            lines.append(_create_segments(_xys, include_z, **kwargs))
+        lines = np.concatenate(lines)
 
-    #############################################
-    # LOOP
-    lines = []
-    for _xys in xys_by_input_feature:
-        lines.append(_create_segments(_xys, include_z, **kwargs))
-    lines = np.concatenate(lines)
+    # LIST COMP ------------------------------------------------
+    if create_style == "list-comprehension":
+        lines = np.concatenate(
+            [
+                _create_segments(_xys, include_z, **kwargs)
+                for _xys in xys_by_input_feature
+            ]
+        )
 
-    # LIST COMP
-    #lines = np.concatenate(
-    #    [_create_segments(_xys, include_z, **kwargs) for _xys in xys_by_input_feature]
-    #)
+    # MAP ------------------------------------------------------
+    if create_style == "map":
+        partial_func = partial(_create_segments, include_z=include_z, **kwargs)
+        lines = np.concatenate(list(map(partial_func, xys_by_input_feature)))
+    ############################################################################
 
-
-
-
-    return (lines, _return_input_index(idx_coords)) if return_index else lines
+    if return_index:
+        # return the index location of the original input geometry
+        uidx = np.unique_counts(idx_coords)
+        idx_lines = np.repeat(uidx.values, uidx.counts - 1)
+        return lines, idx_lines
+    else:
+        return lines
 
 
 def _create_segments(coords, include_z, **kwargs):
     """Create segments from pairwise coordinates."""
-
     coords_stacked = np.column_stack((coords[:-1], coords[1:]))
 
     n_segments = coords_stacked.shape[0]
@@ -1158,23 +1161,8 @@ def _create_segments(coords, include_z, **kwargs):
     if include_z:
         n_dims += 1
 
-    print(f"\n\n{n_dims=}\n\n")
-    print(f"\n\n{coords_stacked=}\n\n")
-
     # currently only 'allow'
     handle_nan = 0
-    #return lib.linestrings(
-    #    coords_stacked.reshape(n_segments, 2, n_dims),
-    #    np.intc(handle_nan),
-    #    **kwargs
-    #)
-    
-    LINES = lib.linestrings(
-        coords_stacked.reshape(n_segments, 2, n_dims),
-        np.intc(handle_nan),
-        **kwargs
+    return lib.linestrings(
+        coords_stacked.reshape(n_segments, 2, n_dims), np.intc(handle_nan), **kwargs
     )
-    
-    print(f"\n\n{LINES=}\n\n")
-    
-    return LINES
