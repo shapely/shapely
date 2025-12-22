@@ -239,9 +239,8 @@ General Attributes and Methods
 .. method:: object.hausdorff_distance(other)
 
   Returns the Hausdorff distance (``float``) to the `other` geometric object.
-  The Hausdorff distance between two geometries is the furthest distance that
-  a point on either geometry can be from the nearest point to it on the other
-  geometry.
+
+  Check out :func:`shapely.hausdorff_distance` for more details.
 
   `New in Shapely 1.6.0`
 
@@ -2526,10 +2525,9 @@ first use the :func:`prepared.prep` function.
   <shapely.prepared.PreparedGeometry object at 0x...>
   >>> hits = filter(prepared_polygon.contains, points)
 
-Prepared geometries instances have the following methods: ``contains``,
-``contains_properly``, ``covers``, and ``intersects``. All have exactly the
-same arguments and usage as their counterparts in non-prepared geometric
-objects.
+You can use the same :ref:`binary-predicates` on prepared geometries as on
+normal geometries. All have exactly the same arguments and usage as their
+counterparts in non-prepared geometric objects, but execution will be faster.
 
 Diagnostics
 -----------
@@ -2831,6 +2829,12 @@ The GeoJSON-like mapping of a geometric object can be obtained using
 
   Returns a GeoJSON-like mapping from a Geometry or any object which
   implements ``__geo_interface__``.
+
+  Note that ``mapping`` does not enforce the winding order of polygons to be
+  compliant with the `RFC 7946 <https://geojson.org/>`__ GeoJSON
+  specification. If you want this, you can first order exterior rings
+  counterclockwise, and interior rings (holes) clockwise with
+  :func:`shapely.orient_polygons`.
 
   `New in version 1.2.3`.
 

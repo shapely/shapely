@@ -1531,7 +1531,7 @@ def orient_polygons(geometry, *, exterior_cw=False, **kwargs):
 
     Forces (Multi)Polygons to use a counter-clockwise orientation for their
     exterior ring, and a clockwise orientation for their interior rings (or
-    the oppposite if ``exterior_cw=True``).
+    the opposite if ``exterior_cw=True``).
 
     Also processes geometries inside a GeometryCollection in the same way.
     Other geometries are returned unchanged.

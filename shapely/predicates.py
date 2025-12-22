@@ -504,6 +504,9 @@ def crosses(a, b, **kwargs):
     the intersection is one dimension less than the maximum dimension of A or B,
     and the intersection is not equal to either A or B.
 
+    If you need to test multiple geometries against the same geometry A, you
+    can improve performance by preparing A in advance using :func:`prepare`.
+
     Parameters
     ----------
     a, b : Geometry or array_like
@@ -555,6 +558,9 @@ def contains(a, b, **kwargs):
 
     A contains B if no points of B lie in the exterior of A and at least one
     point of the interior of B lies in the interior of A.
+
+    If you need to test multiple geometries against the same geometry A, you
+    can improve performance by preparing A in advance using :func:`prepare`.
 
     Note: following this definition, a geometry does not contain its boundary,
     but it does contain itself. See ``contains_properly`` for a version where
@@ -616,8 +622,11 @@ def contains_properly(a, b, **kwargs):
 
     A contains B properly if B intersects the interior of A but not the
     boundary (or exterior). This means that a geometry A does not
-    "contain properly" itself, which contrasts with the ``contains`` function,
+    "contain properly" itself, which contrasts with :func:`contains`,
     where common points on the boundary are allowed.
+
+    If you need to test multiple geometries against the same geometry A, you
+    can improve performance by preparing A in advance using :func:`prepare`.
 
     Note: this function will prepare the geometries under the hood if needed.
     You can prepare the geometries in advance to avoid repeated preparation
@@ -664,6 +673,9 @@ def contains_properly(a, b, **kwargs):
 @multithreading_enabled
 def covered_by(a, b, **kwargs):
     """Return True if no point in geometry A is outside geometry B.
+
+    If you need to test multiple geometries against the same geometry A, you
+    can improve performance by preparing A in advance using :func:`prepare`.
 
     Parameters
     ----------
@@ -715,6 +727,9 @@ def covered_by(a, b, **kwargs):
 @multithreading_enabled
 def covers(a, b, **kwargs):
     """Return True if no point in geometry B is outside geometry A.
+
+    If you need to test multiple geometries against the same geometry A, you
+    can improve performance by preparing A in advance using :func:`prepare`.
 
     Parameters
     ----------
@@ -769,6 +784,9 @@ def disjoint(a, b, **kwargs):
 
     Disjoint implies that overlaps, touches, within, and intersects are False.
     Note missing (None) values are never disjoint.
+
+    If you need to test multiple geometries against the same geometry A, you
+    can improve performance by preparing A in advance using :func:`prepare`.
 
     Parameters
     ----------
@@ -848,6 +866,9 @@ def intersects(a, b, **kwargs):
 
     Intersects implies that overlaps, touches, covers, or within are True.
 
+    If you need to test multiple geometries against the same geometry A, you
+    can improve performance by preparing A in advance using :func:`prepare`.
+
     Parameters
     ----------
     a, b : Geometry or array_like
@@ -891,6 +912,9 @@ def overlaps(a, b, **kwargs):
     within B, overlaps won't be True.
 
     If either A or B are None, the output is always False.
+
+    If you need to test multiple geometries against the same geometry A, you
+    can improve performance by preparing A in advance using :func:`prepare`.
 
     Parameters
     ----------
@@ -943,6 +967,9 @@ def overlaps(a, b, **kwargs):
 def touches(a, b, **kwargs):
     """Return True if the only points shared between A and B are on their boundaries.
 
+    If you need to test multiple geometries against the same geometry A, you
+    can improve performance by preparing A in advance using :func:`prepare`.
+
     Parameters
     ----------
     a, b : Geometry or array_like
@@ -987,6 +1014,9 @@ def within(a, b, **kwargs):
 
     A is within B if no points of A lie in the exterior of B and at least one
     point of the interior of A lies in the interior of B.
+
+    If you need to test multiple geometries against the same geometry A, you
+    can improve performance by preparing A in advance using :func:`prepare`.
 
     Parameters
     ----------
@@ -1107,9 +1137,9 @@ def equals_exact(a, b, tolerance=0.0, *, normalize=False, **kwargs):
 def equals_identical(a, b, **kwargs):
     """Return True if the geometries are identical.
 
-    This function verifies whether geometries are pointwise equivalent by checking
-    that the structure, ordering, and values of all vertices are identical
-    in all dimensions.
+    This function verifies whether geometries are pointwise equivalent by
+    checking that the structure, ordering, and values of all vertices are
+    identical in all dimensions.
 
     Similarly to :func:`equals_exact`, this function uses exact coordinate
     equality and requires coordinates to be in the same order for all
@@ -1159,6 +1189,10 @@ def relate(a, b, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    See Also
+    --------
+    relate_pattern : check if the DE-9IM relationship code satisfies a pattern
+
     Examples
     --------
     >>> import shapely
@@ -1192,6 +1226,10 @@ def relate_pattern(a, b, pattern, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    See Also
+    --------
+    relate : get the DE-9IM relationship code string
+
     Examples
     --------
     >>> import shapely
@@ -1213,6 +1251,9 @@ def dwithin(a, b, distance, **kwargs):
 
     Using this function is more efficient than computing the distance and
     comparing the result.
+
+    If you need to test multiple geometries against the same geometry A, you
+    can improve performance by preparing A in advance using :func:`prepare`.
 
     Parameters
     ----------
@@ -1250,14 +1291,17 @@ def dwithin(a, b, distance, **kwargs):
 def contains_xy(geom, x, y=None, **kwargs):
     """Return True if the Point (x, y) is completely inside geom.
 
-    This is a special-case (and faster) variant of the `contains` function
-    which avoids having to create a Point object if you start from x/y
+    This is a special-case (and faster) variant of the :func:`contains`
+    function which avoids having to create a Point object if you start from x/y
     coordinates.
 
-    Note that in the case of points, the `contains_properly` predicate is
-    equivalent to `contains`.
+    Note that in the case of points, the :func:`contains_properly` predicate is
+    equivalent to :func:`contains`.
 
-    See the docstring of `contains` for more details about the predicate.
+    See the docstring of :func:`contains` for more details about the predicate.
+
+    If you need to test multiple geometries against the same geometry, you can
+    improve performance by preparing ``geom`` in advance using :func:`prepare`.
 
     Parameters
     ----------
@@ -1272,6 +1316,7 @@ def contains_xy(geom, x, y=None, **kwargs):
     See Also
     --------
     contains : variant taking two geometries as input
+    prepare : improve performance by preparing ``geom`` (the first argument)
 
     Notes
     -----
@@ -1302,11 +1347,14 @@ def contains_xy(geom, x, y=None, **kwargs):
 def intersects_xy(geom, x, y=None, **kwargs):
     """Return True if geom and the Point (x, y) share any portion of space.
 
-    This is a special-case (and faster) variant of the `intersects` function
-    which avoids having to create a Point object if you start from x/y
+    This is a special-case (and faster) variant of the :func:`intersects`
+    function which avoids having to create a Point object if you start from x/y
     coordinates.
 
-    See the docstring of `intersects` for more details about the predicate.
+    See the docstring of :func:`intersects` for more details about the predicate.
+
+    If you need to test multiple geometries against the same geometry, you
+    can improve performance by preparing ``geom`` in advance using :func:`prepare`.
 
     Parameters
     ----------
@@ -1321,6 +1369,7 @@ def intersects_xy(geom, x, y=None, **kwargs):
     See Also
     --------
     intersects : variant taking two geometries as input
+    prepare : improve performance by preparing ``geom`` (the first argument)
 
     Notes
     -----
