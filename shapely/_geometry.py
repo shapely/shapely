@@ -1,5 +1,4 @@
 from enum import IntEnum
-from functools import partial
 
 import numpy as np
 
@@ -1104,100 +1103,44 @@ def get_segments(
     if geometry.ndim != 1:
         raise ValueError("Array should be one dimensional")
 
-    # ensure valid geometry type
+    # Ensure valid geometry type
     allowed_type_values = [GeometryType.LINESTRING.value, GeometryType.LINEARRING.value]
     valid_geometries = np.isin(get_type_id(geometry), allowed_type_values)
     if not valid_geometries.all():
         raise ValueError("Geometry type is not supported")
 
-    # not currently supported for linestrings
+    # Not currently supported for linestrings
     include_m = False
-    # always return index for get_coordinates()
+    # Always return index for get_coordinates()
     xys, idx_coords = lib.get_coordinates(geometry, include_z, include_m, True)
 
-    # isolate coords by input linear feature
-    n_xys = xys.shape[0]
-    idx_splitter = np.unique(idx_coords.reshape(n_xys, 1), return_index=True)[1][1:]
-    xys_by_input_feature = np.split(xys, idx_splitter)
+    # Create a mask for which coordinates are NOT the last in their group
+    # Last coordinate in each group has idx_coords[i] != idx_coords[i+1]
+    is_not_last = np.concatenate((idx_coords[:-1] == idx_coords[1:], [False]))
 
-    ############################################################################
-    # LOOP -----------------------------------------------------
-    if create_style == "loop":
-        lines = []
-        for _xys in xys_by_input_feature:
-            lines.append(_create_segments(_xys, include_z, **kwargs))
-        lines = np.concatenate(lines)
+    # Get indices of segment starts (all coords except last in each group)
+    segment_starts = np.where(is_not_last)[0]
+    segment_ends = segment_starts + 1
 
-    # LIST COMP ------------------------------------------------
-    if create_style == "list-comprehension":
-        lines = np.concatenate(
-            [
-                _create_segments(_xys, include_z, **kwargs)
-                for _xys in xys_by_input_feature
-            ]
-        )
+    # Stack the segment coordinates: each segment is [start_point, end_point]
+    segment_coords = np.column_stack((xys[segment_starts], xys[segment_ends]))
 
-    # MAP ------------------------------------------------------
-    if create_style == "map":
-        partial_func = partial(_create_segments, include_z=include_z, **kwargs)
-        lines = np.concatenate(list(map(partial_func, xys_by_input_feature)))
-
-    if create_style == "indices":
-        # Build all segment coordinates in one go and create indices
-
-        # Create a mask for which coordinates are NOT the last in their group
-        # Last coordinate in each group has idx_coords[i] != idx_coords[i+1]
-        is_not_last = np.concatenate((idx_coords[:-1] == idx_coords[1:], [False]))
-
-        # Get indices of segment starts (all coords except last in each group)
-        segment_starts = np.where(is_not_last)[0]
-        segment_ends = segment_starts + 1
-
-        # Stack the segment coordinates: each segment is [start_point, end_point]
-        segment_coords = np.column_stack((xys[segment_starts], xys[segment_ends]))
-
-        # Reshape segment coordinates to (n_segments, 2, n_dims)
-        n_segments = segment_coords.shape[0]
-        n_dims = 2
-        if include_z:
-            n_dims += 1
-
-        # currently only 'allow'
-        handle_nan = 0
-        lines = lib.linestrings(
-            segment_coords.reshape(n_segments, 2, n_dims), np.intc(handle_nan), **kwargs
-        )
-
-        # Efficiently compute idx_lines from segment_starts
-        if return_index:
-            # return the index location of the original input geometry
-            idx_lines = idx_coords[segment_starts]
-            return lines, idx_lines
-        else:
-            return lines
-
-    ############################################################################
-
-    if return_index:
-        # return the index location of the original input geometry
-        uidx = np.unique_counts(idx_coords)
-        idx_lines = np.repeat(uidx.values, uidx.counts - 1)
-        return lines, idx_lines
-    else:
-        return lines
-
-
-def _create_segments(coords, include_z, **kwargs):
-    """Create segments from pairwise coordinates."""
-    coords_stacked = np.column_stack((coords[:-1], coords[1:]))
-
-    n_segments = coords_stacked.shape[0]
+    # Reshape segment coordinates to (n_segments, 2, n_dims)
+    n_segments = segment_coords.shape[0]
     n_dims = 2
     if include_z:
         n_dims += 1
 
-    # currently only 'allow'
+    # Currently only 'allow'
     handle_nan = 0
-    return lib.linestrings(
-        coords_stacked.reshape(n_segments, 2, n_dims), np.intc(handle_nan), **kwargs
+    lines = lib.linestrings(
+        segment_coords.reshape(n_segments, 2, n_dims), np.intc(handle_nan), **kwargs
     )
+
+    # Efficiently compute idx_lines from segment_starts
+    if return_index:
+        # Return the index location of the original input geometry
+        idx_lines = idx_coords[segment_starts]
+        return lines, idx_lines
+    else:
+        return lines

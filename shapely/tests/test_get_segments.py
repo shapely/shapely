@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from shapely import get_segments
-from shapely._geometry import _create_segments
 from shapely.geometry import LineString
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
@@ -119,9 +118,3 @@ def test_ragged_array(geoms):
 def test_non_linear(geoms):
     with pytest.raises(ValueError, match=r"Geometry type is not supported"):
         get_segments(geoms)
-
-
-def test_create_segments():
-    expected = np.array(out_elbow)
-    actual = _create_segments(np.array([p1, p2, p3]), False)
-    assert_geometries_equal(actual, expected)
