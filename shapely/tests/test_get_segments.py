@@ -71,7 +71,9 @@ out_ring_nan = [
         [[line_string, linear_ring], np.array(out_elbow + out_ring)],
     ],
 )
-@pytest.mark.parametrize("create_style", ["loop", "list-comprehension", "map"])
+@pytest.mark.parametrize(
+    "create_style", ["loop", "list-comprehension", "map", "indices"]
+)
 def test_get_segments_defaults(geoms, expected, create_style):
     actual = get_segments(geoms, create_style=create_style)
     assert_geometries_equal(actual, expected)
