@@ -1141,6 +1141,41 @@ def get_segments(
     if create_style == "map":
         partial_func = partial(_create_segments, include_z=include_z, **kwargs)
         lines = np.concatenate(list(map(partial_func, xys_by_input_feature)))
+
+    if create_style == "indices":
+        # Build all segment coordinates in one go and create indices
+
+        # Create a mask for which coordinates are NOT the last in their group
+        # Last coordinate in each group has idx_coords[i] != idx_coords[i+1]
+        is_not_last = np.concatenate((idx_coords[:-1] == idx_coords[1:], [False]))
+
+        # Get indices of segment starts (all coords except last in each group)
+        segment_starts = np.where(is_not_last)[0]
+        segment_ends = segment_starts + 1
+
+        # Stack the segment coordinates: each segment is [start_point, end_point]
+        segment_coords = np.column_stack((xys[segment_starts], xys[segment_ends]))
+
+        # Reshape segment coordinates to (n_segments, 2, n_dims)
+        n_segments = segment_coords.shape[0]
+        n_dims = 2
+        if include_z:
+            n_dims += 1
+
+        # currently only 'allow'
+        handle_nan = 0
+        lines = lib.linestrings(
+            segment_coords.reshape(n_segments, 2, n_dims), np.intc(handle_nan), **kwargs
+        )
+
+        # Efficiently compute idx_lines from segment_starts
+        if return_index:
+            # return the index location of the original input geometry
+            idx_lines = idx_coords[segment_starts]
+            return lines, idx_lines
+        else:
+            return lines
+
     ############################################################################
 
     if return_index:
