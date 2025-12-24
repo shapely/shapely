@@ -1053,7 +1053,7 @@ def get_segments(
 
     Examples
     --------
-    >>> from shapely.ops import get_segments
+    >>> from shapely import get_segments
     >>> from shapely import LineString, LinearRing
 
     Return the 2 constituent pairwise segments of a 3-coordinate linestring.
@@ -1069,12 +1069,12 @@ def get_segments(
     When ``return_index=True``, indexes are returned also:
 
     >>> segments, index = get_segments(
-    ...:     [
-    ...:         LineString(([0, 0], [1, 1], [2, 2])),
-    ...:         LinearRing(([0, 0], [1, 1], [2, 2], [0,0])),
-    ...:     ],
-    ...:     return_index=True,
-    ...: )
+    ...      [
+    ...          LineString(([0, 0], [1, 1], [2, 2])),
+    ...          LinearRing(([0, 0], [1, 1], [2, 2], [0,0])),
+    ...      ],
+    ...      return_index=True,
+    ... )
     >>> segments.tolist(), index.tolist()
     ([<LINESTRING (0 0, 1 1)>,
       <LINESTRING (1 1, 2 2)>,
