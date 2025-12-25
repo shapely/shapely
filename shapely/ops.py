@@ -374,6 +374,7 @@ class SplitOp:
             raise GeometryTypeError("Second argument must be a Point")
 
         # check if point is in the interior of the line
+        # remark: the start and end points are not the interior
         if not line.relate_pattern(splitter, "0********"):
             # point not on line interior --> return collection with single identity line
             # (REASONING: Returning a list with the input line reference and creating a
@@ -398,6 +399,10 @@ class SplitOp:
             current_position += segment_length
             if distance_on_line == current_position:
                 # splitter is exactly on a vertex
+                if i + 2 == len(coords):
+                    # splitter is ~ on last point. We can get here if the split point is
+                    # within floating point precision to the last vertex -> no split
+                    return [line]
                 return [LineString(coords[: i + 2]), LineString(coords[i + 1 :])]
             elif distance_on_line < current_position:
                 # splitter is between two vertices

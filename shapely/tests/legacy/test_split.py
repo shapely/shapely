@@ -133,6 +133,15 @@ class TestSplitLine(TestSplitGeometry):
         splitter = Point(2, 2)
         self.helper(self.ls, splitter, 1)
 
+    def test_split_line_with_point_fp_precision_issue(self):
+        """Test split of a line with a point triggering fp precision issues."""
+        line = LineString([(-1.5, 0), (-8e-16, 0)])
+
+        # point within floating point precision to 2nd vertex but still on interior
+        # of line --> return equal
+        splitter = Point(-9e-16, 0)
+        self.helper(line, splitter, 1)
+
     def test_split_line_with_multipoint(self):
         # points on line interior --> return 4 segments
         splitter = MultiPoint([(1, 1), (1.5, 1.5), (0.5, 0.5)])
@@ -145,6 +154,17 @@ class TestSplitLine(TestSplitGeometry):
         # point on linear interior but twice --> return 2 segments
         splitter = MultiPoint([(1, 1), (1.5, 1.5), (1, 1)])
         self.helper(self.ls, splitter, 3)
+
+    def test_split_line_with_multipoint_fp_precision_issue(self):
+        """Test split of a line with a multipoint triggering fp precision issues.
+
+        This tests the handling of floating point precision issues when the
+        splitter point is extremely close to a vertex of the line.
+        Added in context of https://github.com/shapely/shapely/issues/2087.
+        """
+        line = LineString([(-1.5, 0), (1.5, 0)])
+        splitter = MultiPoint([(-8e-16, 0), (-9e-16, 0)])
+        self.helper(line, splitter, 2)
 
     def test_split_line_with_line(self):
         # crosses at one point --> return 2 segments
