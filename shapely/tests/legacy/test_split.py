@@ -125,7 +125,11 @@ class TestSplitLine(TestSplitGeometry):
         splitter = Point(1.5, 1.5)
         self.helper(self.ls, splitter, 2)
 
-        # point on boundary --> return equal
+        # point on boundary, first point --> return equal
+        splitter = Point(0, 0)
+        self.helper(self.ls, splitter, 1)
+
+        # point on boundary, last point --> return equal
         splitter = Point(3, 4)
         self.helper(self.ls, splitter, 1)
 
@@ -283,3 +287,89 @@ class TestSplitMulti(TestSplitGeometry):
         mpoly = MultiPolygon([poly1, poly2])
         ls = LineString([(-1, -1), (3, 3)])
         self.helper(mpoly, ls, 2)
+
+
+@pytest.mark.parametrize(
+    "descr, line_coords, point_coords, expected_chunks",
+    [
+        ("point is 1st coord", [(0, 0), (1, 1), (1, 0), (0, 0)], (0, 0), 1),
+        ("point is on line", [(0, 0), (1, 1), (1, 0), (0, 0)], (0.5, 0), 2),
+        ("point is on coord", [(0, 0), (1, 1), (1, 0), (0, 0)], (1, 1), 2),
+    ],
+)
+def test_split_line_closed_with_point(
+    descr, line_coords, point_coords, expected_chunks
+):
+    """Test splitting a closed line with a point."""
+    line = LineString(line_coords)
+    splitter = Point(point_coords)
+    TestSplitGeometry().helper(line, splitter, expected_chunks)
+
+
+@pytest.mark.parametrize(
+    "descr, line_coords, point_coords, expected_chunks",
+    [
+        ("point is 1st coord", [(0, 0), (2, 2), (0, 0)], (0, 0), 1),
+        ("point is on line", [(0, 0), (2, 2), (0, 0)], (1, 1), 2),
+        ("point is on coord", [(0, 0), (2, 2), (0, 0)], (2, 2), 2),
+    ],
+)
+def test_split_line_retraces_with_point(
+    descr, line_coords, point_coords, expected_chunks
+):
+    """Test splitting a line that retraces itself with a point."""
+    line = LineString(line_coords)
+    splitter = Point(point_coords)
+    TestSplitGeometry().helper(line, splitter, expected_chunks)
+
+
+@pytest.mark.parametrize(
+    "descr, line_coords, point_coords, expected_chunks",
+    [
+        ("point is 1st coord", [(0, 0), (2, 2), (-2, -2)], (0, 0), 2),
+        ("point is last coord", [(-2, -2), (2, 2), (0, 0)], (0, 0), 2),
+        ("point is on line", [(0, 0), (2, 2), (-2, -2)], (1, 1), 2),
+        ("point is on coord", [(0, 0), (2, 2), (-2, -2)], (2, 2), 2),
+    ],
+)
+def test_split_line_self_intersects_with_point(
+    descr, line_coords, point_coords, expected_chunks
+):
+    """Test splitting a self-intersecting line with a point."""
+    line = LineString(line_coords)
+    splitter = Point(point_coords)
+    TestSplitGeometry().helper(line, splitter, expected_chunks)
+
+
+@pytest.mark.parametrize(
+    "descr, line_coords, point_coords, expected_chunks",
+    [
+        ("point is 1st coord", [(0, 0), (1, 1), (2, 2), (0, 0), (-2, -2)], (0, 0), 2),
+        ("point is last coord", [(-2, -2), (0, 0), (1, 1), (2, 2), (0, 0)], (0, 0), 2),
+        ("point is on line", [(0, 0), (1, 1), (2, 2), (0, 0), (-2, -2)], (1, 1), 2),
+        ("point is on coord", [(0, 0), (1, 1), (2, 2), (0, 0), (-2, -2)], (2, 2), 2),
+    ],
+)
+def test_split_line_self_intersects_long_with_point(
+    descr, line_coords, point_coords, expected_chunks
+):
+    """Test splitting a longer self-intersecting line with a point."""
+    line = LineString(line_coords)
+    splitter = Point(point_coords)
+    TestSplitGeometry().helper(line, splitter, expected_chunks)
+
+
+@pytest.mark.parametrize(
+    "descr, line_coords, point_coords, expected_chunks",
+    [
+        ("point is first coord", [(0, 0), (2, 2)], (0, 0), 1),
+        ("point is last coord", [(0, 0), (2, 2)], (2, 2), 1),
+        ("point is on interior", [(0, 0), (2, 2)], (1, 1), 2),
+        ("point is not on line", [(0, 0), (2, 2)], (3, 3), 1),
+    ],
+)
+def test_split_line_short_with_point(descr, line_coords, point_coords, expected_chunks):
+    """Test splitting a short line of 2 points with a point."""
+    line = LineString(line_coords)
+    splitter = Point(point_coords)
+    TestSplitGeometry().helper(line, splitter, expected_chunks)
