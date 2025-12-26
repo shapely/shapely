@@ -283,3 +283,28 @@ class TestSplitMulti(TestSplitGeometry):
         mpoly = MultiPolygon([poly1, poly2])
         ls = LineString([(-1, -1), (3, 3)])
         self.helper(mpoly, ls, 2)
+
+
+@pytest.mark.parametrize(
+    "desc, line_coords, splitter_coords, expected_chunks",
+    [
+        (
+            "line ends both on splitter",
+            [(1, 0), (0, 1), (2, 1), (2, 0)],
+            [(0, 0), (3, 0)],
+            1,
+        ),
+        (
+            "closed line ends on splitter",
+            [(1, 0), (0, 1), (2, 1), (1, 0)],
+            [(0, 0), (3, 0)],
+            1,
+        ),
+    ],
+)
+def test_split_line_with_line_specials(
+    desc, line_coords, splitter_coords, expected_chunks
+):
+    line = LineString(line_coords)
+    splitter = LineString(splitter_coords)
+    TestSplitGeometry().helper(line, splitter, expected_chunks)
