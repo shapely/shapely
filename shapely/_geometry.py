@@ -1022,7 +1022,6 @@ def get_segments(
     *,
     include_z=False,
     return_index=False,
-    create_style="loop",  ############################## temporary
     **kwargs,
 ):
     """Get segments of each input linear geometry object.
