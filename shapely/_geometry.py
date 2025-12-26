@@ -1130,10 +1130,10 @@ def get_segments(
     if include_z:
         n_dims += 1
 
-    # Currently only 'allow'
-    handle_nan = 0
+    # 'allow' NaN linestrings
+    allow_nan = np.intc(0)
     lines = lib.linestrings(
-        segment_coords.reshape(n_segments, 2, n_dims), np.intc(handle_nan), **kwargs
+        segment_coords.reshape(n_segments, 2, n_dims), allow_nan, **kwargs
     )
 
     # Efficiently compute idx_lines from segment_starts
