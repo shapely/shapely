@@ -1316,6 +1316,7 @@ static char relate_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static void relate_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   char* pattern;
   GEOSGeometry *in1 = NULL, *in2 = NULL;
+  GEOSPreparedGeometry* in1_prepared = NULL;
 
   GEOS_INIT;
 
@@ -1326,7 +1327,7 @@ static void relate_func(char** args, const npy_intp* dimensions, const npy_intp*
     }
     PyObject** out = (PyObject**)op1;
     /* get the geometries: return on error */
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
+    if (!get_geom_with_prepared(*(GeometryObject**)ip1, &in1, &in1_prepared)) {
       errstate = PGERR_NOT_A_GEOMETRY;
       goto finish;
     }
@@ -1340,7 +1341,17 @@ static void relate_func(char** args, const npy_intp* dimensions, const npy_intp*
       Py_INCREF(Py_None);
       *out = Py_None;
     } else {
+#if GEOS_SINCE_3_13_0
+      if (in1_prepared != NULL) {
+        /* call the prepared GEOS function */
+        pattern = GEOSPreparedRelate_r(ctx, in1_prepared, in2);
+      } else {
+        /* call the GEOS function */
+        pattern = GEOSRelate_r(ctx, in1, in2);
+      }
+#else
       pattern = GEOSRelate_r(ctx, in1, in2);
+#endif
       if (pattern == NULL) {
         errstate = PGERR_GEOS_EXCEPTION;
         goto finish;
@@ -1361,6 +1372,7 @@ static char relate_pattern_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_
 static void relate_pattern_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                 void* data) {
   GEOSGeometry *in1 = NULL, *in2 = NULL;
+  GEOSPreparedGeometry* in1_prepared = NULL;
   const char* pattern = NULL;
   npy_bool ret;
 
@@ -1393,7 +1405,7 @@ static void relate_pattern_func(char** args, const npy_intp* dimensions, const n
       goto finish;
     }
     /* get the geometries: return on error */
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
+    if (!get_geom_with_prepared(*(GeometryObject**)ip1, &in1, &in1_prepared)) {
       errstate = PGERR_NOT_A_GEOMETRY;
       goto finish;
     }
@@ -1407,7 +1419,17 @@ static void relate_pattern_func(char** args, const npy_intp* dimensions, const n
       /* in case of a missing value: return 0 (False) */
       ret = 0;
     } else {
+#if GEOS_SINCE_3_13_0
+      if (in1_prepared != NULL) {
+        /* call the prepared GEOS function */
+        ret = GEOSPreparedRelatePattern_r(ctx, in1_prepared, in2, pattern);
+      } else {
+        /* call the GEOS function */
+        ret = GEOSRelatePattern_r(ctx, in1, in2, pattern);
+      }
+#else
       ret = GEOSRelatePattern_r(ctx, in1, in2, pattern);
+#endif
       if (ret == 2) {
         errstate = PGERR_GEOS_EXCEPTION;
         goto finish;
