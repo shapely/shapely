@@ -1122,19 +1122,11 @@ def get_segments(
     segment_ends = segment_starts + 1
 
     # Stack the segment coordinates: each segment is [start_point, end_point]
-    segment_coords = np.column_stack((xys[segment_starts], xys[segment_ends]))
-
-    # Reshape segment coordinates to (n_segments, 2, n_dims)
-    n_segments = segment_coords.shape[0]
-    n_dims = 2
-    if include_z:
-        n_dims += 1
+    segment_coords = np.stack([xys[segment_starts], xys[segment_ends]], axis=1)
 
     # 'allow' NaN linestrings
     allow_nan = np.intc(0)
-    lines = lib.linestrings(
-        segment_coords.reshape(n_segments, 2, n_dims), allow_nan, **kwargs
-    )
+    lines = lib.linestrings(segment_coords, allow_nan, **kwargs)
 
     # Efficiently compute idx_lines from segment_starts
     if return_index:
