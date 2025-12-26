@@ -270,66 +270,11 @@ static void Yd_Y_func(char** args, const npy_intp* dimensions, const npy_intp* s
 }
 static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 
-/* Define the geom, geom -> geom functions (YY_Y) */
-static void* intersection_data[1] = {GEOSIntersection_r};
-static void* difference_data[1] = {GEOSDifference_r};
-static void* symmetric_difference_data[1] = {GEOSSymDifference_r};
-static void* union_data[1] = {GEOSUnion_r};
-static void* shared_paths_data[1] = {GEOSSharedPaths_r};
-typedef void* FuncGEOS_YY_Y(void* context, void* a, void* b);
-static char YY_Y_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static void YY_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
-  GEOSGeometry *in1 = NULL, *in2 = NULL;
-  GEOSGeometry** geom_arr;
-
-  CHECK_NO_INPLACE_OUTPUT(2);
-
-  // allocate a temporary array to store output GEOSGeometry objects
-  geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  CHECK_ALLOC(geom_arr);
-
-  GEOS_INIT_THREADS;
-
-  BINARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    // get the geometries: return on error
-    if (!get_geom(*(GeometryObject**)ip1, &in1) ||
-        !get_geom(*(GeometryObject**)ip2, &in2)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    if ((in1 == NULL) || (in2 == NULL)) {
-      // in case of a missing value: return NULL (None)
-      geom_arr[i] = NULL;
-    } else {
-      geom_arr[i] = func(ctx, in1, in2);
-      if (geom_arr[i] == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        break;
-      }
-    }
-  }
-
-  GEOS_FINISH_THREADS;
-
-  // fill the numpy array with PyObjects while holding the GIL
-  if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
-  }
-  free(geom_arr);
-}
-static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
 
 /* Define the reducing geoms -> geom functions (Y_Y_reduce) */
 static void* intersection_all_data[1] = {GEOSIntersection_r};
 static void* symmetric_difference_all_data[1] = {GEOSSymDifference_r};
+typedef void* FuncGEOS_YY_Y(void* context, void* a, void* b);
 static char Y_Y_reduce_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void Y_Y_reduce_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                    void* data) {
@@ -2972,11 +2917,6 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
                                   PyUFunc_None, #NAME, "", 0);                   \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_YY_Y(NAME)                                                        \
-  ufunc = PyUFunc_FromFuncAndData(YY_Y_funcs, NAME##_data, YY_Y_dtypes, 1, 2, 1, \
-                                  PyUFunc_None, #NAME, "", 0);                   \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
 #define DEFINE_Y_Y_reduce(NAME)                                                         \
   ufunc = PyUFunc_FromFuncAndDataAndSignature(Y_Y_reduce_funcs, NAME##_data,            \
                                               Y_Y_reduce_dtypes, 1, 1, 1, PyUFunc_None, \
@@ -3039,11 +2979,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Yd_Y(unary_union_prec);
   DEFINE_Yd_Y(maximum_inscribed_circle);
 
-  DEFINE_YY_Y(intersection);
-  DEFINE_YY_Y(difference);
-  DEFINE_YY_Y(symmetric_difference);
-  DEFINE_YY_Y(union);
-  DEFINE_YY_Y(shared_paths);
 
   DEFINE_Y_Y_reduce(intersection_all);
   DEFINE_Y_Y_reduce(symmetric_difference_all);
