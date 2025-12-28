@@ -26,6 +26,11 @@ class MultiPoint(BaseMultipartGeometry):
     geoms : sequence
         A sequence of Points
 
+    See Also
+    --------
+    multipoints : Create an array of MultiPoints.
+    empty : Create a geometry array prefilled with None or with empty geometries.
+
     Examples
     --------
     Construct a MultiPoint containing two Points

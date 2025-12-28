@@ -294,8 +294,9 @@ def is_prepared(geometry, **kwargs):
 
     See Also
     --------
-    is_valid_input : check if an object is a geometry or None
-    prepare : prepare a geometry
+    is_valid_input : Check if an object is a geometry or None.
+    prepare : Prepare a geometry.
+    destroy_prepared : Destroy the prepared state of a geometry.
 
     Examples
     --------
