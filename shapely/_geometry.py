@@ -1103,7 +1103,11 @@ def get_segments(
         raise ValueError("Array should be one dimensional")
 
     # Ensure valid geometry type
-    allowed_type_values = [GeometryType.LINESTRING.value, GeometryType.LINEARRING.value]
+    allowed_type_values = [
+        GeometryType.LINESTRING.value,
+        GeometryType.LINEARRING.value,
+        GeometryType.MISSING.value,
+    ]
     valid_geometries = np.isin(get_type_id(geometry), allowed_type_values)
     if not valid_geometries.all():
         raise ValueError("Geometry type is not supported")
