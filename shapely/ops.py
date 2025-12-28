@@ -442,6 +442,7 @@ class SplitOp:
         It may be convenient to snap the splitter with low tolerance to the
         geometry. For example in the case of splitting a line by a point, the
         point must be exactly on the line, for the line to be correctly split.
+
         When splitting a line by a polygon, the boundary of the polygon is used
         for the operation. When splitting a line by another line, a ValueError
         is raised if the two overlap at some segment.
@@ -452,6 +453,11 @@ class SplitOp:
             The geometry to be split
         splitter : geometry
             The geometry that will split the input geom
+
+        Notes
+        -----
+        If the input geometry is a LineString that self-intersects, the output will also
+        be split at the self-intersection points.
 
         Examples
         --------
