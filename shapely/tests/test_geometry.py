@@ -769,7 +769,7 @@ def test_get_segments_defaults(geoms, expected):
         [line_string_zm, np.array(out_elbow_z)],
         [
             [empty_line_string, None, line_string, line_string_z, line_string_zm],
-            np.array(out_elbow_nan + out_elbow_z + out_elbow_z)
+            np.array(out_elbow_nan + out_elbow_z + out_elbow_z),
         ],
         [[empty_line_string, empty_line_string_z], np.array([])],
     ],
