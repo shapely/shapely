@@ -1260,10 +1260,11 @@ example, the following lines touch at ``(1, 1)``, but do not overlap.
 
 .. method:: object.within(other)
 
-  Returns ``True`` if the object's `boundary` and `interior` intersect only
-  with the `interior` of the other (not its `boundary` or `exterior`).
+  Return ``True`` if the object is completely inside the other.
 
 This applies to all types and is the inverse of :meth:`~object.contains`.
+
+For more details on the exact behaviour, check out :func:`shapely.within`.
 
 Used in a ``sorted()`` `key`, :meth:`~object.within` makes it easy to spatially
 sort objects. Let's say we have 4 stereotypic features: a point that is
