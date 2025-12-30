@@ -1260,7 +1260,8 @@ example, the following lines touch at ``(1, 1)``, but do not overlap.
 
 .. method:: object.within(other)
 
-  Return ``True`` if the object is completely inside the other.
+  Return ``True`` if the object is completely inside the other. For more
+  detailed information, check out :func:`shapely.within`.
 
 This applies to all types and is the inverse of :meth:`~object.contains`.
 
