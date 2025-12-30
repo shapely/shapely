@@ -686,8 +686,9 @@ def covered_by(a, b, **kwargs):
 
     See Also
     --------
-    covers : ``covered_by(A, B) == covers(B, A)``
-    prepare : improve performance by preparing ``a`` (the first argument)
+    covers : ``covered_by(A, B) == covers(B, A)``.
+    prepare : Improve performance by preparing ``a`` (the first argument).
+    within : Return True if geometry A is completely inside geometry B.
 
     Examples
     --------
@@ -1015,6 +1016,16 @@ def within(a, b, **kwargs):
     A is within B if no points of A lie in the exterior of B and at least one
     point of the interior of A lies in the interior of B.
 
+    For example, POINT (1 1) is within LINESTRING (0 0, 1 1, 2 2). However,
+    POINT (0 0) is not because it only intersects the boundary of the LineString
+    and not the interior. Intersecting with the boundary of the other is allowed
+    though, LINESTRING (0 0, 1 1) is within LINESTRING (0 0, 1 1, 2 2) because
+    it's interior does intersect the other's interior and none of it intersects
+    the other's exterior.
+
+    See also :func:`covered_by` for a similar but slightly more inclusive
+    relation.
+
     If you need to test multiple geometries against the same geometry A, you
     can improve performance by preparing A in advance using :func:`prepare`.
 
@@ -1027,8 +1038,9 @@ def within(a, b, **kwargs):
 
     See Also
     --------
-    contains : ``within(A, B) == contains(B, A)``
-    prepare : improve performance by preparing ``a`` (the first argument)
+    contains : ``within(A, B) == contains(B, A)``.
+    covered_by : Return True if no point in geometry A is outside geometry B.
+    prepare : Improve performance by preparing ``a`` (the first argument).
 
     Examples
     --------

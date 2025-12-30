@@ -1260,8 +1260,7 @@ example, the following lines touch at ``(1, 1)``, but do not overlap.
 
 .. method:: object.within(other)
 
-  Returns ``True`` if the object's `boundary` and `interior` intersect only
-  with the `interior` of the other (not its `boundary` or `exterior`).
+  Return ``True`` if the object is completely inside the other.
 
 This applies to all types and is the inverse of :meth:`~object.contains`.
 
