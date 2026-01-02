@@ -141,41 +141,60 @@ def test_from_wkt():
 
 
 def test_from_wkt_none():
-    # None propagates
+    """Propagate NULL, but not empty, WKT."""
     assert shapely.from_wkt(None) is None
 
 
+def test_from_wkt_unsupported_option_value():
+    """Raise if if_invalid has an unsupported value."""
+    with pytest.raises(ValueError, match="not a valid option"):
+        _ = shapely.from_wkt(" ", on_invalid=True)
+
+
 @pytest.mark.parametrize(
-    "wkt, on_invalid, error, message",
+    "wkt",
     [
-        (1, "raise", TypeError, "Expected bytes or string, got int"),
-        ("", "ignore", None, None),
-        ("", "warn", Warning, "Expected word but encountered end of stream"),
-        ("", "raise", GEOSException, "Expected word but encountered end of stream"),
-        ("", "unsupported_option", ValueError, "not a valid option"),
-        ("LINESTRING (0 0)", "ignore", None, None),
-        ("LINESTRING (0 0)", "raise", GEOSException, "must contain 0 or >1 elements"),
-        ("LINESTRING (0 0)", "warn", Warning, "must contain 0 or >1 elements"),
-        ("NOT A WKT STRING", "ignore", None, None),
-        ("NOT A WKT STRING", "warn", Warning, "Unknown type: 'NOT'"),
-        ("POLYGON ((0 0, 0 0))", "ignore", None, None),
-        ("POLYGON ((0 0, 0 0))", "raise", GEOSException, "Invalid number of points"),
-        ("POLYGON ((0 0, 0 0))", "warn", Warning, "Invalid number of points"),
+        "",
+        "LINESTRING (0 0)",
+        "NOT A WKT STRING",
+        "POLYGON ((0 0, 0 0))",
     ],
 )
-def test_from_wkt_on_invalid(wkt, on_invalid, error, message):
-    if on_invalid == "warn":
-        handler = pytest.warns(error, match=message)
-    elif on_invalid == "raise":
-        handler = pytest.raises(error, match=message)
-    elif on_invalid == "ignore":
-        handler = nullcontext()
-    else:
-        handler = pytest.raises(error, match=message)
+def test_from_wkt_on_invalid_ignore(wkt):
+    """Silently return None for invalid WKT."""
+    assert shapely.from_wkt(wkt, on_invalid="ignore") is None
 
-    with handler:
-        result = shapely.from_wkt(wkt, on_invalid=on_invalid)
-        assert result is None
+
+@pytest.mark.parametrize(
+    "wkt, error, message",
+    [
+        (1, TypeError, "Expected bytes or string, got int"),
+        ("", GEOSException, "Expected word but encountered end of stream"),
+        ("LINESTRING (0 0)", GEOSException, "must contain 0 or >1 elements"),
+        ("POLYGON ((0 0, 0 0))", GEOSException, "Invalid number of points"),
+    ],
+)
+def test_from_wkt_on_invalid_raises(wkt, error, message):
+    """Raises on invalid WKT."""
+    with pytest.raises(error, match=message):
+        _ = shapely.from_wkt(wkt, on_invalid="raise")
+
+
+@pytest.mark.parametrize(
+    "wkt, message",
+    [
+        ("", "Expected word but encountered end of stream"),
+        ("LINESTRING (0 0)", "must contain 0 or >1 elements"),
+        ("NOT A WKT STRING", "Unknown type: 'NOT'"),
+        ("POLYGON ((0 0, 0 0))", "Invalid number of points"),
+    ],
+)
+def test_from_wkt_on_invalid_warns(wkt, message):
+    """Warns on invalid input."""
+    with pytest.warns(Warning, match=message):
+        result = shapely.from_wkt(wkt, on_invalid="warn")
+
+    assert result is None
 
 
 @pytest.mark.skipif(
