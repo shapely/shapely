@@ -3,13 +3,6 @@ ARG GEOS_VERSION=3.13.1
 
 FROM $BASEIMAGE
 ARG GEOS_VERSION
-# Workaround -- https://github.com/pypa/manylinux/issues/1886
-RUN if [ "${AUDITWHEEL_POLICY}" == "manylinux_2_28" ] && \
-            [ -f "/etc/ld.so.conf.d/00-manylinux.conf" ] && \
-            [ -d "/usr/local/lib64" ]; then \
-        echo "/usr/local/lib64" >> /etc/ld.so.conf.d/00-manylinux.conf && \
-        ldconfig; \
-    fi
 ENV GEOS_VERSION=${GEOS_VERSION}
 RUN curl -LOSs --retry 5 https://download.osgeo.org/geos/geos-$GEOS_VERSION.tar.bz2
 RUN tar xfj geos-$GEOS_VERSION.tar.bz2 && rm -f geos-$GEOS_VERSION.tar.bz2
