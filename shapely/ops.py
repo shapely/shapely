@@ -373,16 +373,35 @@ class SplitOp:
         if not isinstance(splitter, Point):
             raise GeometryTypeError("Second argument must be a Point")
 
-        # check if point is in the interior of the line
-        if not line.relate_pattern(splitter, "0********"):
-            # point not on line interior --> return collection with single identity line
-            # (REASONING: Returning a list with the input line reference and creating a
-            # GeometryCollection at the general split function prevents unnecessary
-            # copying of linestrings in multipoint splitting function)
+        # Check if we can conclude that no splitting will be needed to avoid looping
+        if not line.intersects(splitter):
+            # If the split point doesn't intersect at all, there will never be a split.
             return [line]
+        elif line.coords[0] == line.coords[-1] and line.coords[0] == splitter.coords[0]:
+            if len(line.coords) == 3:
+                # line only has three points and splitter is on start/end point, so not
+                # possible that line goes through that point again, so no split
+                return [line]
+            if not LineString(line.coords[1:-1]).intersects(splitter):
+                # if line is a closed ring and the splitter is on the start/end point,
+                # but not on the interior of the line, no split is needed
+                return [line]
         elif line.coords[0] == splitter.coords[0]:
-            # if line is a closed ring the previous test doesn't behave as desired
-            return [line]
+            if len(line.coords) == 2:
+                # line has only two points and splitter is on first point, so no split
+                return [line]
+            if not LineString(line.coords[1:]).intersects(splitter):
+                # splitter is exactly on the first point of the line, and line does
+                # not circle back through it --> no split needed
+                return [line]
+        elif line.coords[-1] == splitter.coords[0]:
+            if len(line.coords) == 2:
+                # line has only two points and splitter is on last point
+                return [line]
+            if not LineString(line.coords[:-1]).intersects(splitter):
+                # splitter is exactly on the last point of the line, and line does
+                # not circle back through it --> no split needed
+                return [line]
 
         # point is on line, get the distance from the first point on line
         distance_on_line = line.project(splitter)
@@ -405,6 +424,7 @@ class SplitOp:
                     LineString(coords[: i + 1] + [splitter.coords[0]]),
                     LineString([splitter.coords[0]] + coords[i + 1 :]),
                 ]
+
         return [line]
 
     @staticmethod
