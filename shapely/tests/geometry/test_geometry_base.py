@@ -89,8 +89,14 @@ def test_type_deprecated():
 
 def test_segmentize():
     line = LineString([(0, 0), (0, 10)])
-    result = line.segmentize(max_segment_length=5)
-    assert result.equals(LineString([(0, 0), (0, 5), (0, 10)]))
+
+    for max_segment_length in [5, 5.0, np.float64(5.0), np.int32(5)]:
+        result = line.segmentize(max_segment_length)
+        assert result.equals(LineString([(0, 0), (0, 5), (0, 10)]))
+
+    # array input
+    result = line.segmentize([max_segment_length])
+    assert result[0].equals(LineString([(0, 0), (0, 5), (0, 10)]))
 
 
 def test_reverse():
@@ -249,21 +255,24 @@ def test_array_argument_float(op):
     assert type(result) is float
 
 
-@pytest.mark.parametrize("op", ["line_interpolate_point", "interpolate"])
+@pytest.mark.parametrize(
+    "op", ["line_interpolate_point", "interpolate", "simplify", "segmentize"]
+)
 def test_array_argument_linear_point(op):
     line = LineString([(0, 0), (0, 1), (1, 1)])
-    distances = np.array([0, 0.5, 1])
+    distances = np.array([0.5, 1])
 
     result = getattr(line, op)(distances)
     assert isinstance(result, np.ndarray)
-    expected = np.array(
-        [line.line_interpolate_point(d) for d in distances], dtype=object
-    )
+    expected = getattr(
+        shapely, op if op != "interpolate" else "line_interpolate_point"
+    )(line, distances)
     assert_geometries_equal(result, expected)
 
-    # check scalar
-    result = getattr(line, op)(distances[0])
-    assert isinstance(result, Point)
+    # check scalar (several types)
+    for distance in [1, 1.0, np.float64(1.0), np.int32(1)]:
+        result = getattr(line, op)(distance)
+        assert_geometries_equal(result, expected[1])
 
 
 @pytest.mark.parametrize("op", ["line_locate_point", "project"])
