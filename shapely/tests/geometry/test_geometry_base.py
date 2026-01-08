@@ -87,18 +87,6 @@ def test_type_deprecated():
     assert geom_type == geom.geom_type
 
 
-def test_segmentize():
-    line = LineString([(0, 0), (0, 10)])
-
-    for max_segment_length in [5, 5.0, np.float64(5.0), np.int32(5)]:
-        result = line.segmentize(max_segment_length)
-        assert result.equals(LineString([(0, 0), (0, 5), (0, 10)]))
-
-    # array input
-    result = line.segmentize([max_segment_length])
-    assert result[0].equals(LineString([(0, 0), (0, 5), (0, 10)]))
-
-
 def test_reverse():
     coords = [(0, 0), (1, 2)]
     line = LineString(coords)

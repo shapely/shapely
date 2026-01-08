@@ -145,8 +145,6 @@ finish:
 }
 static PyUFuncGenericFunction Ydd_b_p_funcs[1] = {&Ydd_b_p_func};
 
-/* Yd_Y functions have been moved to geos_funcs_Yd_Y.c */
-
 /* Define the geom, geom -> geom functions (YY_Y) */
 static void* intersection_data[1] = {GEOSIntersection_r};
 static void* difference_data[1] = {GEOSDifference_r};
@@ -2903,8 +2901,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Ydd_b_p(contains_xy);
   DEFINE_Ydd_b_p(intersects_xy);
 
-  /* Yd_Y functions are now handled by geos_funcs_Yd_Y.c */
-
   DEFINE_YY_Y(intersection);
   DEFINE_YY_Y(difference);
   DEFINE_YY_Y(symmetric_difference);
@@ -2958,13 +2954,11 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YYd_Y(union_prec);
 
   DEFINE_CUSTOM(make_valid_with_params, 3);
-  /* segmentize moved to geos_funcs_Yd_Y.c */
   DEFINE_CUSTOM(dwithin, 3);
   DEFINE_CUSTOM(from_geojson, 2);
   DEFINE_CUSTOM(to_geojson, 2);
 
 #if GEOS_SINCE_3_11_0
-  /* remove_repeated_points moved to geos_funcs_Yd_Y.c */
   DEFINE_CUSTOM(concave_hull, 3);
 #endif
 

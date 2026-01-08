@@ -30,7 +30,7 @@
  *   b: Input double parameter
  *
  * Returns:
- *   New GEOSGeometry* object, or NULL on error or for missing values
+ *   New GEOSGeometry* object, or NULL on error (GEOS error or wrong geometry type)
  */
 typedef GEOSGeometry* FuncGEOS_Yd_Y(GEOSContextHandle_t context, const GEOSGeometry* a, double b);
 
