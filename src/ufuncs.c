@@ -145,131 +145,6 @@ finish:
 }
 static PyUFuncGenericFunction Ydd_b_p_funcs[1] = {&Ydd_b_p_func};
 
-/* Define the geom, double -> geom functions (Yd_Y) */
-static void* GEOSInterpolateProtectEmpty_r(void* context, void* geom, double d) {
-  char errstate = geos_interpolate_checker(context, geom);
-  if (errstate == PGERR_SUCCESS) {
-    return GEOSInterpolate_r(context, geom, d);
-  } else if (errstate == PGERR_EMPTY_GEOMETRY) {
-    return GEOSGeom_createEmptyPoint_r(context);
-  } else {
-    return NULL;
-  }
-}
-static void* line_interpolate_point_data[1] = {GEOSInterpolateProtectEmpty_r};
-static void* GEOSInterpolateNormalizedProtectEmpty_r(void* context, void* geom,
-                                                     double d) {
-  char errstate = geos_interpolate_checker(context, geom);
-  if (errstate == PGERR_SUCCESS) {
-    return GEOSInterpolateNormalized_r(context, geom, d);
-  } else if (errstate == PGERR_EMPTY_GEOMETRY) {
-    return GEOSGeom_createEmptyPoint_r(context);
-  } else {
-    return NULL;
-  }
-}
-static void* line_interpolate_point_normalized_data[1] = {
-    GEOSInterpolateNormalizedProtectEmpty_r};
-
-static void* simplify_data[1] = {GEOSSimplify_r};
-static void* simplify_preserve_topology_data[1] = {GEOSTopologyPreserveSimplify_r};
-static void* force_3d_data[1] = {PyGEOSForce3D};
-
-static void* unary_union_prec_data[1] = {GEOSUnaryUnionPrec_r};
-
-static void* GEOSMaximumInscribedCircleWithDefaultTolerance(void* context, void* a, double b) {
-  double tolerance;
-  if (b == 0.0 && !GEOSisEmpty_r(context, a)) {
-    double xmin, xmax, ymin, ymax;
-    double width, height, size;
-
-#if GEOS_SINCE_3_11_0
-    if (!GEOSGeom_getExtent_r(context, a, &xmin, &ymin, &xmax, &ymax)) {
-      return NULL;
-    }
-#else
-    if (!GEOSGeom_getXMin_r(context, a, &xmin)) {
-      return NULL;
-    }
-    if (!GEOSGeom_getYMin_r(context, a, &ymin)) {
-      return NULL;
-    }
-    if (!GEOSGeom_getXMax_r(context, a, &xmax)) {
-      return NULL;
-    }
-    if (!GEOSGeom_getYMax_r(context, a, &ymax)) {
-      return NULL;
-    }
-#endif
-    width = xmax - xmin;
-    height = ymax - ymin;
-    size = width > height ? width : height;
-    tolerance = size / 1000.0;
-  } else {
-    tolerance = b;
-  }
-  return GEOSMaximumInscribedCircle_r(context, a, tolerance);
-}
-static void* maximum_inscribed_circle_data[1] = {GEOSMaximumInscribedCircleWithDefaultTolerance};
-static void* segmentize_data[1] = {GEOSDensify_r};
-
-#if GEOS_SINCE_3_11_0
-static void* remove_repeated_points_data[1] = {GEOSRemoveRepeatedPoints_r};
-#endif
-
-typedef void* FuncGEOS_Yd_Y(void* context, void* a, double b);
-static char Yd_Y_dtypes[3] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
-static void Yd_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_Yd_Y* func = (FuncGEOS_Yd_Y*)data;
-  GEOSGeometry* in1 = NULL;
-  GEOSGeometry** geom_arr;
-
-  CHECK_NO_INPLACE_OUTPUT(2);
-
-  // allocate a temporary array to store output GEOSGeometry objects
-  geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  CHECK_ALLOC(geom_arr);
-
-  GEOS_INIT_THREADS;
-
-  BINARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    // get the geometry: return on error
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    double in2 = *(double*)ip2;
-    if ((in1 == NULL) || (npy_isnan(in2))) {
-      // in case of a missing value: return NULL (None)
-      geom_arr[i] = NULL;
-    } else {
-      geom_arr[i] = func(ctx, in1, in2);
-      if (geom_arr[i] == NULL) {
-        // Interpolate functions return NULL on PGERR_GEOMETRY_TYPE and on
-        // PGERR_GEOS_EXCEPTION. Distinguish these by the state of last_error.
-        errstate = last_error[0] == 0 ? PGERR_GEOMETRY_TYPE : PGERR_GEOS_EXCEPTION;
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        break;
-      }
-    }
-  }
-
-  GEOS_FINISH_THREADS;
-
-  // fill the numpy array with PyObjects while holding the GIL
-  if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
-  }
-  free(geom_arr);
-}
-static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
-
 /* Define the geom, geom -> geom functions (YY_Y) */
 static void* intersection_data[1] = {GEOSIntersection_r};
 static void* difference_data[1] = {GEOSDifference_r};
@@ -2967,11 +2842,6 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
                                   PyUFunc_None, #NAME, "", 0);                         \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_Yd_Y(NAME)                                                        \
-  ufunc = PyUFunc_FromFuncAndData(Yd_Y_funcs, NAME##_data, Yd_Y_dtypes, 1, 2, 1, \
-                                  PyUFunc_None, #NAME, "", 0);                   \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
 #define DEFINE_YY_Y(NAME)                                                        \
   ufunc = PyUFunc_FromFuncAndData(YY_Y_funcs, NAME##_data, YY_Y_dtypes, 1, 2, 1, \
                                   PyUFunc_None, #NAME, "", 0);                   \
@@ -3031,14 +2901,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Ydd_b_p(contains_xy);
   DEFINE_Ydd_b_p(intersects_xy);
 
-  DEFINE_Yd_Y(line_interpolate_point);
-  DEFINE_Yd_Y(line_interpolate_point_normalized);
-  DEFINE_Yd_Y(simplify);
-  DEFINE_Yd_Y(simplify_preserve_topology);
-  DEFINE_Yd_Y(force_3d);
-  DEFINE_Yd_Y(unary_union_prec);
-  DEFINE_Yd_Y(maximum_inscribed_circle);
-
   DEFINE_YY_Y(intersection);
   DEFINE_YY_Y(difference);
   DEFINE_YY_Y(symmetric_difference);
@@ -3092,13 +2954,11 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YYd_Y(union_prec);
 
   DEFINE_CUSTOM(make_valid_with_params, 3);
-  DEFINE_Yd_Y(segmentize);
   DEFINE_CUSTOM(dwithin, 3);
   DEFINE_CUSTOM(from_geojson, 2);
   DEFINE_CUSTOM(to_geojson, 2);
 
 #if GEOS_SINCE_3_11_0
-  DEFINE_Yd_Y(remove_repeated_points);
   DEFINE_CUSTOM(concave_hull, 3);
 #endif
 
