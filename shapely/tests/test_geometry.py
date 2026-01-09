@@ -782,7 +782,8 @@ def test_get_segments_defaults(geoms, expected):
 def test_get_segments_include_z(geoms, expected):
     actual = shapely.get_segments(geoms, include_z=True)
     assert_geometries_equal(actual, expected)
-    assert shapely.has_z(actual).all()
+    if shapely.geos_version >= (3, 12, 0):
+        assert shapely.has_z(actual).all()
 
 
 @pytest.mark.parametrize(
