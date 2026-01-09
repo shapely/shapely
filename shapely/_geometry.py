@@ -1037,8 +1037,7 @@ def get_segments(
         If True, return LINESTRING Z (3D) geometries.
     return_index : bool, default False
         If True, also return the index of each returned geometry as a separate
-        ndarray of integers. For multidimensional arrays, this indexes into the
-        flattened array (in C contiguous order).
+        ndarray of integers.
     **kwargs : dict
         Keyword arguments to pass into ``shapely.linestrings()``.
 
