@@ -757,8 +757,12 @@ out_ring_nan = [
     ],
 )
 def test_get_segments_defaults(geoms, expected):
-    actual = shapely.get_segments(geoms)
+    with ignore_invalid():
+        actual = shapely.get_segments(geoms)
     assert_geometries_equal(actual, expected)
+    if actual.size:
+        assert ~shapely.has_z(actual).all()
+        assert ~shapely.has_m(actual).all()
 
 
 @pytest.mark.parametrize(
@@ -777,6 +781,7 @@ def test_get_segments_defaults(geoms, expected):
 def test_get_segments_include_z(geoms, expected):
     actual = shapely.get_segments(geoms, include_z=True)
     assert_geometries_equal(actual, expected)
+    assert shapely.has_z(actual).all()
 
 
 @pytest.mark.parametrize(
@@ -791,7 +796,8 @@ def test_get_segments_include_z(geoms, expected):
     ],
 )
 def test_get_segments_return_index(geoms, expected):
-    _, actual = shapely.get_segments(geoms, return_index=True)
+    with ignore_invalid():
+        _, actual = shapely.get_segments(geoms, return_index=True)
     np.testing.assert_array_equal(actual, expected)
 
 
