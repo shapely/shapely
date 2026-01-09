@@ -761,8 +761,8 @@ def test_get_segments_defaults(geoms, expected):
         actual = shapely.get_segments(geoms)
     assert_geometries_equal(actual, expected)
     if actual.size:
-        assert ~shapely.has_z(actual).all()
         if shapely.geos_version >= (3, 12, 0):
+            assert ~shapely.has_z(actual).all()
             assert ~shapely.has_m(actual).all()
 
 
