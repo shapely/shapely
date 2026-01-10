@@ -19,8 +19,10 @@ from shapely.tests.common import (
     geometry_collection_z,
     ignore_invalid,
     line_string,
+    line_string_m,
     line_string_nan,
     line_string_z,
+    line_string_zm,
     linear_ring,
     multi_line_string,
     multi_line_string_z,
@@ -693,3 +695,151 @@ def test_force_3d(geom, expected):
     actual = shapely.force_3d(geom, z=4)
     assert shapely.get_coordinate_dimension(actual) == 3
     assert_geometries_equal(actual, expected)
+
+
+# tests for get_segments()
+
+p1 = [0, 0]
+p2 = [1, 0]
+p3 = [1, 1]
+p4 = [0, 1]
+
+z = 4
+p1z = [0, 0, z]
+p2z = [1, 0, z]
+p3z = [1, 1, z]
+p4z = [0, 1, z]
+
+p1nan = [0, 0, np.nan]
+p2nan = [1, 0, np.nan]
+p3nan = [1, 1, np.nan]
+p4nan = [0, 1, np.nan]
+
+
+out_elbow = [LineString([p1, p2]), LineString([p2, p3])]
+out_elbow_z = [LineString([p1z, p2z]), LineString([p2z, p3z])]
+out_elbow_nan = [LineString([p1nan, p2nan]), LineString([p2nan, p3nan])]
+
+out_ring = [
+    LineString([p1, p2]),
+    LineString([p2, p3]),
+    LineString([p3, p4]),
+    LineString([p4, p1]),
+]
+out_ring_z = [
+    LineString([p1z, p2z]),
+    LineString([p2z, p3z]),
+    LineString([p3z, p4z]),
+    LineString([p4z, p1z]),
+]
+out_ring_nan = [
+    LineString([p1nan, p2nan]),
+    LineString([p2nan, p3nan]),
+    LineString([p3nan, p4nan]),
+    LineString([p4nan, p1nan]),
+]
+
+
+@pytest.mark.parametrize(
+    "geoms,expected",
+    [
+        [line_string, np.array(out_elbow)],
+        [[line_string], np.array(out_elbow)],
+        [[line_string, line_string], np.array(out_elbow + out_elbow)],
+        [line_string_z, np.array(out_elbow)],
+        [line_string_m, np.array(out_elbow)],
+        [line_string_zm, np.array(out_elbow)],
+        [linear_ring, np.array(out_ring)],
+        [[line_string, linear_ring], np.array(out_elbow + out_ring)],
+        [[None, empty_line_string, line_string], np.array(out_elbow)],
+        [line_string_nan, line_string_nan],
+        [empty_line_string, np.array([])],
+    ],
+)
+def test_get_segments_defaults(geoms, expected):
+    with ignore_invalid():
+        actual = shapely.get_segments(geoms)
+    assert_geometries_equal(actual, expected)
+    if actual.size:
+        if shapely.geos_version >= (3, 12, 0):
+            assert ~shapely.has_z(actual).all()
+            assert ~shapely.has_m(actual).all()
+
+
+@pytest.mark.parametrize(
+    "geoms,expected",
+    [
+        [line_string, np.array(out_elbow_nan)],
+        [line_string_z, np.array(out_elbow_z)],
+        [line_string_zm, np.array(out_elbow_z)],
+        [
+            [empty_line_string, None, line_string, line_string_z, line_string_zm],
+            np.array(out_elbow_nan + out_elbow_z + out_elbow_z),
+        ],
+        [[empty_line_string, empty_line_string_z], np.array([])],
+    ],
+)
+def test_get_segments_include_z(geoms, expected):
+    actual = shapely.get_segments(geoms, include_z=True)
+    assert_geometries_equal(actual, expected)
+    if shapely.geos_version >= (3, 12, 0):
+        assert shapely.has_z(actual).all()
+
+
+@pytest.mark.parametrize(
+    "geoms,expected",
+    [
+        [line_string, np.array([0, 0])],
+        [[line_string], np.array([0, 0])],
+        [[line_string, line_string], np.array([0, 0, 1, 1])],
+        [[line_string, linear_ring], np.array([0, 0, 1, 1, 1, 1])],
+        [[None, empty_line_string, line_string], np.array([2, 2])],
+        [[line_string_nan, empty_line_string, line_string], np.array([0, 2, 2])],
+    ],
+)
+def test_get_segments_return_index(geoms, expected):
+    with ignore_invalid():
+        _, actual = shapely.get_segments(geoms, return_index=True)
+    np.testing.assert_array_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    "geoms",
+    [
+        [[line_string, line_string]],
+        np.array([[line_string], [line_string]]),
+    ],
+)
+def test_non_1d_array(geoms):
+    with pytest.raises(ValueError, match=r"Array should be one dimensional"):
+        shapely.get_segments(geoms)
+
+
+@pytest.mark.parametrize(
+    "geoms",
+    [
+        [[line_string], line_string],
+        [line_string, [line_string]],
+    ],
+)
+def test_ragged_array(geoms):
+    with pytest.raises(TypeError, match=r"One of the arguments is of incorrect type"):
+        shapely.get_segments(geoms)
+
+
+@pytest.mark.parametrize(
+    "geoms",
+    [
+        [empty_geometry_collection, line_string],
+        point,
+        multi_line_string,
+        polygon,
+        [polygon],
+        [polygon, polygon],
+        np.array([polygon]),
+        np.array([empty_geometry_collection, point, multi_line_string, polygon]),
+    ],
+)
+def test_non_linear(geoms):
+    with pytest.raises(ValueError, match=r"Geometry type is not supported"):
+        shapely.get_segments(geoms)
