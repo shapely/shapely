@@ -106,7 +106,6 @@ jobs:
 
       - name: Remove /usr/bin/link (MSVC workaround)
         if: ${{ startsWith(matrix.os, 'windows') }}
-        shell: bash
         run: rm -rfv /usr/bin/link
 
       - name: Install GEOS
@@ -139,12 +138,12 @@ jobs:
         if: ${{ startsWith(matrix.os, 'macos') }}
         run: echo "LDFLAGS=-Wl,-rpath,${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
 
-      # Windows requires special treatment:
-      # - Python ignores the PATH for finding DLLs, so we copy them into the package
-      - name: Set environment variables + copy DLLs (Windows)
-        run: |
-          cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll shapely
+      # Python ignores the PATH for finding DLLs, so we copy them into the package
+      - name: Copy DLLs (Windows)
         if: ${{ startsWith(matrix.os, 'windows') }}
+        run: |
+          cp -v geosinstall/geos-${{ matrix.geos }}/bin/*.dll shapely
+          ls -l shapely
 
       - name: Build and install Shapely
         run: >
