@@ -142,8 +142,11 @@ jobs:
       - name: Copy DLLs (Windows)
         if: ${{ startsWith(matrix.os, 'windows') }}
         run: |
-          cp -v geosinstall/geos-${{ matrix.geos }}/bin/*.dll shapely
-          ls -l shapely
+          ls -l
+          build_dir=$(python -c "import sys; print(f'build/cp{sys.version_info[0]}{sys.version_info[1]}/shapely')")
+          echo $build_dir
+          cp -v geosinstall/geos-${{ matrix.geos }}/bin/*.dll $build_dir
+          ls -l $build_dir
 
       - name: Build and install Shapely
         run: >
