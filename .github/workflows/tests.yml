@@ -104,6 +104,11 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         if: ${{ startsWith(matrix.os, 'windows') }}
 
+      - name: Remove /usr/bin/link (MSVC workaround)
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        shell: bash
+        run: rm -rfv /usr/bin/link
+
       - name: Install GEOS
         run: bash ci/install_geos.sh
 
@@ -138,7 +143,6 @@ jobs:
         run: >
           pip install --verbose --no-build-isolation
           -Csetup-args="-Dcmake_prefix_path=${{ env.GEOS_INSTALL }}"
-          -Csetup-args="--vsenv"
           -Ccompile-args="--verbose"
           -Ceditable-verbose=true
           --editable .
