@@ -180,6 +180,11 @@ jobs:
           arch: ${{ matrix.msvc_arch }}
         if: ${{ matrix.msvc_arch }}
 
+      - name: Remove /usr/bin/link (MSVC workaround)
+        shell: bash
+        run: rm -rfv /usr/bin/link
+        if: ${{ matrix.msvc_arch }}
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.1.1
         env:
