@@ -139,6 +139,13 @@ jobs:
         if: ${{ startsWith(matrix.os, 'macos') }}
         run: echo "LDFLAGS=-Wl,-rpath,${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
 
+      # Windows requires special treatment:
+      # - Python ignores the PATH for finding DLLs, so we copy them into the package
+      - name: Set environment variables + copy DLLs (Windows)
+        run: |
+          cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll shapely
+        if: ${{ startsWith(matrix.os, 'windows') }}
+
       - name: Build and install Shapely
         run: >
           pip install --verbose --no-build-isolation
