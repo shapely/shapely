@@ -196,6 +196,8 @@ jobs:
           CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
           CIBW_CONFIG_SETTINGS:
             setup-args="-Dcmake_prefix_path=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}"
+          CIBW_CONFIG_SETTINGS_WINDOWS:
+            setup-args="-Dcmake_prefix_path=${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}" setup-args="--vsenv"
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
       - name: Upload artifacts
         uses: actions/upload-artifact@v6
