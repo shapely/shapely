@@ -73,18 +73,6 @@ enable = ["cpython-freethreading"]
 before-build = "pip install -r requirements-dev.txt delvewheel"
 config-settings = { setup-args = ["--vsenv"] }
 
-[[tool.cibuildwheel.overrides]]
-select = "*-manylinux*"
-manylinux-x86_64-image = "manylinux_2_34"  # AlmaLinux 9
-manylinux-aarch64-image = "manylinux_2_34"  # AlmaLinux 9
-before-build = "dnf -y install geos-devel"
-inherit.before-build = "prepend"
-
-[[tool.cibuildwheel.overrides]]
-select = "*-musllinux*"
-before-build = "apk add geos-dev"
-inherit.before-build = "prepend"
-
 [tool.coverage.run]
 source = ["shapely"]
 omit = ["shapely/tests/*"]
@@ -95,9 +83,9 @@ ignore = ["D000", "D004"]
 allow-long-titles = true
 max-line-length = 79
 
-# uncomment to clear build cache with local builds
-#[tool.meson-python.args]
-#setup = ["--clearcache"]
+[tool.meson-python.args]
+setup = ["--vsenv"]
+# setup = ["--clearcache"]  # uncomment to clear build cache with local builds
 
 [tool.ruff]
 line-length = 88
