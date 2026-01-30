@@ -37,6 +37,11 @@ class MultiPoint(BaseMultipartGeometry):
     >>> type(ob.geoms[0]) == Point
     True
 
+    See Also
+    --------
+    shapely.multipoints : Create MultiPoint geometries from arrays of points.
+    Point : Single point geometry.
+
     """
 
     __slots__ = []

@@ -47,6 +47,10 @@ class Point(BaseGeometry):
     >>> p.x
     1.0
 
+    See Also
+    --------
+    shapely.points : Create multiple points efficiently from coordinate arrays.
+
     """
 
     __slots__ = []

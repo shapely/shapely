@@ -41,6 +41,11 @@ class MultiPolygon(BaseMultipartGeometry):
     >>> type(ob.geoms[0]) == Polygon
     True
 
+    See Also
+    --------
+    shapely.multipolygons : Create MultiPolygon geometries from arrays.
+    Polygon : Single polygon geometry.
+
     """
 
     __slots__ = []

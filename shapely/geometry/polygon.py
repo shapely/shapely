@@ -54,6 +54,10 @@ class LinearRing(LineString):
     >>> ring.length
     4.0
 
+    See Also
+    --------
+    shapely.linearrings : Create multiple linear rings efficiently from arrays.
+
     """
 
     __slots__ = []
@@ -219,6 +223,11 @@ class Polygon(BaseGeometry):
     >>> polygon = Polygon(coords)
     >>> polygon.area
     1.0
+
+    See Also
+    --------
+    shapely.polygons : Create multiple polygons efficiently from coordinate arrays.
+    shapely.box : Create rectangular polygons from bounding coordinates.
 
     """
 

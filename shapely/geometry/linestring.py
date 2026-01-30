@@ -33,6 +33,10 @@ class LineString(BaseGeometry):
     >>> a.length
     2.0
 
+    See Also
+    --------
+    shapely.linestrings : Create multiple line strings efficiently from coordinate arrays.
+
     """
 
     __slots__ = []
