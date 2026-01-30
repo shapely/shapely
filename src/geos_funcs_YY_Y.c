@@ -54,7 +54,7 @@ typedef GEOSGeometry* FuncGEOS_YY_Y(GEOSContextHandle_t context, const GEOSGeome
  *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)
  */
 static char core_YY_Y_operation(GEOSContextHandle_t context, FuncGEOS_YY_Y* func,
-                                PyObject* geom_obj_a, PyObject* geom_obj_b, char* last_error,
+                                PyObject* geom_obj_a, PyObject* geom_obj_b,
                                 GEOSGeometry** result) {
   const GEOSGeometry* geom_a;
   const GEOSGeometry* geom_b;
@@ -80,9 +80,7 @@ static char core_YY_Y_operation(GEOSContextHandle_t context, FuncGEOS_YY_Y* func
   // Call the specific GEOS function (e.g., GEOSIntersection_r, GEOSUnion_r, etc.)
   *result = func(context, geom_a, geom_b);
 
-  // NULL can mean either error or a valid "missing value" so check the last_error before
-  // setting error state
-  if ((*result == NULL) && (last_error[0] != 0)) {
+  if (*result == NULL) {
     return PGERR_GEOS_EXCEPTION;
   }
 
@@ -120,7 +118,7 @@ static PyObject* Py_YY_Y_Scalar(PyObject* self, PyObject* const* args, Py_ssize_
 
   GEOS_INIT;
 
-  errstate = core_YY_Y_operation(ctx, func, args[0], args[1], last_error, &ret_ptr);
+  errstate = core_YY_Y_operation(ctx, func, args[0], args[1], &ret_ptr);
 
   GEOS_FINISH;
 
@@ -172,7 +170,7 @@ static void YY_Y_func(char** args, const npy_intp* dimensions, const npy_intp* s
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    errstate = core_YY_Y_operation(ctx, func, *(PyObject**)ip1, *(PyObject**)ip2, last_error, &geom_arr[i]);
+    errstate = core_YY_Y_operation(ctx, func, *(PyObject**)ip1, *(PyObject**)ip2, &geom_arr[i]);
     if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
