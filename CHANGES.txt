@@ -20,6 +20,9 @@ in a more performant way than `shapely.ops.transform` does. `shapely.ops.transfo
 Added return values to `prepare` and `destroy_prepared`. They now return whether something was done;
 calling `prepare` twice on a geometry will first return `True`, and then `False`.
 
+Added `get_segments`, which returns individual linear features from all pairwise
+coordinates in each input LineString or LinearRing (#2306).
+
 
 2.1.2 (2025-09-24)
 ------------------

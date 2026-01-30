@@ -198,13 +198,17 @@ def length(geometry, **kwargs):
 
 @multithreading_enabled
 def hausdorff_distance(a, b, densify=None, **kwargs):
-    """Compute the discrete Hausdorff distance between two geometries.
+    """Compute the discrete, undirected Hausdorff distance between two geometries.
 
     The Hausdorff distance is a measure of similarity: it is the greatest
-    distance between any point in A and the closest point in B. The discrete
-    distance is an approximation of this metric: only vertices are considered.
-    The parameter 'densify' makes this approximation less coarse by splitting
-    the line segments between vertices before computing the distance.
+    distance between any point in A and the closest point in B.
+
+    The discrete distance is an approximation of this metric: only vertices are
+    considered. The parameter 'densify' makes this approximation less coarse by
+    splitting the line segments between vertices before computing the distance.
+
+    This implementation is undirected or symmetric Hausdorff, meaning that the
+    distance from A to B is the same as from B to A.
 
     Parameters
     ----------

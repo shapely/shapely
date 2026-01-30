@@ -214,7 +214,7 @@ cdef const GEOSGeometry* GetRingN(GEOSContextHandle_t handle, GEOSGeometry* poly
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def get_parts(object[:] array, bint extract_rings=0):
+def get_parts(np.ndarray[object] array, bint extract_rings=0):
     cdef Py_ssize_t geom_idx = 0
     cdef Py_ssize_t part_idx = 0
     cdef Py_ssize_t idx = 0

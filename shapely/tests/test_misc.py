@@ -1,5 +1,6 @@
 import os
 import sys
+from copy import deepcopy
 from inspect import cleandoc
 from itertools import chain
 from string import ascii_letters, digits
@@ -187,3 +188,26 @@ def test_multithreading_enabled_preserves_flag():
 def test_multithreading_enabled_ok(args, kwargs):
     result = set_first_element(42, *args, **kwargs)
     assert result[0] == 42
+
+
+@pytest.mark.parametrize(
+    "geom",
+    [
+        shapely.LinearRing(),
+        shapely.Point(),
+        shapely.LineString(),
+        shapely.Polygon(),
+        shapely.MultiPoint(),
+        shapely.MultiLineString(),
+        shapely.MultiPolygon(),
+        shapely.GeometryCollection(),
+    ],
+)
+def test_deepcopy_empty_geometries(geom):
+    """Test deepcopy of an empty geometry.
+
+    Added in context of https://github.com/shapely/shapely/issues/1410
+    """
+    geom_copied = deepcopy(geom)  # should not raise any exception
+
+    assert geom.equals(geom_copied)

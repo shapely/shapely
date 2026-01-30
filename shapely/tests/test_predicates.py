@@ -304,9 +304,12 @@ def test_is_closed(geometry, expected):
     assert shapely.is_closed(geometry) == expected
 
 
-def test_relate():
+@pytest.mark.parametrize("prepared", [False, True])
+def test_relate(prepared):
     p1 = shapely.points(0, 0)
     p2 = shapely.points(1, 1)
+    if prepared:
+        shapely.prepare(p1)
     actual = shapely.relate(p1, p2)
     assert isinstance(actual, str)
     assert actual == "FF0FFF0F2"
@@ -317,9 +320,12 @@ def test_relate_none(g1, g2):
     assert shapely.relate(g1, g2) is None
 
 
-def test_relate_pattern():
+@pytest.mark.parametrize("prepared", [False, True])
+def test_relate_pattern(prepared):
     g = shapely.linestrings([(0, 0), (1, 0), (1, 1)])
     polygon = shapely.box(0, 0, 2, 2)
+    if prepared:
+        shapely.prepare(g)
     assert shapely.relate(g, polygon) == "11F00F212"
     assert shapely.relate_pattern(g, polygon, "11F00F212")
     assert shapely.relate_pattern(g, polygon, "*********")
