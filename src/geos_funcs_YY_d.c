@@ -62,9 +62,6 @@ static int GEOSProjectWrapped_r(GEOSContextHandle_t context, const GEOSGeometry*
 }
 
 static int GEOSProjectNormalizedWrapped_r(GEOSContextHandle_t context, const GEOSGeometry* a, const GEOSGeometry* b, double* c) {
-  double length;
-  double distance;
-
   /* Handle empty points (they give segfaults (for b) or give exception (for a)) */
   if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
     *c = NPY_NAN;
@@ -109,7 +106,7 @@ static char core_YY_d_operation(GEOSContextHandle_t context, FuncGEOS_YY_d* func
     return PGERR_NOT_A_GEOMETRY;
   }
 
-  // Handle NULL geometry case - return NaN
+  // Handle missing geometry (None) - return NaN
   if ((geom1 == NULL) || (geom2 == NULL)) {
     *result = NPY_NAN;
     return PGERR_SUCCESS;
@@ -120,7 +117,7 @@ static char core_YY_d_operation(GEOSContextHandle_t context, FuncGEOS_YY_d* func
     return PGERR_GEOS_EXCEPTION;
   }
 
-  // in case the outcome is 0.0, check the inputs for emptyness
+  // In case the outcome is 0.0, check the inputs for emptiness
   if (*result == 0.0) {
     if (GEOSisEmpty_r(context, geom1) || GEOSisEmpty_r(context, geom2)) {
       *result = NPY_NAN;
@@ -186,13 +183,14 @@ static PyObject* Py_YY_d_Scalar(PyObject* self, PyObject* const* args, Py_ssize_
  *   data: User data passed from ufunc creation (contains function pointer)
  */
 static void YY_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
+  // Extract the specific GEOS function from the user data
+  FuncGEOS_YY_d* func = (FuncGEOS_YY_d*)data;
+
   // Initialize GEOS context with thread support (releases Python GIL)
   GEOS_INIT_THREADS;
 
   // The BINARY_LOOP macro unpacks args, dimensions, and steps and iterates through input/output arrays
   // ip1 and ip2 point to current input elements, op1 points to current output element
-  FuncGEOS_YY_d* func = (FuncGEOS_YY_d*)data;
-
   BINARY_LOOP {
     CHECK_SIGNALS_THREADS(i);
     if (errstate == PGERR_PYSIGNAL) {
@@ -229,14 +227,14 @@ static char YY_d_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE};
  *
  * We use a macro to define a scalar Python function for each GEOS operation.
  *
- * This creates:
- *  1. A Python function that implements the scalar logic.
+ * This creates a function like PyGEOSDistance_r_Scalar that can be called from Python.
+ * The generated function signature is:
+ *  static PyObject* Py{func_name}_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs)
  *
- * Example: DEFINE_YY_d(GEOSDistance_r) creates
- * - static PyObject* PyGEOSDistance_r_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs)
+ * Example: DEFINE_YY_d(GEOSDistance_r) creates PyGEOSDistance_r_Scalar function
  *
  * Parameters:
- *   func: GEOS function to call
+ *   func: Name of the C function that performs the GEOS operation
  */
 #define DEFINE_YY_d(func) \
   static PyObject* Py##func##_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs) { \
@@ -267,22 +265,24 @@ DEFINE_YY_d(GEOSProjectNormalizedWrapped_r);
  *
  */
 
-#define INIT_YY_d(py_name, func) do { \
+#define INIT_YY_d(func_name, py_name) do { \
+    /* Create data array to pass GEOS function pointer to the 'data' parameter of the ufunc */ \
+    static void* func_name##_FuncData[1] = {func_name}; \
+    \
     /* Create NumPy ufunc: 2 inputs, 1 output, 1 type signature */ \
-    static FuncGEOS_YY_d* func##_ptr = func; \
-    ufunc = PyUFunc_FromFuncAndData(YY_d_funcs, (void**)&func##_ptr, YY_d_dtypes, 1, 2, 1, \
+    ufunc = PyUFunc_FromFuncAndData(YY_d_funcs, func_name##_FuncData, YY_d_dtypes, 1, 2, 1, \
                                     PyUFunc_None, #py_name, "", 0); \
     PyDict_SetItemString(d, #py_name, ufunc); \
     \
     /* Create Python function */ \
-    static PyMethodDef Py##func##_Scalar_Def = { \
+    static PyMethodDef Py##func_name##_Scalar_Def = { \
         #py_name "_scalar",                   /* Function name */ \
-        (PyCFunction)Py##func##_Scalar,       /* C function pointer */ \
+        (PyCFunction)Py##func_name##_Scalar,  /* C function pointer */ \
         METH_FASTCALL,                        /* Function takes fast call arguments */ \
         #py_name " scalar implementation"     /* Docstring */ \
     }; \
-    PyObject* Py##func##_Scalar_Func = PyCFunction_NewEx(&Py##func##_Scalar_Def, NULL, NULL); \
-    PyDict_SetItemString(d, #py_name "_scalar", Py##func##_Scalar_Func); \
+    PyObject* Py##func_name##_Scalar_Func = PyCFunction_NewEx(&Py##func_name##_Scalar_Def, NULL, NULL); \
+    PyDict_SetItemString(d, #py_name "_scalar", Py##func_name##_Scalar_Func); \
 } while(0)
 
 /*
@@ -295,10 +295,10 @@ DEFINE_YY_d(GEOSProjectNormalizedWrapped_r);
 int init_geos_funcs_YY_d(PyObject* m, PyObject* d) {
   PyObject* ufunc;  // Temporary variable for ufunc creation
 
-  INIT_YY_d(distance, GEOSDistance_r);
-  INIT_YY_d(frechet_distance, GEOSFrechetDistanceWrapped_r);
-  INIT_YY_d(hausdorff_distance, GEOSHausdorffDistance_r);
-  INIT_YY_d(line_locate_point, GEOSProjectWrapped_r);
-  INIT_YY_d(line_locate_point_normalized, GEOSProjectNormalizedWrapped_r);
+  INIT_YY_d(GEOSDistance_r, distance);
+  INIT_YY_d(GEOSFrechetDistanceWrapped_r, frechet_distance);
+  INIT_YY_d(GEOSHausdorffDistance_r, hausdorff_distance);
+  INIT_YY_d(GEOSProjectWrapped_r, line_locate_point);
+  INIT_YY_d(GEOSProjectNormalizedWrapped_r, line_locate_point_normalized);
   return 0;
 }

@@ -214,8 +214,6 @@ finish:
 }
 static PyUFuncGenericFunction Y_Y_reduce_funcs[1] = {&Y_Y_reduce_func};
 
-/* YY_d functions have been moved to geos_funcs_YY_d.c and are now initialized in lib.c */
-
 /* Define the geom, geom, double -> double functions (YYd_d) */
 static void* hausdorff_distance_densify_data[1] = {GEOSHausdorffDistanceDensify_r};
 static void* frechet_distance_densify_data[1] = {GEOSFrechetDistanceDensify_r};
@@ -2743,9 +2741,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
   DEFINE_Y_Y_reduce(intersection_all);
   DEFINE_Y_Y_reduce(symmetric_difference_all);
-
-  /* YY_d functions (distance, frechet_distance, hausdorff_distance, line_locate_point,
-     line_locate_point_normalized) are now initialized in lib.c via geos_funcs_YY_d.c */
 
   DEFINE_YYd_d(frechet_distance_densify);
   DEFINE_YYd_d(hausdorff_distance_densify);
