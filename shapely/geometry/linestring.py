@@ -35,7 +35,8 @@ class LineString(BaseGeometry):
 
     See Also
     --------
-    shapely.linestrings : Create multiple line strings efficiently from coordinate arrays.
+    shapely.linestrings : Create multiple line strings efficiently from coordinate
+                          arrays.
 
     """
 
