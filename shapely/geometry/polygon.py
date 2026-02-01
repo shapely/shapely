@@ -41,6 +41,10 @@ class LinearRing(LineString):
     Rings are automatically closed. There is no need to specify a final
     coordinate pair identical to the first.
 
+    See Also
+    --------
+    shapely.linearrings : Create multiple linear rings efficiently from arrays.
+
     Examples
     --------
     Construct a square ring.
@@ -53,10 +57,6 @@ class LinearRing(LineString):
     [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
     >>> ring.length
     4.0
-
-    See Also
-    --------
-    shapely.linearrings : Create multiple linear rings efficiently from arrays.
 
     """
 
@@ -214,6 +214,11 @@ class Polygon(BaseGeometry):
     interiors : sequence
         A sequence of rings which bound all existing holes.
 
+    See Also
+    --------
+    shapely.polygons : Create multiple polygons efficiently from coordinate arrays.
+    shapely.box : Create rectangular polygons from bounding coordinates.
+
     Examples
     --------
     Create a square polygon with no holes
@@ -223,11 +228,6 @@ class Polygon(BaseGeometry):
     >>> polygon = Polygon(coords)
     >>> polygon.area
     1.0
-
-    See Also
-    --------
-    shapely.polygons : Create multiple polygons efficiently from coordinate arrays.
-    shapely.box : Create rectangular polygons from bounding coordinates.
 
     """
 

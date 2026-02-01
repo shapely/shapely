@@ -26,6 +26,11 @@ class MultiPoint(BaseMultipartGeometry):
     geoms : sequence
         A sequence of Points
 
+    See Also
+    --------
+    shapely.multipoints : Create MultiPoint geometries from arrays of points.
+    Point : Single point geometry.
+
     Examples
     --------
     Construct a MultiPoint containing two Points
@@ -36,11 +41,6 @@ class MultiPoint(BaseMultipartGeometry):
     2
     >>> type(ob.geoms[0]) == Point
     True
-
-    See Also
-    --------
-    shapely.multipoints : Create MultiPoint geometries from arrays of points.
-    Point : Single point geometry.
 
     """
 

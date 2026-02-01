@@ -25,6 +25,11 @@ class MultiPolygon(BaseMultipartGeometry):
     geoms : sequence
         A sequence of `Polygon` instances
 
+    See Also
+    --------
+    shapely.multipolygons : Create MultiPolygon geometries from arrays.
+    Polygon : Single polygon geometry.
+
     Examples
     --------
     Construct a MultiPolygon from a sequence of coordinate tuples
@@ -40,11 +45,6 @@ class MultiPolygon(BaseMultipartGeometry):
     1
     >>> type(ob.geoms[0]) == Polygon
     True
-
-    See Also
-    --------
-    shapely.multipolygons : Create MultiPolygon geometries from arrays.
-    Polygon : Single polygon geometry.
 
     """
 

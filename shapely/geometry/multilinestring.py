@@ -24,17 +24,17 @@ class MultiLineString(BaseMultipartGeometry):
     geoms : sequence
         A sequence of LineStrings
 
+    See Also
+    --------
+    shapely.multilinestrings : Create MultiLineString geometries from arrays.
+    LineString : Single line string geometry.
+
     Examples
     --------
     Construct a MultiLineString containing two LineStrings.
 
     >>> from shapely import MultiLineString
     >>> lines = MultiLineString([[[0, 0], [1, 2]], [[4, 4], [5, 6]]])
-
-    See Also
-    --------
-    shapely.multilinestrings : Create MultiLineString geometries from arrays.
-    LineString : Single line string geometry.
 
     """
 
