@@ -11,8 +11,7 @@ build-backend = "mesonpy"
 
 [project]
 name = "shapely"
-# dynamic = ["version"]  # TODO: re-enable dynamic version
-version = "2.2.0.dev0"  # keep in sync with `__version__` in shapely/__init__.py
+dynamic = ["version"]
 authors = [
     {name = "Sean Gillies"},
 ]
@@ -84,7 +83,7 @@ allow-long-titles = true
 max-line-length = 79
 
 [tool.meson-python.args]
-setup = ["--vsenv"]
+# setup = ["--vsenv"]  # ERROR: Tried to modify read only option "vsenv"
 # setup = ["--clearcache"]  # uncomment to clear build cache with local builds
 
 [tool.ruff]
