@@ -30,7 +30,7 @@ from shapely.geometry import (
 )
 
 # TODO: re-enable dynamic version
-__version__ = "2.2.0.dev0"  # keep in sync with `project.version` in pyproject.toml
+__version__ = "2.2.0.dev0"
 __git_version__ = ""
 
 
