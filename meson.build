@@ -12,22 +12,15 @@ project(
 )
 
 py = import('python').find_installation(pure: false)
-py_dep = py.dependency()
 
 min_geos_version = '3.10'
-min_numpy_version = '1.23'  # keep in sync with pyproject.toml and NPY_TARGET_VERSION
+min_numpy_version = '1.23'  # keep in sync with pyproject.toml
 min_python_version = '3.11'  # keep in sync with pyproject.toml
 
 python_version = py.language_version()
 if python_version.version_compare(f'<@min_python_version@')
   error(f'Minimum supported Python version is @min_python_version@, found @python_version@')
 endif
-
-# silence warnings
-add_project_arguments('-DNPY_NO_DEPRECATED_API=0', language : 'c')
-
-# see also min_numpy_version
-add_project_arguments('-DNPY_TARGET_VERSION=NPY_1_23_API_VERSION', language : 'c')
 
 # Previous shapely versions had multiple ways to specify GEOS dependency
 # which are not supported (in principle)
