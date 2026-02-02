@@ -305,7 +305,7 @@ def shared_paths(g1, g2):
         raise GeometryTypeError("First geometry must be a LineString")
     if not isinstance(g2, LineString):
         raise GeometryTypeError("Second geometry must be a LineString")
-    return shapely.shared_paths(g1, g2)
+    return shapely.lib.shared_paths_scalar(g1, g2)
 
 
 class SplitOp:

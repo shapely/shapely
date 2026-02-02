@@ -620,7 +620,21 @@ class BaseGeometry(shapely.Geometry):
         option is used, the algorithm may produce self-intersecting or
         otherwise invalid geometries.
         """
-        return shapely.simplify(self, tolerance, preserve_topology=preserve_topology)
+        try:
+            tolerance = float(tolerance)
+        except (TypeError, ValueError):
+            func = (
+                shapely.lib.simplify_preserve_topology
+                if preserve_topology
+                else shapely.lib.simplify
+            )
+        else:
+            func = (
+                shapely.lib.simplify_preserve_topology_scalar
+                if preserve_topology
+                else shapely.lib.simplify_scalar
+            )
+        return func(self, tolerance)
 
     def normalize(self):
         """Convert geometry to normal form (or canonical form).
@@ -656,6 +670,8 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.difference` for full documentation.
         """
+        if grid_size is None and shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.difference_scalar(self, other)
         return shapely.difference(self, other, grid_size=grid_size)
 
     # Note: future plan is to change this signature over a few releases:
@@ -672,6 +688,8 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.intersection` for full documentation.
         """
+        if grid_size is None and shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.intersection_scalar(self, other)
         return shapely.intersection(self, other, grid_size=grid_size)
 
     # Note: future plan is to change this signature over a few releases:
@@ -688,6 +706,8 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.symmetric_difference` for full documentation.
         """
+        if grid_size is None and shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.symmetric_difference_scalar(self, other)
         return shapely.symmetric_difference(self, other, grid_size=grid_size)
 
     # Note: future plan is to change this signature over a few releases:
@@ -704,6 +724,8 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.union` for full documentation.
         """
+        if grid_size is None and shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.union_scalar(self, other)
         return shapely.union(self, other, grid_size=grid_size)
 
     # Unary predicates
@@ -966,7 +988,7 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `interpolate`.
         """
-        return shapely.line_interpolate_point(self, distance, normalized=normalized)
+        return self._line_interpolate_point(distance, normalized=normalized)
 
     # Note: future plan is to change this signature over a few releases:
     # shapely 2.0:
@@ -988,7 +1010,24 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `line_interpolate_point`.
         """
-        return shapely.line_interpolate_point(self, distance, normalized=normalized)
+        return self._line_interpolate_point(distance, normalized=normalized)
+
+    def _line_interpolate_point(self, distance, *, normalized):
+        try:
+            distance = float(distance)
+        except (TypeError, ValueError):
+            func = (
+                shapely.lib.line_interpolate_point_normalized
+                if normalized
+                else shapely.lib.line_interpolate_point
+            )
+        else:
+            func = (
+                shapely.lib.line_interpolate_point_normalized_scalar
+                if normalized
+                else shapely.lib.line_interpolate_point_scalar
+            )
+        return func(self, distance)
 
     def segmentize(self, max_segment_length):
         """Add vertices to line segments based on maximum segment length.
@@ -1015,7 +1054,13 @@ class BaseGeometry(shapely.Geometry):
         <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
 
         """  # noqa: E501
-        return shapely.segmentize(self, max_segment_length)
+        try:
+            max_segment_length = float(max_segment_length)
+        except (TypeError, ValueError):
+            func = shapely.lib.segmentize
+        else:
+            func = shapely.lib.segmentize_scalar
+        return func(self, max_segment_length)
 
     def reverse(self):
         """Return a copy of this geometry with the order of coordinates reversed.
