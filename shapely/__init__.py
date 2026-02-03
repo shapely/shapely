@@ -1,5 +1,32 @@
 """Manipulation and analysis of geometric objects in the Cartesian plane."""
 
+
+def _set_geos_libdir():
+    """Might be required for editable builds to avoid ImportError.
+
+    E.g. add -Csetup-args="-Dgeos_libdir=/path/to/geos-install/lib64"
+    """
+    import importlib.resources
+    import os
+    import sys
+
+    pth = importlib.resources.files("shapely").joinpath("geos_libdir.txt")
+    try:
+        geos_libdir = pth.read_text().strip()
+    except FileNotFoundError:
+        return
+    if sys.platform.startswith("win"):
+        os.add_dll_directory(geos_libdir)
+    elif sys.platform.startswith("linux"):
+        lib_pth = geos_libdir
+        if "LD_LIBRARY_PATH" in os.environ:
+            lib_pth += os.pathsep + os.environ["LD_LIBRARY_PATH"]
+        os.environ["LD_LIBRARY_PATH"] = lib_pth
+
+
+_set_geos_libdir()
+del _set_geos_libdir
+
 from shapely.lib import GEOSException
 from shapely.lib import Geometry
 from shapely.lib import geos_version, geos_version_string

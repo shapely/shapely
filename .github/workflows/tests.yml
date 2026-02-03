@@ -132,7 +132,11 @@ jobs:
 
       - name: Set environment variables (Linux)
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
-        run: echo "LD_LIBRARY_PATH=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
+        run: echo "GEOS_LIBDIR=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
+
+      - name: Set environment variables (Windows)
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        run: echo "GEOS_LIBDIR=${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_ENV
 
       - name: Set environment variables (macOS)
         if: ${{ startsWith(matrix.os, 'macos') }}
@@ -142,17 +146,10 @@ jobs:
         run: >
           pip install --verbose --no-build-isolation
           -Csetup-args="-Dcmake_prefix_path=${{ env.GEOS_INSTALL }}"
+          -Csetup-args="-Dgeos_libdir=${{ env.GEOS_LIBDIR }}"
           -Ccompile-args="--verbose"
           -Ceditable-verbose=true
           --editable .
-
-      # Python ignores the PATH for finding DLLs, so we copy them into the package
-      - name: Copy DLLs (Windows)
-        if: ${{ startsWith(matrix.os, 'windows') }}
-        run: |
-          build_dir=$(python -c "import sys; print(f'build/cp{sys.version_info[0]}{sys.version_info[1]}/shapely')")
-          cp -v geosinstall/geos-${{ matrix.geos }}/bin/*.dll $build_dir
-          ls -l $build_dir
 
       - name: Overview of the Python environment (pip list)
         run: pip list
