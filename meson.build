@@ -45,6 +45,19 @@ endif
 geos_dep = dependency('geos', version : f'>=@min_geos_version@',
   method : 'cmake',  modules : ['GEOS::geos_c'])
 
+# Capture runtime GEOS libdir, needed for editable installs on Windows or Linux
+# -Dgeos_libdir=/path/to/geos-install/lib64
+geos_libdir = get_option('geos_libdir').strip()
+if geos_libdir != ''
+  custom_target(
+    output : 'geos_libdir.txt',
+    command : [py, '-c', 'import sys; print(sys.argv[-1])', geos_libdir],
+    capture : true,
+    install : true,
+    install_dir : py.get_install_dir() / 'shapely',
+  )
+endif
+
 # avoid accidental use of non-reentrant functions
 add_project_arguments('-DGEOS_USE_ONLY_R_API', language : 'c')
 
