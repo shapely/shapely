@@ -45,8 +45,8 @@ endif
 geos_dep = dependency('geos', version : f'>=@min_geos_version@',
   method : 'cmake',  modules : ['GEOS::geos_c'])
 
-# Capture runtime GEOS libdir, needed for editable installs on Windows or Linux
-# -Dgeos_libdir=/path/to/geos-install/lib64
+# Capture runtime GEOS libdir, needed for editable installs only on Windows
+# -Dgeos_libdir=C:\OSGeo4W\bin
 geos_libdir = get_option('geos_libdir').strip()
 if geos_libdir != ''
   custom_target(

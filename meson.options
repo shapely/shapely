@@ -1,2 +1,2 @@
 option('geos_libdir', type : 'string', value : '',
-  description : 'path to runtime GEOS library directory')
+  description : 'path to runtime GEOS library directory; only used for Windows editable builds')
