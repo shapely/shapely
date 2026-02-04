@@ -37,23 +37,10 @@ typedef int FuncGEOS_YY_d(GEOSContextHandle_t context, const GEOSGeometry* a, co
 /*
  * Wrapper functions for GEOS operations that need special handling
  */
-static int GEOSFrechetDistanceWrapped_r(GEOSContextHandle_t context, const GEOSGeometry* a, const GEOSGeometry* b, double* c) {
-  /* Handle empty geometries (they give segfaults) */
-  if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
-    *c = NPY_NAN;
-    return 1;
-  }
-  return GEOSFrechetDistance_r(context, a, b, c);
-}
 
-/* Project and ProjectNormalize don't return error codes. wrap them. */
 static int GEOSProjectWrapped_r(GEOSContextHandle_t context, const GEOSGeometry* a, const GEOSGeometry* b, double* c) {
-  /* Handle empty points (they give segfaults (for b) or give exception (for a)) */
-  if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
-    *c = NPY_NAN;
-  } else {
-    *c = GEOSProject_r(context, a, b);
-  }
+  /* Project returns -1.0 instead of an error code */
+  *c = GEOSProject_r(context, a, b);
   if (*c == -1.0) {
     return 0;
   } else {
@@ -62,12 +49,8 @@ static int GEOSProjectWrapped_r(GEOSContextHandle_t context, const GEOSGeometry*
 }
 
 static int GEOSProjectNormalizedWrapped_r(GEOSContextHandle_t context, const GEOSGeometry* a, const GEOSGeometry* b, double* c) {
-  /* Handle empty points (they give segfaults (for b) or give exception (for a)) */
-  if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
-    *c = NPY_NAN;
-  } else {
-    *c = GEOSProjectNormalized_r(context, a, b);
-  }
+  /* ProjectNormalized returns -1.0 instead of an error code */
+  *c = GEOSProjectNormalized_r(context, a, b);
   if (*c == -1.0) {
     return 0;
   } else {
@@ -112,16 +95,17 @@ static char core_YY_d_operation(GEOSContextHandle_t context, FuncGEOS_YY_d* func
     return PGERR_SUCCESS;
   }
 
+  // Handle empty geometries - return NaN
+  // Note that GEOS does this too, but some versions and platforms, segfaults are raised
+  // "invalid value" warnings are set or 0.0 or Inf are returned.
+  if (GEOSisEmpty_r(context, geom1) || GEOSisEmpty_r(context, geom2)) {
+    *result = NPY_NAN;
+    return PGERR_SUCCESS;
+  }
+
   // Call the GEOS function
   if (func(context, geom1, geom2, result) == 0) {
     return PGERR_GEOS_EXCEPTION;
-  }
-
-  // In case the outcome is 0.0 or infinity, check the inputs for emptiness
-  if ((*result == 0.0) || npy_isinf(*result)) {
-    if (GEOSisEmpty_r(context, geom1) || GEOSisEmpty_r(context, geom2)) {
-      *result = NPY_NAN;
-    }
   }
 
   return PGERR_SUCCESS;
@@ -242,7 +226,7 @@ static char YY_d_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE};
   }
 
 DEFINE_YY_d(GEOSDistance_r);
-DEFINE_YY_d(GEOSFrechetDistanceWrapped_r);
+DEFINE_YY_d(GEOSFrechetDistance_r);
 DEFINE_YY_d(GEOSHausdorffDistance_r);
 DEFINE_YY_d(GEOSProjectWrapped_r);
 DEFINE_YY_d(GEOSProjectNormalizedWrapped_r);
