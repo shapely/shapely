@@ -54,7 +54,7 @@ def dumps(ob, hex=False, srid=None, **kw):
     """
     if srid is not None:
         # clone the object and set the SRID before dumping
-        ob = shapely.set_srid(ob, srid)
+        ob = shapely.lib.set_srid_scalar(ob, int(srid))
         kw["include_srid"] = True
     if "big_endian" in kw:
         # translate big_endian=True/False into byte_order=0/1

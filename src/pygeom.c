@@ -446,6 +446,22 @@ char get_geom(GeometryObject* obj, GEOSGeometry** out) {
 
 /* Get a GEOSGeometry AND GEOSPreparedGeometry pointer from a GeometryObject,
 or NULL if the input is Py_None. Returns 0 on error, 1 on success. */
+char ShapelyGetGeometryWithPrepared(PyObject* obj, const GEOSGeometry** out, const GEOSPreparedGeometry** prep) {
+  if (!ShapelyGetGeometry(obj, out)) {
+    // It is not a GeometryObject / None: Error
+    return 0;
+  }
+  if (*out != NULL) {
+    // Only if it is not None, fill the prepared geometry
+    *prep = ((GeometryObject*)obj)->ptr_prepared;
+  } else {
+    *prep = NULL;
+  }
+  return 1;
+}
+
+
+/* deprecated version of ShapelyGetGeometry with incorrect type signature */
 char get_geom_with_prepared(GeometryObject* obj, GEOSGeometry** out,
                             GEOSPreparedGeometry** prep) {
   if (!get_geom(obj, out)) {

@@ -1,4 +1,5 @@
 import platform
+import sys
 import weakref
 
 import numpy as np
@@ -17,6 +18,7 @@ from shapely import (
 )
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.testing import assert_geometries_equal
+from shapely.tests.common import ignore_invalid
 
 
 def test_polygon():
@@ -85,12 +87,6 @@ def test_type_deprecated():
     assert geom_type == geom.geom_type
 
 
-def test_segmentize():
-    line = LineString([(0, 0), (0, 10)])
-    result = line.segmentize(max_segment_length=5)
-    assert result.equals(LineString([(0, 0), (0, 5), (0, 10)]))
-
-
 def test_reverse():
     coords = [(0, 0), (1, 2)]
     line = LineString(coords)
@@ -138,7 +134,21 @@ def test_contains_properly():
 )
 def test_constructive_properties(op):
     geom = LineString([(0, 0), (0, 10), (10, 10)])
-    result = getattr(geom, op)
+    with ignore_invalid(
+        op in ["oriented_envelope", "minimum_rotated_rectangle"]
+        and sys.platform == "darwin"
+        and shapely.geos_version > (3, 12, 0),
+        divide=True,
+    ):
+        result = getattr(geom, op)
+        expected = getattr(shapely, op)(geom)
+    assert result == expected
+
+
+@pytest.mark.parametrize("op", ["normalize", "point_on_surface", "reverse"])
+def test_constructive_methods(op):
+    geom = LineString([(0, 0), (0, 10), (10, 10)])
+    result = getattr(geom, op)()
     expected = getattr(shapely, op)(geom)
     assert result == expected
 
@@ -241,21 +251,24 @@ def test_array_argument_float(op):
     assert type(result) is float
 
 
-@pytest.mark.parametrize("op", ["line_interpolate_point", "interpolate"])
+@pytest.mark.parametrize(
+    "op", ["line_interpolate_point", "interpolate", "simplify", "segmentize"]
+)
 def test_array_argument_linear_point(op):
     line = LineString([(0, 0), (0, 1), (1, 1)])
-    distances = np.array([0, 0.5, 1])
+    distances = np.array([0.5, 1])
 
     result = getattr(line, op)(distances)
     assert isinstance(result, np.ndarray)
-    expected = np.array(
-        [line.line_interpolate_point(d) for d in distances], dtype=object
-    )
+    expected = getattr(
+        shapely, op if op != "interpolate" else "line_interpolate_point"
+    )(line, distances)
     assert_geometries_equal(result, expected)
 
-    # check scalar
-    result = getattr(line, op)(distances[0])
-    assert isinstance(result, Point)
+    # check scalar (several types)
+    for distance in [1, 1.0, np.float64(1.0), np.int32(1)]:
+        result = getattr(line, op)(distance)
+        assert_geometries_equal(result, expected[1])
 
 
 @pytest.mark.parametrize("op", ["line_locate_point", "project"])

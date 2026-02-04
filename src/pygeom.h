@@ -7,8 +7,8 @@
 
 typedef struct {
   PyObject_HEAD
-  void* ptr;
-  void* ptr_prepared;
+  GEOSGeometry* ptr;
+  GEOSPreparedGeometry* ptr_prepared;
   /* For weak references */
   PyObject *weakreflist;
 } GeometryObject;
@@ -20,6 +20,7 @@ extern PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t 
 /* Get a GEOSGeometry from a GeometryObject */
 extern char get_geom(GeometryObject* obj, GEOSGeometry** out);
 extern char ShapelyGetGeometry(PyObject* obj, const GEOSGeometry** out);
+extern char ShapelyGetGeometryWithPrepared(PyObject* obj, const GEOSGeometry** out, const GEOSPreparedGeometry** prep);
 extern char get_geom_with_prepared(GeometryObject* obj, GEOSGeometry** out,
                                    GEOSPreparedGeometry** prep);
 

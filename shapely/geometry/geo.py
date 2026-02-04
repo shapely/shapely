@@ -123,6 +123,12 @@ def mapping(ob):
 
     Input should be a Geometry or an object which implements __geo_interface__.
 
+    Note that ``mapping`` does not enforce the winding order of polygons to be
+    compliant with the `RFC 7946 <https://geojson.org/>`__ GeoJSON
+    specification. If you want this, you can first order exterior rings
+    counterclockwise, and interior rings (holes) clockwise with
+    :func:`shapely.orient_polygons`.
+
     Parameters
     ----------
     ob : geometry or object
@@ -131,6 +137,11 @@ def mapping(ob):
     Returns
     -------
     dict
+
+    See Also
+    --------
+    to_geojson : Convert a Geometry or array of Geometries to GeoJSON string
+        representation.
 
     Examples
     --------

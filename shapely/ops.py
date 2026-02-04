@@ -261,8 +261,8 @@ def nearest_points(g1, g2):
         else:
             raise ValueError("The second input geometry is empty")
 
-    p1 = shapely.get_point(seq, 0)
-    p2 = shapely.get_point(seq, 1)
+    p1 = shapely.lib.get_point_scalar(seq, 0)
+    p2 = shapely.lib.get_point_scalar(seq, 1)
     return (p1, p2)
 
 
@@ -305,7 +305,7 @@ def shared_paths(g1, g2):
         raise GeometryTypeError("First geometry must be a LineString")
     if not isinstance(g2, LineString):
         raise GeometryTypeError("Second geometry must be a LineString")
-    return shapely.shared_paths(g1, g2)
+    return shapely.lib.shared_paths_scalar(g1, g2)
 
 
 class SplitOp:
