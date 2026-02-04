@@ -214,102 +214,6 @@ finish:
 }
 static PyUFuncGenericFunction Y_Y_reduce_funcs[1] = {&Y_Y_reduce_func};
 
-/* Define the geom, geom -> double functions (YY_d) */
-static void* distance_data[1] = {GEOSDistance_r};
-static void* hausdorff_distance_data[1] = {GEOSHausdorffDistance_r};
-static int GEOSFrechetDistanceWrapped_r(void* context, void* a, void* b, double* c) {
-  /* Handle empty geometries (they give segfaults) */
-  if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
-    *c = NPY_NAN;
-    return 1;
-  }
-  return GEOSFrechetDistance_r(context, a, b, c);
-}
-static void* frechet_distance_data[1] = {GEOSFrechetDistanceWrapped_r};
-
-/* Project and ProjectNormalize don't return error codes. wrap them. */
-static int GEOSProjectWrapped_r(void* context, void* a, void* b, double* c) {
-  /* Handle empty points (they give segfaults (for b) or give exception (for a)) */
-  if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
-    *c = NPY_NAN;
-  } else {
-    *c = GEOSProject_r(context, a, b);
-  }
-  if (*c == -1.0) {
-    return 0;
-  } else {
-    return 1;
-  }
-}
-static void* line_locate_point_data[1] = {GEOSProjectWrapped_r};
-static int GEOSProjectNormalizedWrapped_r(void* context, void* a, void* b, double* c) {
-  double length;
-  double distance;
-
-  /* Handle empty points (they give segfaults (for b) or give exception (for a)) */
-  if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
-    *c = NPY_NAN;
-  } else {
-    /* Use custom implementation of GEOSProjectNormalized to overcome bug in
-    older GEOS versions (https://trac.osgeo.org/geos/ticket/1058) */
-    if (GEOSLength_r(context, a, &length) != 1) {
-      return 0;
-    };
-    distance = GEOSProject_r(context, a, b);
-    if (distance == -1.0) {
-      return 0;
-    } else {
-      *c = distance / length;
-    }
-  }
-  return 1;
-}
-static void* line_locate_point_normalized_data[1] = {GEOSProjectNormalizedWrapped_r};
-typedef int FuncGEOS_YY_d(void* context, void* a, void* b, double* c);
-static char YY_d_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE};
-static void YY_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_YY_d* func = (FuncGEOS_YY_d*)data;
-  GEOSGeometry *in1 = NULL, *in2 = NULL;
-
-  GEOS_INIT_THREADS;
-
-  BINARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      goto finish;
-    }
-    /* get the geometries: return on error */
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      goto finish;
-    }
-    if (!get_geom(*(GeometryObject**)ip2, &in2)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      goto finish;
-    }
-    if ((in1 == NULL) || (in2 == NULL)) {
-      /* in case of a missing value: return NaN */
-      *(double*)op1 = NPY_NAN;
-    } else {
-      /* let the GEOS function set op1; return on error */
-      if (func(ctx, in1, in2, (double*)op1) == 0) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-      /* in case the outcome is 0.0, check the inputs for emptyness */
-      if (*op1 == 0.0) {
-        if (GEOSisEmpty_r(ctx, in1) || GEOSisEmpty_r(ctx, in2)) {
-          *(double*)op1 = NPY_NAN;
-        }
-      }
-    }
-  }
-
-finish:
-  GEOS_FINISH_THREADS;
-}
-static PyUFuncGenericFunction YY_d_funcs[1] = {&YY_d_func};
-
 /* Define the geom, geom, double -> double functions (YYd_d) */
 static void* hausdorff_distance_densify_data[1] = {GEOSHausdorffDistanceDensify_r};
 static void* frechet_distance_densify_data[1] = {GEOSFrechetDistanceDensify_r};
@@ -2802,11 +2706,6 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
                                   PyUFunc_None, #NAME, "", 0);                 \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_YY_d(NAME)                                                        \
-  ufunc = PyUFunc_FromFuncAndData(YY_d_funcs, NAME##_data, YY_d_dtypes, 1, 2, 1, \
-                                  PyUFunc_None, #NAME, "", 0);                   \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
 #define DEFINE_YYd_d(NAME)                                                         \
   ufunc = PyUFunc_FromFuncAndData(YYd_d_funcs, NAME##_data, YYd_d_dtypes, 1, 3, 1, \
                                   PyUFunc_None, #NAME, "", 0);                     \
@@ -2842,12 +2741,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
   DEFINE_Y_Y_reduce(intersection_all);
   DEFINE_Y_Y_reduce(symmetric_difference_all);
-
-  DEFINE_YY_d(distance);
-  DEFINE_YY_d(frechet_distance);
-  DEFINE_YY_d(hausdorff_distance);
-  DEFINE_YY_d(line_locate_point);
-  DEFINE_YY_d(line_locate_point_normalized);
 
   DEFINE_YYd_d(frechet_distance_densify);
   DEFINE_YYd_d(hausdorff_distance_densify);
