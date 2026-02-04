@@ -95,13 +95,17 @@ static char core_YY_d_operation(GEOSContextHandle_t context, FuncGEOS_YY_d* func
     return PGERR_SUCCESS;
   }
 
-  // Handle empty geometries - return NaN
-  // Note that GEOS does this too, but some versions and platforms, segfaults are raised
-  // "invalid value" warnings are set or 0.0 or Inf are returned.
-  // if (GEOSisEmpty_r(context, geom1) || GEOSisEmpty_r(context, geom2)) {
-  //   *result = NPY_NAN;
-  //   return PGERR_SUCCESS;
-  // }
+  // GEOS behaves as follows for empty inputs:
+  //  - Project[Normalized] segfault
+  //  - FrechetDistance sets a GEOS error
+  //  - Distance gives 0.0 or Infinity as output
+  //  - HausdorffDistance (sometimes?) sets the "invalid value encountered" flag
+  // It is simplest to pre-emptively check for empty inputs and set NaN (which is consistent
+  // with how other functions handle empty geometry inputs).
+  if (GEOSisEmpty_r(context, geom1) || GEOSisEmpty_r(context, geom2)) {
+    *result = NPY_NAN;
+    return PGERR_SUCCESS;
+  }
 
   // Call the GEOS function
   if (func(context, geom1, geom2, result) == 0) {
