@@ -2,26 +2,24 @@
 
 
 def _set_geos_libdir():
-    """Might be required for editable builds to avoid ImportError.
+    b"""Might be required for editable builds to avoid ImportError.
 
-    E.g. add -Csetup-args="-Dgeos_libdir=/path/to/geos-install/lib64"
+    E.g. add -Csetup-args="-Dgeos_libdir=C:\\OSGeo4W\bin"
     """
-    import importlib.resources
     import os
     import sys
+
+    if not sys.platform.startswith("win"):
+        return
+
+    import importlib.resources
 
     pth = importlib.resources.files("shapely").joinpath("geos_libdir.txt")
     try:
         geos_libdir = pth.read_text().strip()
     except FileNotFoundError:
         return
-    if sys.platform.startswith("win"):
-        os.add_dll_directory(geos_libdir)
-    elif sys.platform.startswith("linux"):
-        lib_pth = geos_libdir
-        if "LD_LIBRARY_PATH" in os.environ:
-            lib_pth += os.pathsep + os.environ["LD_LIBRARY_PATH"]
-        os.environ["LD_LIBRARY_PATH"] = lib_pth
+    os.add_dll_directory(geos_libdir)
 
 
 _set_geos_libdir()

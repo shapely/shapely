@@ -132,7 +132,7 @@ jobs:
 
       - name: Set environment variables (Linux)
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
-        run: echo "GEOS_LIBDIR=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
+        run: echo "LD_LIBRARY_PATH=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
 
       - name: Set environment variables (Windows)
         if: ${{ startsWith(matrix.os, 'windows') }}
