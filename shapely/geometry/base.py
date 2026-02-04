@@ -1084,7 +1084,7 @@ class BaseMultipartGeometry(BaseGeometry):
         """Return the hash value of the geometry."""
         return super().__hash__()
 
-    def svg(self, scale_factor=1.0, color=None):
+    def svg(self, **kwargs):
         """Return a group of SVG elements for the multipart geometry.
 
         Parameters
@@ -1098,9 +1098,7 @@ class BaseMultipartGeometry(BaseGeometry):
         """
         if self.is_empty:
             return "<g />"
-        if color is None:
-            color = "#66cc99" if self.is_valid else "#ff3333"
-        return "<g>" + "".join(p.svg(scale_factor, color) for p in self.geoms) + "</g>"
+        return "<g>" + "".join(p.svg(**kwargs) for p in self.geoms) + "</g>"
 
 
 class GeometrySequence:
