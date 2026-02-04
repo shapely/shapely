@@ -280,7 +280,7 @@ int init_geos_funcs_YY_d(PyObject* m, PyObject* d) {
   PyObject* ufunc;  // Temporary variable for ufunc creation
 
   INIT_YY_d(GEOSDistance_r, distance);
-  INIT_YY_d(GEOSFrechetDistanceWrapped_r, frechet_distance);
+  INIT_YY_d(GEOSFrechetDistance_r, frechet_distance);
   INIT_YY_d(GEOSHausdorffDistance_r, hausdorff_distance);
   INIT_YY_d(GEOSProjectWrapped_r, line_locate_point);
   INIT_YY_d(GEOSProjectNormalizedWrapped_r, line_locate_point_normalized);
