@@ -98,10 +98,10 @@ static char core_YY_d_operation(GEOSContextHandle_t context, FuncGEOS_YY_d* func
   // Handle empty geometries - return NaN
   // Note that GEOS does this too, but some versions and platforms, segfaults are raised
   // "invalid value" warnings are set or 0.0 or Inf are returned.
-  if (GEOSisEmpty_r(context, geom1) || GEOSisEmpty_r(context, geom2)) {
-    *result = NPY_NAN;
-    return PGERR_SUCCESS;
-  }
+  // if (GEOSisEmpty_r(context, geom1) || GEOSisEmpty_r(context, geom2)) {
+  //   *result = NPY_NAN;
+  //   return PGERR_SUCCESS;
+  // }
 
   // Call the GEOS function
   if (func(context, geom1, geom2, result) == 0) {
