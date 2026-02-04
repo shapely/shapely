@@ -117,8 +117,8 @@ static char core_YY_d_operation(GEOSContextHandle_t context, FuncGEOS_YY_d* func
     return PGERR_GEOS_EXCEPTION;
   }
 
-  // In case the outcome is 0.0, check the inputs for emptiness
-  if (*result == 0.0) {
+  // In case the outcome is 0.0 or infinity, check the inputs for emptiness
+  if ((*result == 0.0) || npy_isinf(*result)) {
     if (GEOSisEmpty_r(context, geom1) || GEOSisEmpty_r(context, geom2)) {
       *result = NPY_NAN;
     }
