@@ -5,7 +5,16 @@ from numpy.testing import assert_array_equal
 import shapely
 from shapely import LinearRing, Polygon
 from shapely.testing import assert_geometries_equal
-from shapely.tests.common import empty_point, line_string, linear_ring, point, polygon
+from shapely.tests.common import (
+    empty_point,
+    line_string,
+    linear_ring,
+    point,
+    point_m,
+    point_z,
+    point_zm,
+    polygon,
+)
 
 pnts = shapely.points
 lstrs = shapely.linestrings
@@ -20,7 +29,7 @@ geom_coll = shapely.geometrycollections
     [
         np.empty((2,)),  # not enough dimensions
         np.empty((2, 4, 1)),  # too many dimensions
-        np.empty((2, 4)),  # wrong inner dimension size
+        np.empty((2, 5)),  # wrong inner dimension size
         None,
         np.full((2, 2), "foo", dtype=object),  # wrong type
     ],
@@ -100,6 +109,32 @@ def test_points():
         indices=np.array([0, 1], dtype=np.intp),
     )
     assert_geometries_equal(actual, [point, point])
+
+
+def test_points_z():
+    actual = shapely.points(
+        np.array([[2, 3, 4], [2, 3, 4]], dtype=float),
+        indices=np.array([0, 1], dtype=np.intp),
+    )
+    assert_geometries_equal(actual, [point_z, point_z])
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_points_m():
+    actual = shapely.points(
+        np.array([[2, 3, 5], [2, 3, 5]], dtype=float),
+        indices=np.array([0, 1], dtype=np.intp),
+    )
+    assert_geometries_equal(actual, [point_m, point_m])
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_points_zm():
+    actual = shapely.points(
+        np.array([[2, 3, 4, 5], [2, 3, 4, 5]], dtype=float),
+        indices=np.array([0, 1], dtype=np.intp),
+    )
+    assert_geometries_equal(actual, [point_zm, point_zm])
 
 
 def test_points_no_index_raises():
