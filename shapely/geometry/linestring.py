@@ -24,6 +24,11 @@ class LineString(BaseGeometry):
         an array-like with shape (N, 2) or (N, 3).
         Also can be a sequence of Point objects, or combination of both.
 
+    See Also
+    --------
+    shapely.linestrings :
+        Create multiple line strings efficiently from coordinate arrays.
+
     Examples
     --------
     Create a LineString with two segments
