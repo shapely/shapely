@@ -79,6 +79,31 @@ def _maybe_unpack(result):
         return result
 
 
+def apply_svg_defaults(supplied, defaults):
+    """Return a dictionary of SVG style attributes with defaults filled in.
+    Args:
+       supplied: a dictionary of SVG style attributes, typically given as
+                 **kwargs to a .svg() method
+       defaults: if any of these are missing from the supplied args, they
+                 are filled in from here.
+    """
+    return defaults | supplied
+
+
+# For backward compatibility with the names already used by shapely.
+# You can also use the names that SVG uses natively.
+SVG_ATTRIBUTE_NAMES = {
+    'fill_color': 'fill',
+    'stroke_color': 'stroke',
+}
+
+
+def svg_style(style_elements):
+    """Return the style text for a dictionary of style elements."""
+    return " ".join('%s="%s"' % (SVG_ATTRIBUTE_NAMES.get(k, k).replace("_", "-"), v)
+                    for k, v in style_elements.items())
+
+
 class CAP_STYLE:
     """Buffer cap styles."""
 
@@ -1126,7 +1151,7 @@ class BaseMultipartGeometry(BaseGeometry):
         """Return the hash value of the geometry."""
         return super().__hash__()
 
-    def svg(self, scale_factor=1.0, color=None):
+    def svg(self, **kwargs):
         """Return a group of SVG elements for the multipart geometry.
 
         Parameters
@@ -1140,9 +1165,7 @@ class BaseMultipartGeometry(BaseGeometry):
         """
         if self.is_empty:
             return "<g />"
-        if color is None:
-            color = "#66cc99" if self.is_valid else "#ff3333"
-        return "<g>" + "".join(p.svg(scale_factor, color) for p in self.geoms) + "</g>"
+        return "<g>" + "".join(p.svg(**kwargs) for p in self.geoms) + "</g>"
 
 
 class GeometrySequence:
