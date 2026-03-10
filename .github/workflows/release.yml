@@ -92,7 +92,7 @@ jobs:
 
       - name: Build Docker image with GEOS
         # using build-push-action (without push) to make use of cache arguments
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ci/Dockerfile
