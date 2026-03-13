@@ -4,7 +4,7 @@ import numpy as np
 
 import shapely
 from shapely.errors import DimensionError
-from shapely.geometry.base import BaseGeometry
+from shapely.geometry.base import BaseGeometry, apply_svg_defaults, svg_style
 
 __all__ = ["Point"]
 
@@ -120,7 +120,7 @@ class Point(BaseGeometry):
         coords = self.coords
         return {"type": "Point", "coordinates": coords[0] if len(coords) > 0 else ()}
 
-    def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
+    def svg(self, **style_args):
         """Return SVG circle element for the Point geometry.
 
         Parameters
@@ -132,18 +132,18 @@ class Point(BaseGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.6
+        Other SVG style parameters may also be given.
 
         """
         if self.is_empty:
             return "<g />"
-        if fill_color is None:
-            fill_color = "#66cc99" if self.is_valid else "#ff3333"
-        if opacity is None:
-            opacity = 0.6
+        style = svg_style(apply_svg_defaults(style_args,
+                                             dict(opacity=0.6,
+                                                  fill_color="#66cc99" if self.is_valid else "#ff3333",
+                                                  stroke="#555555",
+                                                  stroke_width=scale_factor)))
         return (
-            f'<circle cx="{self.x}" cy="{self.y}" r="{3.0 * scale_factor}" '
-            f'stroke="#555555" stroke-width="{1.0 * scale_factor}" fill="{fill_color}" '
-            f'opacity="{opacity}" />'
+            f'<circle cx="{self.x}" cy="{self.y}" r="{3.0 * scale_factor}" {style} />'
         )
 
     @property

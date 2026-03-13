@@ -1468,7 +1468,6 @@ finish:
 }
 static PyUFuncGenericFunction coverage_is_valid_funcs[1] = {&coverage_is_valid_func};
 
-
 static char coverage_invalid_edges_dtypes[3] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
 static void coverage_invalid_edges_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                    void* data) {

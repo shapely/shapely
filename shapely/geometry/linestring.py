@@ -4,7 +4,7 @@ import numpy as np
 
 import shapely
 from shapely.decorators import deprecate_positional
-from shapely.geometry.base import JOIN_STYLE, BaseGeometry
+from shapely.geometry.base import JOIN_STYLE, BaseGeometry, apply_svg_defaults, svg_style
 from shapely.geometry.point import Point
 
 __all__ = ["LineString"]
@@ -83,7 +83,7 @@ class LineString(BaseGeometry):
         """Return a GeoJSON-like mapping of the LineString geometry."""
         return {"type": "LineString", "coordinates": tuple(self.coords)}
 
-    def svg(self, scale_factor=1.0, stroke_color=None, opacity=None):
+    def svg(self, scale_factor=1.0, **style_args):
         """Return SVG polyline element for the LineString geometry.
 
         Parameters
@@ -95,19 +95,19 @@ class LineString(BaseGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.8
+        Other SVG style parameters also may be given.
 
         """
         if self.is_empty:
             return "<g />"
-        if stroke_color is None:
-            stroke_color = "#66cc99" if self.is_valid else "#ff3333"
-        if opacity is None:
-            opacity = 0.8
         pnt_format = " ".join(["{},{}".format(*c) for c in self.coords])
+        style = svg_style(apply_svg_defaults(style_args,
+                                             dict(opacity=0.8,
+                                                  fill="none",
+                                                  stroke_color="#66cc99" if self.is_valid else "#ff3333",
+                                                  stroke_width=2.0 * scale_factor)))
         return (
-            f'<polyline fill="none" stroke="{stroke_color}" '
-            f'stroke-width="{2.0 * scale_factor}" '
-            f'points="{pnt_format}" opacity="{opacity}" />'
+            f'<polyline {style} points="{pnt_format}" />'
         )
 
     @property
