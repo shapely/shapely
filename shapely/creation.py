@@ -30,23 +30,71 @@ class HandleNaN(ParamEnum):
     error = 2
 
 
-def _xyz_to_coords(x, y, z):
-    if y is None:
-        return x
-    if z is None:
-        coords = np.broadcast_arrays(x, y)
+def _pack_options(geom_type: int, has_z: bool, has_m: bool, handle_nan: int) -> int:
+    """Create an integer bit-mask to pass as scalar in ufunc to unpack in C."""
+    return (
+        int(geom_type & 0b1111)
+        | bool(has_z) << 5
+        | bool(has_m) << 6
+        | int(handle_nan) << 7
+    )
+
+
+def _unpack_options(options: int) -> dict:
+    """Debug _pack_options()."""
+    return {
+        "geom_type": int(options & 0b1111),
+        "has_z": bool(options >> 5 & 0b1),
+        "has_m": bool(options >> 6 & 0b1),
+        "handle_nan": int(options >> 7),
+    }
+
+
+def _args_to_coords_and_options(geom_type, x, y, z, m, coords_has_m, handle_nan):
+    if y is not None:
+        # Assume separate arrays for each dimension
+        if z is None and m is None:
+            coords = np.broadcast_arrays(x, y)
+        elif z is not None and m is None:
+            coords = np.broadcast_arrays(x, y, z)
+        elif z is None and m is not None:
+            coords = np.broadcast_arrays(x, y, m)
+        else:
+            coords = np.broadcast_arrays(x, y, z, m)
+        coords = np.stack(coords, axis=-1)
+        has_z = z is not None
+        has_m = m is not None
     else:
-        coords = np.broadcast_arrays(x, y, z)
-    return np.stack(coords, axis=-1)
+        # Assume x is the array for all coordinate dimensions
+        coords = np.array(x)
+        try:
+            coords_dim = coords.shape[-1]
+        except IndexError:
+            raise TypeError
+        match coords_dim:
+            case 3:
+                has_m = bool(coords_has_m)
+                has_z = not has_m
+            case 4:
+                has_z = has_m = True
+            case 2 | _:
+                has_z = has_m = False
+    # Ensure coords is float
+    if not np.issubdtype(coords.dtype, np.number):
+        coords = coords.astype(np.float64)
+    if isinstance(handle_nan, str):
+        handle_nan = HandleNaN.get_value(handle_nan)
+    options = _pack_options(geom_type, has_z, has_m, handle_nan)
+    return coords, options
 
 
 # Note: future plan is to change this signature over a few releases:
 # shapely 2.0:
 #   points(coords, y=None, z=None, indices=None, out=None, **kwargs)
 # shapely 2.1: shows deprecation warning about positional 'indices' arg
-#   points(coords, y=None, z=None, indices=None, *, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+#   points(coords, y=None, z=None, indices=None, *, ...)
 # shapely 2.2(?): enforce keyword-only arguments after 'z'
-#   points(coords, y=None, z=None, *, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+#   points(coords, y=None, z=None, *, m=None, indices=None, ...)
 
 
 @deprecate_positional(["indices"], category=DeprecationWarning)
@@ -57,6 +105,8 @@ def points(
     z=None,
     indices=None,
     *,
+    m=None,
+    coords_has_m=None,
     handle_nan=HandleNaN.allow,
     out=None,
     **kwargs,
@@ -66,18 +116,28 @@ def points(
     Parameters
     ----------
     coords : array_like
-        An array of coordinate tuples (2- or 3-dimensional) or, if ``y`` is
-        provided, an array of x coordinates.
+        An array of coordinate tuples (N, D) or, if ``y`` is
+        provided, an array of x coordinates. Coordinates with shape (N, 3)
+        may either be XYZ (default) or XYM when ``coords_has_m=True``.
     y : array_like, optional
         An array of y coordinates.
     z : array_like, optional
         An array of z coordinates.
+    m : array_like, optional
+        An array of m coordinates.
+
+        .. versionadded:: 2.2.0
     indices : array_like, optional
         Indices into the target array where input coordinates belong. If
-        provided, the coords should be 2D with shape (N, 2) or (N, 3) and
+        provided, the coords should be 2D with shape (N, 2), (N, 3) or (N, 4) and
         indices should be an array of shape (N,) with integers in increasing
         order. Missing indices result in a ValueError unless ``out`` is
         provided, in which case the original value in ``out`` is kept.
+    coords_has_m : bool, optional
+        If ``coords`` is an array with shape (N, 3) this option allows XYM
+        geometries to be created, otherwise they will be assumed to be XYZ.
+
+        .. versionadded:: 2.2.0
     handle_nan : shapely.HandleNaN or {'allow', 'skip', 'error'}, default 'allow'
         Specifies what to do when a NaN or Inf is encountered in the coordinates:
 
@@ -87,7 +147,7 @@ def points(
           coordinate values. One can use this option if you know all
           coordinates are finite and want to avoid the overhead of checking
           for this.
-        - 'skip': if any of x, y or z values are NaN or Inf, an empty point
+        - 'skip': if any of x, y, z or m values are NaN or Inf, an empty point
           will be created.
         - 'error': if any NaN or Inf is detected in the coordinates, a ValueError
           is raised. This option ensures that the created geometries have all
@@ -112,20 +172,20 @@ def points(
     -----
     - GEOS 3.10, 3.11 and 3.12 automatically converts POINT (nan nan) to POINT EMPTY.
     - GEOS 3.10 and 3.11 will transform a 3D point to 2D if its Z coordinate is NaN.
-    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in
+    - Usage of the ``y``, ``z`` and ``m`` arguments will prevents lazy evaluation in
       ``dask``. Instead provide the coordinates as an array with shape
-      ``(..., 2)`` or ``(..., 3)`` using only the ``coords`` argument.
+      ``(..., 2)``, ``(..., 3)`` or ``(..., 4)`` using only the ``coords`` argument.
+    - Geometries with M coordinates are supported with GEOS 3.12.0 or later.
+      Attempts to set ``m=`` with older GEOS versions will be silently ignored.
 
     """
-    coords = _xyz_to_coords(coords, y, z)
-    if isinstance(handle_nan, str):
-        handle_nan = HandleNaN.get_value(handle_nan)
+    coords, options = _args_to_coords_and_options(
+        GeometryType.POINT, coords, y, z, m, coords_has_m, handle_nan
+    )
     if indices is None:
-        return lib.points(coords, np.intc(handle_nan), out=out, **kwargs)
+        return lib.points(coords, np.intc(options), out=out, **kwargs)
     else:
-        return simple_geometries_1d(
-            coords, indices, GeometryType.POINT, handle_nan=handle_nan, out=out
-        )
+        return simple_geometries_1d(coords, indices, options=options, out=out)
 
 
 # Note: future plan is to change this signature over a few releases:
@@ -211,15 +271,15 @@ def linestrings(
       ``(..., 3)`` array using only ``coords``.
 
     """
-    coords = _xyz_to_coords(coords, y, z)
+    coords, options = _args_to_coords_and_options(
+        GeometryType.LINESTRING, coords, y, z, None, None, handle_nan
+    )
     if isinstance(handle_nan, str):
         handle_nan = HandleNaN.get_value(handle_nan)
     if indices is None:
         return lib.linestrings(coords, np.intc(handle_nan), out=out, **kwargs)
     else:
-        return simple_geometries_1d(
-            coords, indices, GeometryType.LINESTRING, handle_nan=handle_nan, out=out
-        )
+        return simple_geometries_1d(coords, indices, options=options, out=out)
 
 
 # Note: future plan is to change this signature over a few releases:
@@ -309,15 +369,15 @@ def linearrings(
       ``(..., 3)`` array using only ``coords``.
 
     """
-    coords = _xyz_to_coords(coords, y, z)
+    coords, options = _args_to_coords_and_options(
+        GeometryType.LINEARRING, coords, y, z, None, None, handle_nan
+    )
     if isinstance(handle_nan, str):
         handle_nan = HandleNaN.get_value(handle_nan)
     if indices is None:
         return lib.linearrings(coords, np.intc(handle_nan), out=out, **kwargs)
     else:
-        return simple_geometries_1d(
-            coords, indices, GeometryType.LINEARRING, handle_nan=handle_nan, out=out
-        )
+        return simple_geometries_1d(coords, indices, options=options, out=out)
 
 
 # Note: future plan is to change this signature over a few releases:
