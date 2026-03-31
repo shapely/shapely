@@ -113,9 +113,7 @@ def shape(context):
         parts = []
         for c in ob["coordinates"]:
             if not c:
-                raise EmptyPartError(
-                    "Can't create MultiPolygon with empty component"
-                )
+                raise EmptyPartError("Can't create MultiPolygon with empty component")
             parts.append([c[0], c[1:]])
         return MultiPolygon(parts)
     elif geom_type == "geometrycollection":

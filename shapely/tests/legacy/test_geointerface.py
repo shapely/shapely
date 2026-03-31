@@ -116,7 +116,9 @@ def test_shape_multipolygon_empty_member():
             [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],
         ],
     }
-    with pytest.raises(EmptyPartError, match="Can't create MultiPolygon with empty component"):
+    with pytest.raises(
+        EmptyPartError, match="Can't create MultiPolygon with empty component"
+    ):
         shape(data)
 
 
