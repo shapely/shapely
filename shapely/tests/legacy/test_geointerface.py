@@ -1,6 +1,9 @@
 import unittest
 
+import pytest
+
 from shapely import wkt
+from shapely.errors import EmptyPartError
 from shapely.geometry import shape
 from shapely.geometry.linestring import LineString
 from shapely.geometry.multilinestring import MultiLineString
@@ -102,6 +105,19 @@ class GeoInterfaceTestCase(unittest.TestCase):
         )
         assert isinstance(geom, MultiPolygon)
         assert len(geom.geoms) == 1
+
+
+def test_shape_multipolygon_empty_member():
+    """Confirm fix for issue #1407: empty polygon member raises EmptyPartError."""
+    data = {
+        "type": "MultiPolygon",
+        "coordinates": [
+            [],  # empty member
+            [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],
+        ],
+    }
+    with pytest.raises(EmptyPartError, match="Can't create MultiPolygon with empty component"):
+        shape(data)
 
 
 def test_empty_wkt_polygon():
