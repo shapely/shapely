@@ -69,11 +69,10 @@ include = ["shapely", "shapely.*"]
 "shapely" = ["*.pxd"]
 
 [tool.cibuildwheel]
-skip = ["pp*", "*_i686", "*_ppc64le", "*_s390x"]
+skip = ["*_i686", "*_ppc64le", "*_s390x"]
 build-verbosity = 1
 test-requires = "pytest"
 test-command = "pytest --pyargs shapely.tests"
-enable = ["cpython-freethreading"]
 
 [tool.coverage.run]
 source = ["shapely"]
