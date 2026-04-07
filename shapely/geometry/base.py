@@ -339,10 +339,14 @@ class BaseGeometry(shapely.Geometry):
 
     def distance(self, other):
         """Unitless distance to other geometry (float)."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.distance_scalar(self, other)
         return _maybe_unpack(shapely.distance(self, other))
 
     def hausdorff_distance(self, other):
         """Unitless hausdorff distance to other geometry (float)."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.hausdorff_distance_scalar(self, other)
         return _maybe_unpack(shapely.hausdorff_distance(self, other))
 
     @property
