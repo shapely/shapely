@@ -1817,6 +1817,8 @@ Figure 15. Simplification of a nearly circular polygon using a tolerance of 0.2
   simplified differently.
 
 
+.. _affine-transformations:
+
 Affine Transformations
 ======================
 
