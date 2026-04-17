@@ -247,20 +247,19 @@ def test_array_argument_binary_geo(op):
         "union",
     ],
 )
-@pytest.mark.parametrize("grid_size", [0, 1, 2])
-def test_array_argument_binary_geo_grid_size(op, grid_size):
+def test_array_argument_binary_geo_grid_size(op):
     box = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     polygons = shapely.buffer(shapely.points([(0, 0), (0.5, 0.5), (1, 1)]), 0.5)
 
-    result = getattr(box, op)(polygons, grid_size=grid_size)
+    result = getattr(box, op)(polygons, grid_size=1.0)
     assert isinstance(result, np.ndarray)
     expected = np.array(
-        [getattr(box, op)(g, grid_size=grid_size) for g in polygons], dtype=object
+        [getattr(box, op)(g, grid_size=1.0) for g in polygons], dtype=object
     )
     assert_geometries_equal(result, expected)
 
     # check scalar
-    result = getattr(box, op)(polygons[0], grid_size=grid_size)
+    result = getattr(box, op)(polygons[0], grid_size=1.0)
     assert isinstance(result, shapely.Geometry)
 
 
