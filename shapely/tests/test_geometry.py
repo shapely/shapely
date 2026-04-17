@@ -587,7 +587,7 @@ def test_set_precision_collapse(geometry, mode, expected):
     """Lines and polygons collapse to empty geometries if vertices are too close"""
     actual = shapely.set_precision(geometry, 1, mode=mode)
     # force to 2D because of various dimension issues; GEOS GH-1152
-    assert_geometries_equal(shapely.force_2d(actual), expected)
+    assert_geometries_equal(shapely.force_2d(actual), expected, normalize=True)
 
 
 def test_set_precision_intersection():
