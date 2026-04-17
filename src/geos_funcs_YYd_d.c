@@ -50,7 +50,7 @@ typedef int FuncGEOS_YYd_d(GEOSContextHandle_t context, const GEOSGeometry* a,
  *   func: Function pointer to the specific GEOS operation to perform
  *   geom_obj_a: First Shapely geometry object (Python wrapper around GEOSGeometry)
  *   geom_obj_b: Second Shapely geometry object (Python wrapper around GEOSGeometry)
- *   densify_frac: Double parameter for densification
+ *   double_param: Double parameter required for the operation
  *   result: Pointer where the computed distance result will be stored
  *
  * Returns:
@@ -58,7 +58,7 @@ typedef int FuncGEOS_YYd_d(GEOSContextHandle_t context, const GEOSGeometry* a,
  */
 static char core_YYd_d_operation(GEOSContextHandle_t context, FuncGEOS_YYd_d* func,
                                  PyObject* geom_obj_a, PyObject* geom_obj_b,
-                                 double densify_frac, double* result) {
+                                 double double_param, double* result) {
   const GEOSGeometry* geom_a;
   const GEOSGeometry* geom_b;
 
@@ -70,15 +70,15 @@ static char core_YYd_d_operation(GEOSContextHandle_t context, FuncGEOS_YYd_d* fu
     return PGERR_NOT_A_GEOMETRY;
   }
 
-  // Handle NULL geometry, NaN densify_frac, or empty geometry cases - return NaN
-  if ((geom_a == NULL) || (geom_b == NULL) || isnan(densify_frac) ||
+  // Handle NULL geometry, NaN double parameter, or empty geometry cases - return NaN
+  if ((geom_a == NULL) || (geom_b == NULL) || isnan(double_param) ||
       GEOSisEmpty_r(context, geom_a) || GEOSisEmpty_r(context, geom_b)) {
     *result = NPY_NAN;
     return PGERR_SUCCESS;
   }
 
   // Call the specific GEOS function (e.g., GEOSHausdorffDistanceDensify_r, GEOSFrechetDistanceDensify_r)
-  if (func(context, geom_a, geom_b, densify_frac, result) == 0) {
+  if (func(context, geom_a, geom_b, double_param, result) == 0) {
     return PGERR_GEOS_EXCEPTION;
   }
 
@@ -108,22 +108,22 @@ static char core_YYd_d_operation(GEOSContextHandle_t context, FuncGEOS_YYd_d* fu
  */
 static PyObject* Py_YYd_d_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs, FuncGEOS_YYd_d* func) {
   double result = NPY_NAN;
-  double densify_frac;
+  double double_param;
 
   if (nargs != 3) {
     PyErr_Format(PyExc_TypeError, "expected 3 arguments, got %zd", nargs);
     return NULL;
   }
 
-  // Extract the densify fraction from the third argument
-  densify_frac = PyFloat_AsDouble(args[2]);
+  // Extract the double parameter from the third argument
+  double_param = PyFloat_AsDouble(args[2]);
   if (PyErr_Occurred()) {
     return NULL;
   }
 
   GEOS_INIT;
 
-  errstate = core_YYd_d_operation(ctx, func, args[0], args[1], densify_frac, &result);
+  errstate = core_YYd_d_operation(ctx, func, args[0], args[1], double_param, &result);
 
   GEOS_FINISH;
 
@@ -161,9 +161,9 @@ static void YYd_d_func(char** args, const npy_intp* dimensions, const npy_intp* 
     if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
-    double densify_frac = *(double*)ip3;
+    double double_param = *(double*)ip3;
     errstate = core_YYd_d_operation(ctx, func, *(PyObject**)ip1, *(PyObject**)ip2,
-                                    densify_frac, (double*)op1);
+                                    double_param, (double*)op1);
     if (errstate != PGERR_SUCCESS) {
       goto finish;
     }
