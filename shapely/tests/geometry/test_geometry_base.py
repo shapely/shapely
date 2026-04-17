@@ -153,6 +153,16 @@ def test_constructive_methods(op):
     assert result == expected
 
 
+@pytest.mark.parametrize("op", ["distance", "hausdorff_distance"])
+def test_binary_float_methods(op):
+    geom1 = Point(0, 0)
+    geom2 = Point(3, 4)
+    result = getattr(geom1, op)(geom2)
+    assert type(result) is float
+    expected = getattr(shapely, op)(geom1, geom2)
+    assert result == expected
+
+
 @pytest.mark.parametrize(
     "op",
     [

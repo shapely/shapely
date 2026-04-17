@@ -24,6 +24,7 @@
 #include "geos_funcs_YY_Y.h"
 #include "geos_funcs_Yd_Y.h"
 #include "geos_funcs_YY_b.h"
+#include "geos_funcs_YY_d.h"
 #include "geos_funcs_O_b.h"
 
 /* This tells Python what methods this module has. */
@@ -126,6 +127,10 @@ PyMODINIT_FUNC PyInit_lib(void) {
   };
 
   if (init_geos_funcs_YY_b(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_YY_d(m, d) < 0) {
     return NULL;
   };
 
