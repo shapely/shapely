@@ -44,7 +44,7 @@ jobs:
           python -m build --sdist
           twine check --strict dist/*
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: release-sdist
           path: ./dist/*.tar.gz
@@ -85,14 +85,13 @@ jobs:
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
         with:
-          install: true
           buildkitd-flags: --debug
 
       - name: Build Docker image with GEOS
         # using build-push-action (without push) to make use of cache arguments
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ci/Dockerfile
@@ -113,7 +112,7 @@ jobs:
         shell: bash
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.3.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           # TEMP don't use automated/isolated build environment, but manually
@@ -131,7 +130,7 @@ jobs:
           CIBW_MUSLLINUX_AARCH64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: release-linux-${{ matrix.baseimage }}
           path: ./wheelhouse/*.whl
@@ -189,7 +188,7 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.3.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_ENVIRONMENT_MACOS:
@@ -219,7 +218,7 @@ jobs:
             pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
       - name: Upload artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: release-${{ matrix.os }}-${{ matrix.arch }}
           path: ./wheelhouse/*.whl
@@ -232,7 +231,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'shapely/shapely' && github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           pattern: release-*
           merge-multiple: true
@@ -250,7 +249,7 @@ jobs:
     # release on every tag
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           pattern: release-*
           merge-multiple: true

@@ -172,6 +172,7 @@ else:
                 "src/geos_funcs_YY_Y.c",
                 "src/geos_funcs_Yd_Y.c",
                 "src/geos_funcs_YY_b.c",
+                "src/geos_funcs_YY_d.c",
                 "src/geos_funcs_YYd_d.c",
                 "src/geos_funcs_O_b.c",
                 "src/vector.c",
