@@ -96,7 +96,7 @@ static char core_YY_d_operation(GEOSContextHandle_t context, FuncGEOS_YY_d* func
   }
 
   // GEOS behaves as follows for empty inputs:
-  //  - Project[Normalized] segfault
+  //  - Project[Normalized] segfaults (for geom2) or sets a GEOS error (for geom1)
   //  - FrechetDistance sets a GEOS error
   //  - Distance gives 0.0 or Infinity as output
   //  - HausdorffDistance (sometimes?) sets the "invalid value encountered" flag
@@ -248,8 +248,8 @@ DEFINE_YY_d(GEOSProjectNormalizedWrapped_r);
  * 2. A scalar function (e.g., "distance_scalar") for single geometry pair operations
  *
  * Parameters:
+ *   func_name: GEOS function to call
  *   py_name: Python function name (e.g., distance)
- *   func: GEOS function to call
  *
  */
 
