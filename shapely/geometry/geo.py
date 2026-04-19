@@ -110,7 +110,10 @@ def shape(context):
     elif geom_type == "multilinestring":
         return MultiLineString(ob["coordinates"])
     elif geom_type == "multipolygon":
-        return MultiPolygon([[c[0], c[1:]] for c in ob["coordinates"]])
+        # Filter out empty coordinate sets that would cause IndexError
+        return MultiPolygon(
+            [[c[0], c[1:]] for c in ob["coordinates"] if not _is_coordinates_empty(c)]
+        )
     elif geom_type == "geometrycollection":
         geoms = [shape(g) for g in ob.get("geometries", [])]
         return GeometryCollection(geoms)
