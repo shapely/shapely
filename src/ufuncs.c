@@ -214,49 +214,6 @@ finish:
 }
 static PyUFuncGenericFunction Y_Y_reduce_funcs[1] = {&Y_Y_reduce_func};
 
-/* Define the geom, geom, double -> double functions (YYd_d) */
-static void* hausdorff_distance_densify_data[1] = {GEOSHausdorffDistanceDensify_r};
-static void* frechet_distance_densify_data[1] = {GEOSFrechetDistanceDensify_r};
-typedef int FuncGEOS_YYd_d(void* context, void* a, void* b, double c, double* d);
-static char YYd_d_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE};
-static void YYd_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  FuncGEOS_YYd_d* func = (FuncGEOS_YYd_d*)data;
-  GEOSGeometry *in1 = NULL, *in2 = NULL;
-
-  GEOS_INIT_THREADS;
-
-  TERNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      goto finish;
-    }
-    /* get the geometries: return on error */
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      goto finish;
-    }
-    if (!get_geom(*(GeometryObject**)ip2, &in2)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      goto finish;
-    }
-    double in3 = *(double*)ip3;
-    if ((in1 == NULL) || (in2 == NULL) || npy_isnan(in3) || GEOSisEmpty_r(ctx, in1) ||
-        GEOSisEmpty_r(ctx, in2)) {
-      *(double*)op1 = NPY_NAN;
-    } else {
-      /* let the GEOS function set op1; return on error */
-      if (func(ctx, in1, in2, in3, (double*)op1) == 0) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-    }
-  }
-
-finish:
-  GEOS_FINISH_THREADS;
-}
-static PyUFuncGenericFunction YYd_d_funcs[1] = {&YYd_d_func};
-
 /* Define the geom, geom, double -> geom functions (YYd_Y) */
 static void* intersection_prec_data[1] = {GEOSIntersectionPrec_r};
 static void* difference_prec_data[1] = {GEOSDifferencePrec_r};
@@ -2706,11 +2663,6 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
                                   PyUFunc_None, #NAME, "", 0);                 \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_YYd_d(NAME)                                                         \
-  ufunc = PyUFunc_FromFuncAndData(YYd_d_funcs, NAME##_data, YYd_d_dtypes, 1, 3, 1, \
-                                  PyUFunc_None, #NAME, "", 0);                     \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
 #define DEFINE_YYd_Y(NAME)                                                         \
   ufunc = PyUFunc_FromFuncAndData(YYd_Y_funcs, NAME##_data, YYd_Y_dtypes, 1, 3, 1, \
                                   PyUFunc_None, #NAME, "", 0);                     \
@@ -2741,9 +2693,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
   DEFINE_Y_Y_reduce(intersection_all);
   DEFINE_Y_Y_reduce(symmetric_difference_all);
-
-  DEFINE_YYd_d(frechet_distance_densify);
-  DEFINE_YYd_d(hausdorff_distance_densify);
 
   DEFINE_CUSTOM(box, 5);
   DEFINE_CUSTOM(buffer, 7);

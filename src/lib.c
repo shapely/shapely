@@ -24,6 +24,7 @@
 #include "geos_funcs_YY_Y.h"
 #include "geos_funcs_Yd_Y.h"
 #include "geos_funcs_YY_b.h"
+#include "geos_funcs_YYd_d.h"
 #include "geos_funcs_YY_d.h"
 #include "geos_funcs_O_b.h"
 
@@ -135,6 +136,10 @@ PyMODINIT_FUNC PyInit_lib(void) {
   };
 
   if (init_geos_funcs_YY_Y(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_YYd_d(m, d) < 0) {
     return NULL;
   };
 
