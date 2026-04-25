@@ -176,6 +176,7 @@ else:
                 "src/geos_funcs_YYd_Y.c",
                 "src/geos_funcs_YYd_d.c",
                 "src/geos_funcs_O_b.c",
+                "src/geos_funcs_Ydd_b.c",
                 "src/vector.c",
             ],
             **ext_options,
