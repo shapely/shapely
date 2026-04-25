@@ -65,6 +65,11 @@ XY_PREDICATES = (
     (shapely.intersects_xy, shapely.intersects),
 )
 
+XY_PREDICATES_SCALAR = (
+    (shapely.lib.contains_xy_scalar, shapely.contains),
+    (shapely.lib.intersects_xy_scalar, shapely.intersects),
+)
+
 
 @pytest.mark.parametrize("geometry", all_types + all_types_z)
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
@@ -181,6 +186,22 @@ def test_xy_missing(func):
         np.array([point.y, point.y, np.nan, point.y]),
     )
     np.testing.assert_allclose(actual, [True, False, False, False])
+
+
+@pytest.mark.parametrize("func, func_bin", XY_PREDICATES_SCALAR)
+@pytest.mark.parametrize("prepare", [False, True])
+def test_xy_scalar(func, func_bin, prepare):
+    x = _prepare_with_copy(polygon) if prepare else polygon
+    actual = func(x, 2, 3)
+    expected = func_bin(x, Point(2, 3))
+    assert actual == expected
+
+
+@pytest.mark.parametrize("func, func_bin", XY_PREDICATES_SCALAR)
+def test_xy_scalar_missing(func, func_bin):
+    assert func(None, 2, 3) is False
+    assert func(polygon, np.nan, 3) is False
+    assert func(polygon, 2, np.nan) is False
 
 
 def test_equals_exact_tolerance():
