@@ -28,6 +28,7 @@
 #include "geos_funcs_YY_d.h"
 #include "geos_funcs_YYd_Y.h"
 #include "geos_funcs_O_b.h"
+#include "geos_funcs_Ydd_b.h"
 
 /* This tells Python what methods this module has. */
 static PyMethodDef GeosModule[] = {
@@ -149,6 +150,10 @@ PyMODINIT_FUNC PyInit_lib(void) {
   };
 
   if (init_geos_funcs_O_b(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_Ydd_b(m, d) < 0) {
     return NULL;
   };
 
