@@ -23,6 +23,9 @@ calling `prepare` twice on a geometry will first return `True`, and then `False`
 Added `get_segments`, which returns individual linear features from all pairwise
 coordinates in each input LineString or LinearRing (#2306).
 
+`Polygon.from_bounds` now builds the ring in counterclockwise order, consistent
+with `shapely.box`, so the result satisfies the GeoJSON right-hand rule (#2396).
+
 
 2.1.2 (2025-09-24)
 ------------------
