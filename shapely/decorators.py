@@ -88,7 +88,10 @@ def multithreading_enabled(func):
             return func(*args, **kwargs)
         finally:
             for arr, old_flag in zip(array_args, old_flags, strict=False):
-                arr.flags.writeable = old_flag
+                try:
+                    arr.flags.writeable = old_flag
+                except ValueError:
+                    pass
 
     return wrapped
 
