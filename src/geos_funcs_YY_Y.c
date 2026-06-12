@@ -34,6 +34,34 @@
  */
 typedef GEOSGeometry* FuncGEOS_YY_Y(GEOSContextHandle_t context, const GEOSGeometry* a, const GEOSGeometry* b);
 
+
+/* Wrapper functions to handle special cases */
+static GEOSGeometry* ShapelyShortestLine(GEOSContextHandle_t context, const GEOSGeometry* a, const GEOSPreparedGeometry* prep_a, const GEOSGeometry* b) {
+  GEOSCoordSequence* coord_seq = NULL;
+
+  if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
+    // GEOS errors on empty geometries, while we want to return NULL / None
+    return NULL;
+  }
+
+  if (prep_a != NULL) {
+    coord_seq = GEOSPreparedNearestPoints_r(context, prep_a, b);
+  } else {
+    coord_seq = GEOSNearestPoints_r(context, a, b);
+  }
+  if (coord_seq == NULL) {
+    return NULL;
+  }
+  return GEOSGeom_createLineString_r(context, coord_seq);
+}
+
+static GEOSGeometry* ShapelyShortestLineDummy(GEOSContextHandle_t context, const GEOSGeometry* a, const GEOSGeometry* b) {
+  // This function should never be called; it is merely used as a value to FuncGEOS_YY_Y, to signal
+  // core_YY_Y_operation to actually call ShapelyShortestLine.
+  return NULL;
+}
+
+
 /* ========================================================================
  * CORE OPERATION LOGIC
  * ======================================================================== */
@@ -54,13 +82,14 @@ typedef GEOSGeometry* FuncGEOS_YY_Y(GEOSContextHandle_t context, const GEOSGeome
  *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)
  */
 static char core_YY_Y_operation(GEOSContextHandle_t context, FuncGEOS_YY_Y* func,
-                                PyObject* geom_obj_a, PyObject* geom_obj_b,
+                                PyObject* geom_obj_a, PyObject* geom_obj_b, char* last_error,
                                 GEOSGeometry** result) {
   const GEOSGeometry* geom_a;
   const GEOSGeometry* geom_b;
+  const GEOSPreparedGeometry* prep_a = NULL;
 
   // Extract the underlying GEOS geometries from the Python geometry objects
-  if (!ShapelyGetGeometry(geom_obj_a, &geom_a)) {
+  if (!ShapelyGetGeometryWithPrepared(geom_obj_a, &geom_a, &prep_a)) {
     return PGERR_NOT_A_GEOMETRY;
   }
   if (geom_a == NULL) {
@@ -77,10 +106,18 @@ static char core_YY_Y_operation(GEOSContextHandle_t context, FuncGEOS_YY_Y* func
     return PGERR_SUCCESS;
   }
 
-  // Call the specific GEOS function (e.g., GEOSIntersection_r, GEOSUnion_r, etc.)
-  *result = func(context, geom_a, geom_b);
+  if (func == ShapelyShortestLineDummy) {
+    // Special case for nearest_point, which has an optimized version that uses prepared geometries
+    *result = ShapelyShortestLine(context, geom_a, prep_a, geom_b);
+  } else {
+    // Call the specific GEOS function (e.g., GEOSIntersection_r, GEOSUnion_r, etc.)
+    *result = func(context, geom_a, geom_b);
+  }
 
-  if (*result == NULL) {
+  // NULL can mean either error or a valid "missing value" for some functions
+  // (ShapelyShortestLine) so check the last_error before
+  // setting error state
+  if ((*result == NULL) && (last_error[0] != 0)) {
     return PGERR_GEOS_EXCEPTION;
   }
 
@@ -118,7 +155,7 @@ static PyObject* Py_YY_Y_Scalar(PyObject* self, PyObject* const* args, Py_ssize_
 
   GEOS_INIT;
 
-  errstate = core_YY_Y_operation(ctx, func, args[0], args[1], &ret_ptr);
+  errstate = core_YY_Y_operation(ctx, func, args[0], args[1], last_error, &ret_ptr);
 
   GEOS_FINISH;
 
@@ -170,7 +207,7 @@ static void YY_Y_func(char** args, const npy_intp* dimensions, const npy_intp* s
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    errstate = core_YY_Y_operation(ctx, func, *(PyObject**)ip1, *(PyObject**)ip2, &geom_arr[i]);
+    errstate = core_YY_Y_operation(ctx, func, *(PyObject**)ip1, *(PyObject**)ip2, last_error, &geom_arr[i]);
     if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
@@ -230,6 +267,7 @@ DEFINE_YY_Y(GEOSDifference_r);
 DEFINE_YY_Y(GEOSSymDifference_r);
 DEFINE_YY_Y(GEOSUnion_r);
 DEFINE_YY_Y(GEOSSharedPaths_r);
+DEFINE_YY_Y(ShapelyShortestLineDummy);
 
 
 /* ========================================================================
@@ -283,6 +321,7 @@ int init_geos_funcs_YY_Y(PyObject* m, PyObject* d) {
   INIT_YY_Y(GEOSSymDifference_r, symmetric_difference);
   INIT_YY_Y(GEOSUnion_r, union);
   INIT_YY_Y(GEOSSharedPaths_r, shared_paths);
+  INIT_YY_Y(ShapelyShortestLineDummy, shortest_line);
 
   return 0;
 }

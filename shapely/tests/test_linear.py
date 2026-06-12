@@ -200,25 +200,34 @@ def _prepare_input(geometry, prepare):
 
 
 @pytest.mark.parametrize("prepare", [True, False])
-def test_shortest_line(prepare):
+@pytest.mark.parametrize(
+    "func", [shapely.shortest_line, shapely.lib.shortest_line_scalar]
+)
+def test_shortest_line(prepare, func):
     g1 = shapely.linestrings([(0, 0), (1, 0), (1, 1)])
     g2 = shapely.linestrings([(0, 3), (3, 0)])
-    actual = shapely.shortest_line(_prepare_input(g1, prepare), g2)
+    actual = func(_prepare_input(g1, prepare), g2)
     expected = shapely.linestrings([(1, 1), (1.5, 1.5)])
     assert shapely.equals(actual, expected)
 
 
 @pytest.mark.parametrize("prepare", [True, False])
-def test_shortest_line_none(prepare):
-    assert shapely.shortest_line(_prepare_input(line_string, prepare), None) is None
-    assert shapely.shortest_line(None, line_string) is None
-    assert shapely.shortest_line(None, None) is None
+@pytest.mark.parametrize(
+    "func", [shapely.shortest_line, shapely.lib.shortest_line_scalar]
+)
+def test_shortest_line_none(prepare, func):
+    assert func(_prepare_input(line_string, prepare), None) is None
+    assert func(None, line_string) is None
+    assert func(None, None) is None
 
 
 @pytest.mark.parametrize("prepare", [True, False])
-def test_shortest_line_empty(prepare):
+@pytest.mark.parametrize(
+    "func", [shapely.shortest_line, shapely.lib.shortest_line_scalar]
+)
+def test_shortest_line_empty(prepare, func):
     g1 = _prepare_input(line_string, prepare)
-    assert shapely.shortest_line(g1, empty_line_string) is None
+    assert func(g1, empty_line_string) is None
     g1_empty = _prepare_input(empty_line_string, prepare)
-    assert shapely.shortest_line(g1_empty, line_string) is None
-    assert shapely.shortest_line(g1_empty, empty_line_string) is None
+    assert func(g1_empty, line_string) is None
+    assert func(g1_empty, empty_line_string) is None

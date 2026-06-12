@@ -1426,79 +1426,6 @@ static PyUFuncGenericFunction coverage_simplify_funcs[1] = {&coverage_simplify_f
 
 #endif  // GEOS_SINCE_3_12_0
 
-static char shortest_line_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static void shortest_line_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                               void* data) {
-  GEOSGeometry* in1 = NULL;
-  GEOSGeometry* in2 = NULL;
-  GEOSPreparedGeometry* in1_prepared = NULL;
-  GEOSGeometry** geom_arr;
-  GEOSCoordSequence* coord_seq = NULL;
-
-  CHECK_NO_INPLACE_OUTPUT(2);
-
-  // allocate a temporary array to store output GEOSGeometry objects
-  geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  CHECK_ALLOC(geom_arr);
-
-  GEOS_INIT_THREADS;
-
-  BINARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    /* get the geometries: return on error */
-    if (!get_geom_with_prepared(*(GeometryObject**)ip1, &in1, &in1_prepared)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    if (!get_geom(*(GeometryObject**)ip2, &in2)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-
-    if ((in1 == NULL) || (in2 == NULL) || GEOSisEmpty_r(ctx, in1) ||
-        GEOSisEmpty_r(ctx, in2)) {
-      // in case of a missing value or empty geometry: return NULL (None)
-      // GEOSNearestPoints_r returns NULL for empty geometries
-      // but this is not distinguishable from an actual error, so we handle this ourselves
-      geom_arr[i] = NULL;
-      continue;
-    }
-    if (in1_prepared != NULL) {
-      coord_seq = GEOSPreparedNearestPoints_r(ctx, in1_prepared, in2);
-    } else {
-      coord_seq = GEOSNearestPoints_r(ctx, in1, in2);
-    }
-    if (coord_seq == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    geom_arr[i] = GEOSGeom_createLineString_r(ctx, coord_seq);
-    // Note: coordinate sequence is owned by linestring; if linestring fails to
-    // construct, it will automatically clean up the coordinate sequence
-    if (geom_arr[i] == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-  }
-
-  GEOS_FINISH_THREADS;
-
-  // fill the numpy array with PyObjects while holding the GIL
-  if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
-  }
-  free(geom_arr);
-}
-static PyUFuncGenericFunction shortest_line_funcs[1] = {&shortest_line_func};
-
 static char set_precision_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void set_precision_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                void* data) {
@@ -2637,7 +2564,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(relate_pattern, 3);
   DEFINE_GENERALIZED(polygonize, 1, "(d)->()");
   DEFINE_GENERALIZED_NOUT4(polygonize_full, 1, "(d)->(),(),(),()");
-  DEFINE_CUSTOM(shortest_line, 2);
 
   DEFINE_GENERALIZED(points, 2, "(d),()->()");
   DEFINE_GENERALIZED(linestrings, 2, "(i, d),()->()");
