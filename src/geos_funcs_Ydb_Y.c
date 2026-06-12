@@ -53,6 +53,7 @@ static GEOSGeometry* ShapelyCoverageSimplifyVWValidated_r(GEOSContextHandle_t ct
                                                            const GEOSGeometry* g,
                                                            double tolerance,
                                                            int simplify_boundary) {
+  // Validate the geometries in the collection
   int num_geoms = GEOSGetNumGeometries_r(ctx, g);
   for (int j = 0; j < num_geoms; j++) {
     const GEOSGeometry* sub = GEOSGetGeometryN_r(ctx, g, j);
