@@ -28,7 +28,7 @@
  *   context: GEOS context handle for thread safety
  *   a: First input geometry (or prepared geometry for the prepared variant)
  *   b: Second input geometry
- *   c: Double parameter (tolerance or distance)
+ *   c: Double parameter
  *
  * Returns:
  *   0 for false, 1 for true, 2 on error (following GEOS convention)
@@ -61,7 +61,7 @@ typedef struct {
  *   data: YYd_b_func_data struct containing function pointers
  *   geom1_obj: First Shapely geometry object
  *   geom2_obj: Second Shapely geometry object
- *   param: Double parameter (tolerance or distance)
+ *   param: Double parameter
  *   result: Pointer where the computed boolean result will be stored
  *
  * Returns:
@@ -74,6 +74,7 @@ static char core_YYd_b_operation(GEOSContextHandle_t context, const YYd_b_func_d
   const GEOSGeometry* geom2;
   const GEOSPreparedGeometry* geom1_prepared;
 
+  // Extract the underlying GEOS geometries from Python objects
   if (!ShapelyGetGeometryWithPrepared(geom1_obj, &geom1, &geom1_prepared)) {
     return PGERR_NOT_A_GEOMETRY;
   }
@@ -81,17 +82,18 @@ static char core_YYd_b_operation(GEOSContextHandle_t context, const YYd_b_func_d
     return PGERR_NOT_A_GEOMETRY;
   }
 
-  // Missing geometry or NaN parameter -> return False
+  // Missing geometry or NaN parameter -> return False as per convention for boolean operations
   if ((geom1 == NULL) || (geom2 == NULL) || npy_isnan(param)) {
     *result = 0;
     return PGERR_SUCCESS;
   }
 
-  // Use prepared variant if available and geometry is prepared
-  if (geom1_prepared != NULL && data->func_prepared != NULL) {
-    *result = data->func_prepared(context, geom1_prepared, geom2, param);
-  } else {
+  // Call the appropriate GEOS function based on whether first geometry is prepared
+  // and whether prepared version is available
+  if (geom1_prepared == NULL || data->func_prepared == NULL) {
     *result = data->func(context, geom1, geom2, param);
+  } else {
+    *result = data->func_prepared(context, geom1_prepared, geom2, param);
   }
 
   if (*result == 2) {
@@ -109,6 +111,9 @@ static char core_YYd_b_operation(GEOSContextHandle_t context, const YYd_b_func_d
  * Generic scalar Python function implementation for YYd->b operations.
  * This handles three inputs (two geometries and a double) and returns a Python bool.
  * It should be registered as a METH_FASTCALL method (accepting three arguments).
+ *
+ * This function is used as a template to create specific scalar functions
+ * like PyGEOSEqualsExact_r_Scalar, etc.
  *
  * Parameters:
  *   self: Module object (unused, required by Python C API)
@@ -193,16 +198,21 @@ static char YYd_b_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_BOOL};
 
 /* ========================================================================
  * PYTHON FUNCTION DEFINITIONS
- * ======================================================================== */
-
-/*
- * Macro to define both the func_data struct and the scalar Python function.
+ * ========================================================================
  *
- * DEFINE_YYd_b(func, func_prepared) creates:
- *   - static YYd_b_func_data func##_data
- *   - static PyObject* Py##func##_Scalar(...)
+ * We use a macro to define a scalar Python function for each GEOS operation.
  *
- * Pass NULL for func_prepared if no prepared variant exists.
+ * This creates two things:
+ *  1. A YYd_b_func_data struct instance containing the GEOS function pointers
+ *  2. A Python function that implements the scalar logic.
+ *
+ * Example: DEFINE_YYd_b(GEOSEqualsExact_r, NULL) creates
+ * - static YYd_b_func_data GEOSEqualsExact_r_data
+ * - static PyObject* PyGEOSEqualsExact_r_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs)
+ *
+ * Parameters:
+ *   func: Non-prepared GEOS function
+ *   func_prepared: Prepared GEOS function
  */
 #define DEFINE_YYd_b(func, func_prepared) \
   static YYd_b_func_data func##_data = {func, func_prepared}; \
@@ -217,6 +227,20 @@ DEFINE_YYd_b(GEOSDistanceWithin_r, GEOSPreparedDistanceWithin_r);
 /* ========================================================================
  * MODULE INITIALIZATION
  * ======================================================================== */
+
+ /*
+ * We use a macro to register both ufunc and scalar versions of a function with Python.
+ *
+ * This creates two Python-callable functions:
+ * 1. A NumPy ufunc (e.g., "equals_exact") for array operations
+ * 2. A scalar function (e.g., "equals_exact_scalar") for single geometry pair operations
+ *
+ * Parameters:
+ *   py_name: Python function name (e.g., equals_exact)
+ *   func: Non-prepared GEOS function
+ *   func_prepared: Prepared GEOS function
+ *
+ */
 
 #define INIT_YYd_b(py_name, func, func_prepared) do { \
     static void* func##_udata[1] = {(void*)&func##_data}; \

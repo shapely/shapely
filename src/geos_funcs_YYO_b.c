@@ -18,47 +18,11 @@
 #include "signal_checks.h"
 
 /* ========================================================================
- * GEOS WRAPPER FUNCTIONS
- * ========================================================================
- *
- * Function signatures for GEOS operations that take two geometries and a
- * string pattern, and return a bool: YYO->b (where O is NPY_OBJECT holding a
- * Python unicode string).
- *
- * Currently only GEOSRelatePattern_r / GEOSPreparedRelatePattern_r use this
- * signature.  The prepared variant is available from GEOS 3.13.0.
- *
- * The string pattern input must always be scalar (enforced in the ufunc).
- *
- * Parameters for the non-prepared variant:
- *   context: GEOS context handle for thread safety
- *   a: First input geometry
- *   b: Second input geometry
- *   pattern: DE-9IM pattern string (C string, null-terminated)
- *
- * Returns:
- *   0 for false, 1 for true, 2 on error (following GEOS convention)
- */
-typedef char FuncGEOS_YYs_b(GEOSContextHandle_t context, const GEOSGeometry* a,
-                             const GEOSGeometry* b, const char* pattern);
-typedef char FuncGEOS_YYs_b_p(GEOSContextHandle_t context,
-                               const GEOSPreparedGeometry* a, const GEOSGeometry* b,
-                               const char* pattern);
-
-/*
- * Struct to hold function pointers.  func_prepared may be NULL.
- */
-typedef struct {
-  FuncGEOS_YYs_b* func;
-  FuncGEOS_YYs_b_p* func_prepared;
-} YYO_b_func_data;
-
-/* ========================================================================
  * CORE OPERATION LOGIC
  * ======================================================================== */
 
 /*
- * Core function that performs the actual GEOS operation.
+ * Core function that performs the relate_pattern operation.
  * This is shared between both ufunc and scalar implementations to avoid code duplication.
  *
  * Note: The `pattern` C string must already be extracted from the Python object
@@ -66,7 +30,6 @@ typedef struct {
  *
  * Parameters:
  *   context: GEOS context handle for thread-safe operations
- *   data: YYO_b_func_data struct containing function pointers
  *   geom1_obj: First Shapely geometry Python object
  *   geom2_obj: Second Shapely geometry Python object
  *   pattern: DE-9IM pattern string (C string, already extracted from Python object)
@@ -75,9 +38,8 @@ typedef struct {
  * Returns:
  *   Error state code (PGERR_SUCCESS, PGERR_NOT_A_GEOMETRY, etc.)
  */
-static char core_YYO_b_operation(GEOSContextHandle_t context, const YYO_b_func_data* data,
-                                  PyObject* geom1_obj, PyObject* geom2_obj,
-                                  const char* pattern, char* result) {
+static char core_relate_pattern(GEOSContextHandle_t context, PyObject* geom1_obj,
+                                  PyObject* geom2_obj, const char* pattern, char* result) {
   const GEOSGeometry* geom1;
   const GEOSGeometry* geom2;
   const GEOSPreparedGeometry* geom1_prepared;
@@ -95,13 +57,13 @@ static char core_YYO_b_operation(GEOSContextHandle_t context, const YYO_b_func_d
   }
 
 #if GEOS_SINCE_3_13_0
-  if (geom1_prepared != NULL && data->func_prepared != NULL) {
-    *result = data->func_prepared(context, geom1_prepared, geom2, pattern);
+  if (geom1_prepared != NULL) {
+    *result = GEOSPreparedRelatePattern_r(context, geom1_prepared, geom2, pattern);
   } else {
-    *result = data->func(context, geom1, geom2, pattern);
+    *result = GEOSRelatePattern_r(context, geom1, geom2, pattern);
   }
 #else
-  *result = data->func(context, geom1, geom2, pattern);
+  *result = GEOSRelatePattern_r(context, geom1, geom2, pattern);
 #endif
 
   if (*result == 2) {
@@ -115,25 +77,8 @@ static char core_YYO_b_operation(GEOSContextHandle_t context, const YYO_b_func_d
  * SCALAR PYTHON FUNCTION
  * ======================================================================== */
 
-/*
- * Generic scalar Python function implementation for YYO->b operations.
- * This handles two geometry inputs and a string pattern (not arrays) and returns a Python bool.
- * It should be registered as a METH_FASTCALL method (accepting three arguments).
- *
- * This function is used as a template by the DEFINE_YYO_b macro to create
- * specific scalar functions like PyGEOSRelatePattern_r_Scalar, etc.
- *
- * Parameters:
- *   self: Module object (unused, required by Python C API)
- *   args: Array of arguments (two geometries and a string pattern)
- *   nargs: Number of arguments (should be 3)
- *   data: YYO_b_func_data struct containing GEOS function pointers
- *
- * Returns:
- *   PyBool object containing the result, or NULL on error
- */
-static PyObject* Py_YYO_b_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs,
-                                   const YYO_b_func_data* data) {
+static PyObject* PyRelatePattern_Scalar(PyObject* self, PyObject* const* args,
+                                          Py_ssize_t nargs) {
   if (nargs != 3) {
     PyErr_Format(PyExc_TypeError, "expected 3 arguments, got %zd", nargs);
     return NULL;
@@ -156,7 +101,7 @@ static PyObject* Py_YYO_b_Scalar(PyObject* self, PyObject* const* args, Py_ssize
 
   GEOS_INIT;
 
-  errstate = core_YYO_b_operation(ctx, data, args[0], args[1], pattern, &result);
+  errstate = core_relate_pattern(ctx, args[0], args[1], pattern, &result);
 
   GEOS_FINISH;
 
@@ -172,18 +117,18 @@ static PyObject* Py_YYO_b_Scalar(PyObject* self, PyObject* const* args, Py_ssize
  * ======================================================================== */
 
 /*
- * NumPy universal function implementation for YYO->b operations.
- * This handles arrays of geometry pairs efficiently by iterating through them.
- *
- * Note: The string pattern must be scalar and is extracted before releasing the
- * GIL, so the inner loop can access it without holding the GIL.
+ * NumPy universal function implementation for the relate_pattern operation.
+ * This handles arrays of geometries efficiently by iterating through them.
  *
  * Parameters:
  *   args, dimensions, steps: Standard ufunc loop parameters (see NumPy docs)
  *   data: User data passed from ufunc creation (contains function pointer struct)
+ *
+ * Note: The string pattern must be scalar and is extracted before releasing the
+ * GIL, so the inner loop can access it without holding the GIL.
  */
-static void YYO_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                        void* data) {
+static void relate_pattern_func(char** args, const npy_intp* dimensions,
+                                  const npy_intp* steps, void* data) {
   const char* pattern = NULL;
 
   // The pattern must be scalar
@@ -196,7 +141,6 @@ static void YYO_b_func(char** args, const npy_intp* dimensions, const npy_intp* 
   if (PyUnicode_Check(pattern_obj)) {
     pattern = PyUnicode_AsUTF8(pattern_obj);
     if (pattern == NULL) {
-      // error already set by Python
       return;
     }
   } else {
@@ -208,13 +152,15 @@ static void YYO_b_func(char** args, const npy_intp* dimensions, const npy_intp* 
   // Initialize GEOS context with thread support (releases Python GIL)
   GEOS_INIT_THREADS;
 
+  // The TERNARY_LOOP macro unpacks args, dimensions, and steps and iterates through input/output arrays
+  // ip1 and ip2 point to current input elements, op1 points to current output element
   TERNARY_LOOP {
     CHECK_SIGNALS_THREADS(i);
     if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
-    errstate = core_YYO_b_operation(ctx, (YYO_b_func_data*)data, *(PyObject**)ip1,
-                                    *(PyObject**)ip2, pattern, (char*)op1);
+    errstate = core_relate_pattern(ctx, *(PyObject**)ip1, *(PyObject**)ip2, pattern,
+                                    (char*)op1);
     if (errstate != PGERR_SUCCESS) {
       goto finish;
     }
@@ -224,68 +170,32 @@ finish:
   GEOS_FINISH_THREADS;
 }
 
-static PyUFuncGenericFunction YYO_b_funcs[1] = {&YYO_b_func};
-
-/* Type signature: two geometry objects + Python object (string) -> bool */
-static char YYO_b_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
-
-
-/* ========================================================================
- * PYTHON FUNCTION DEFINITIONS
- * ======================================================================== */
-
-/*
- * Macro to define both the func_data struct and the scalar Python function.
- *
- * DEFINE_YYO_b(func, func_prepared) creates:
- *   - static YYO_b_func_data func##_data
- *   - static PyObject* Py##func##_Scalar(...)
- */
-#define DEFINE_YYO_b(func, func_prepared) \
-  static YYO_b_func_data func##_data = {func, func_prepared}; \
-  static PyObject* Py##func##_Scalar(PyObject* self, PyObject* const* args, Py_ssize_t nargs) { \
-    return Py_YYO_b_Scalar(self, args, nargs, &func##_data); \
-  }
-
-#if GEOS_SINCE_3_13_0
-DEFINE_YYO_b(GEOSRelatePattern_r, GEOSPreparedRelatePattern_r);
-#else
-DEFINE_YYO_b(GEOSRelatePattern_r, NULL);
-#endif
+static PyUFuncGenericFunction relate_pattern_funcs[1] = {&relate_pattern_func};
+static void* relate_pattern_data[1] = {NULL};
+static char relate_pattern_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
 
 
 /* ========================================================================
  * MODULE INITIALIZATION
  * ======================================================================== */
 
-/*
- * Macro to register both ufunc and scalar versions.
- */
-#define INIT_YYO_b(py_name, func, func_prepared) do { \
-    static void* func##_udata[1] = {(void*)&func##_data}; \
-    \
-    ufunc = PyUFunc_FromFuncAndData(YYO_b_funcs, func##_udata, YYO_b_dtypes, 1, 3, 1, \
-                                    PyUFunc_None, #py_name, "", 0); \
-    PyDict_SetItemString(d, #py_name, ufunc); \
-    \
-    static PyMethodDef Py##func##_Scalar_Def = { \
-        #py_name "_scalar", \
-        (PyCFunction)Py##func##_Scalar, \
-        METH_FASTCALL, \
-        #py_name " scalar implementation" \
-    }; \
-    PyObject* Py##func##_Scalar_Func = PyCFunction_NewEx(&Py##func##_Scalar_Def, NULL, NULL); \
-    PyDict_SetItemString(d, #py_name "_scalar", Py##func##_Scalar_Func); \
-} while(0)
-
 int init_geos_funcs_YYO_b(PyObject* m, PyObject* d) {
   PyObject* ufunc;
 
-#if GEOS_SINCE_3_13_0
-  INIT_YYO_b(relate_pattern, GEOSRelatePattern_r, GEOSPreparedRelatePattern_r);
-#else
-  INIT_YYO_b(relate_pattern, GEOSRelatePattern_r, NULL);
-#endif
+  ufunc = PyUFunc_FromFuncAndData(relate_pattern_funcs, relate_pattern_data,
+                                   relate_pattern_dtypes, 1, 3, 1,
+                                   PyUFunc_None, "relate_pattern", "", 0);
+  PyDict_SetItemString(d, "relate_pattern", ufunc);
+
+  static PyMethodDef PyRelatePattern_Scalar_Def = {
+      "relate_pattern_scalar",
+      (PyCFunction)PyRelatePattern_Scalar,
+      METH_FASTCALL,
+      "relate_pattern scalar implementation"
+  };
+  PyObject* PyRelatePattern_Scalar_Func =
+      PyCFunction_NewEx(&PyRelatePattern_Scalar_Def, NULL, NULL);
+  PyDict_SetItemString(d, "relate_pattern_scalar", PyRelatePattern_Scalar_Func);
 
   return 0;
 }

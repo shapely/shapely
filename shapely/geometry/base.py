@@ -902,7 +902,11 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.dwithin` for full documentation.
         """
-        if shapely.lib.is_valid_input_scalar(other):
+        try:
+            distance = float(distance)
+        except (TypeError, ValueError):
+            pass
+        if isinstance(distance, float) and shapely.lib.is_valid_input_scalar(other):
             return shapely.lib.dwithin_scalar(self, other, float(distance))
         return _maybe_unpack(shapely.dwithin(self, other, distance))
 
@@ -939,8 +943,16 @@ class BaseGeometry(shapely.Geometry):
         bool
 
         """
-        if not normalize and shapely.lib.is_valid_input_scalar(other):
-            return shapely.lib.equals_exact_scalar(self, other, float(tolerance))
+        try:
+            tolerance = float(tolerance)
+        except (TypeError, ValueError):
+            pass
+        if isinstance(tolerance, float) and shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.equals_exact_scalar(
+                shapely.lib.normalize_scalar(self) if normalize else self,
+                shapely.lib.normalize_scalar(other) if normalize else other,
+                tolerance,
+            )
         return _maybe_unpack(
             shapely.equals_exact(self, other, tolerance, normalize=normalize)
         )
