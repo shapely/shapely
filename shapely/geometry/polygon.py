@@ -315,8 +315,12 @@ class Polygon(BaseGeometry):
 
     @classmethod
     def from_bounds(cls, xmin, ymin, xmax, ymax):
-        """Construct a `Polygon()` from spatial bounds."""
-        return cls([(xmin, ymin), (xmin, ymax), (xmax, ymax), (xmax, ymin)])
+        """Construct a `Polygon()` from spatial bounds.
+
+        The ring is built in counterclockwise order, consistent with
+        ``shapely.box()``, so it satisfies the GeoJSON right-hand rule.
+        """
+        return cls([(xmax, ymin), (xmax, ymax), (xmin, ymax), (xmin, ymin)])
 
 
 shapely.lib.registry[3] = Polygon
