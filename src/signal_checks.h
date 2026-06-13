@@ -32,6 +32,21 @@ extern unsigned long main_thread_id[1];
     }                                                       \
   }
 
+/* Macro for checking signals in loops when the GIL is held.
+ *
+ * Use this variant (without _THREADS) inside loops that hold the GIL
+ * (i.e. inside GEOS_INIT / GEOS_FINISH, not GEOS_INIT_THREADS).
+ * It calls PyErr_CheckSignals() directly since we already hold the GIL.
+ *
+ * Note: errstate must be defined in the calling scope.
+ */
+#define CHECK_SIGNALS(I)                            \
+  if (((I + 1) % check_signals_interval[0]) == 0) { \
+    if (PyErr_CheckSignals() == -1) {               \
+      errstate = PGERR_PYSIGNAL;                    \
+    };                                              \
+  }
+
 /* Function to setup signal checking parameters */
 PyObject* PySetupSignalChecks(PyObject* self, PyObject* args);
 
