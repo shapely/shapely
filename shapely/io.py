@@ -316,6 +316,11 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
     The Well-Known Binary format is defined in the `OGC Simple Features
     Specification for SQL <https://www.opengeospatial.org/standards/sfs>`__.
 
+    Note that WKB cannot represent ``LinearRing`` geometries: a ring written with
+    :func:`to_wkb` is encoded as a ``LineString`` and will be read back as a
+    ``LineString``. Use WKT (:func:`to_wkt` / :func:`from_wkt`) to round-trip
+    ``LinearRing`` geometries.
+
     Parameters
     ----------
     geometry : str or array_like

@@ -199,7 +199,7 @@ def transform_coordseq(
     geom : Geometry or None
     transformation : function
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
-        atransform_coordseqnother (N, 2) or (N, 3) ndarray of float64.
+        another (N, 2) or (N, 3) ndarray of float64.
         The function may change the value of N.
     include_z : bool, optional, default False
         If False, always return 2D geometries.
