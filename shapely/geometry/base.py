@@ -275,8 +275,10 @@ class BaseGeometry(shapely.Geometry):
     def wkb(self):
         """WKB representation of the geometry.
 
-        Note that the WKB specification cannot represent ``LinearRing``
-        geometries; they are encoded as ``LineString`` (see :func:`shapely.to_wkb`).
+        The following limitations apply to WKB serialization:
+
+        - linearrings will be converted to linestrings
+        - a point with only NaN coordinates is converted to an empty point
         """
         return shapely.to_wkb(self)
 
@@ -284,8 +286,10 @@ class BaseGeometry(shapely.Geometry):
     def wkb_hex(self):
         """WKB hex representation of the geometry.
 
-        Note that the WKB specification cannot represent ``LinearRing``
-        geometries; they are encoded as ``LineString`` (see :func:`shapely.to_wkb`).
+        The following limitations apply to WKB serialization:
+
+        - linearrings will be converted to linestrings
+        - a point with only NaN coordinates is converted to an empty point
         """
         return shapely.to_wkb(self, hex=True)
 
