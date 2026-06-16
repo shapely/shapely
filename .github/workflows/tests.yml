@@ -193,6 +193,23 @@ jobs:
           python -c "import shapely; print(f'GEOS version: {shapely.geos_version_string}')"
           pytest shapely/tests -v -r a --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
 
+      - name: Run Pytest inside Windows Debugger (CDB)
+        id: run_tests
+        shell: powershell
+        run: |
+          # Create a command script telling CDB to:
+          # 'g'  - Go (start running the process)
+          # 'k'  - Print the native call stack when it hits an exception/crash
+          # 'q'  - Quit the debugger when finished
+          "g`nk 100`nq" | Out-File -FilePath .\cdb_commands.txt -Encoding ascii
+
+          # Use where.exe to locate the exact path of your environment's python.exe
+          $PythonPath = (where.exe python | Select-Object -First 1)
+          Write-Host "Targeting Python at: $PythonPath"
+
+          # Launch CDB, monitor Python running pytest, and output the log
+          & "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe" -cf .\cdb_commands.txt -G -hd $PythonPath -m pytest shapely/tests -v
+
       - name: Analyze Crash Dump on Failure
         if: failure() && steps.run_tests.outcome == 'failure'
         shell: powershell

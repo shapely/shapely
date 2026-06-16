@@ -53,7 +53,7 @@ build_geos(){
             BUILD_TESTING="-DBUILD_TESTING=OFF";;
     esac
     cmake \
-        -D CMAKE_BUILD_TYPE=Release \
+        -D CMAKE_BUILD_TYPE=RelWithDebInfo \
         -D CMAKE_INSTALL_PREFIX=${GEOS_INSTALL} \
         -D CMAKE_INSTALL_LIBDIR=lib \
         -D CMAKE_INSTALL_NAME_DIR=${GEOS_INSTALL}/lib \
