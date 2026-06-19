@@ -1,10 +1,40 @@
 import numpy as np
 
 from shapely import Geometry, GeometryType, lib
+from shapely._enum import ParamEnum
 from shapely._geometry import get_parts
 from shapely.decorators import multithreading_enabled, requires_geos
 
-__all__ = ["coverage_invalid_edges", "coverage_is_valid", "coverage_simplify"]
+__all__ = [
+    "coverage_clean",
+    "coverage_invalid_edges",
+    "coverage_is_valid",
+    "coverage_simplify",
+]
+
+
+class CoverageCleanMergeStrategy(ParamEnum):
+    """Enumeration of coverage clean merge strategies.
+
+    Determines which neighboring polygon to merge overlapping areas into.
+
+    Attributes
+    ----------
+    longest_border : int
+        Polygon with longest common border is chosen.
+    max_area : int
+        Polygon with largest area is chosen.
+    min_area : int
+        Polygon with smallest area is chosen.
+    min_index : int
+        Polygon with smallest input index is chosen.
+
+    """
+
+    longest_border = 0
+    max_area = 1
+    min_area = 2
+    min_index = 3
 
 
 @requires_geos("3.12.0")
@@ -166,3 +196,71 @@ def coverage_simplify(geometry, tolerance, *, simplify_boundary=True):
     if scalar:
         return parts.item()
     return parts
+
+
+@requires_geos("3.14.0")
+@multithreading_enabled
+def coverage_clean(
+    geometry,
+    *,
+    gap_width=0.0,
+    snapping_distance=-1,
+    merge_strategy="longest_border",
+):
+    """Return a cleaned version of an input geometry.
+
+    Assumes that the geometry forms a polygonal coverage. Ensures that no polygons
+    overlap and removes small gaps.
+
+    A collection of valid polygons is considered a coverage if the polygons are:
+
+    * **Non-overlapping** - polygons do not overlap (their interiors do not intersect)
+    * **Edge-Matched** - vertices along shared edges are identical
+
+    If there are other geometry types than Polygons or MultiPolygons present,
+    the function will raise an error.
+
+    .. versionadded:: 2.2.0
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    gap_width: float
+        Gaps smaller than this value will be removed.
+    snapping_distance: float
+        Determines the node snapping step when nearby vertices are snapped
+        together. Set to -1 by default, which automatically finds a snapping
+        distance based on the input. Set to 0.0 to disable snapping.
+    merge_strategy:
+        Determines how overlapping areas are handled by choosing which polygons
+        to merge them into.
+
+    Returns
+    -------
+    numpy.ndarray
+
+    See Also
+    --------
+    coverage_is_valid, coverage_invalid_edges, coverage_simplify
+
+    Examples
+    --------
+    >>> import shapely
+    >>> from shapely import box
+    >>> polygons = [box(0, 0, 1, 1), box(0.9, 0, 2, 1)]
+    >>> shapely.coverage_clean(polygons)
+    array([<POLYGON ((0 0, 0 1, 0.9 1, 1 1, 1 0, 0.9 0, 0 0))>,
+       <POLYGON ((1 1, 2 1, 2 0, 1 0, 1 1))>], dtype=object)
+    """
+    if isinstance(merge_strategy, str):
+        merge_strategy = CoverageCleanMergeStrategy.get_value(merge_strategy)
+
+    geometries = np.asarray(geometry)
+    # we always consider the full array as a single coverage -> ravel the input
+    # to pass a 1D array
+    return lib.coverage_clean(
+        geometries.ravel(order="K"),
+        gap_width,
+        snapping_distance,
+        np.intc(merge_strategy),
+    )

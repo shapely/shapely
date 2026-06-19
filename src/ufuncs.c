@@ -1168,6 +1168,120 @@ static PyUFuncGenericFunction coverage_invalid_edges_funcs[1] = {&coverage_inval
 
 #endif  // GEOS_SINCE_3_12_0
 
+#if GEOS_SINCE_3_14_0
+
+static char coverage_clean_dtypes[5] = {NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE, NPY_INT, NPY_OBJECT};
+static void coverage_clean_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                   void* data) {
+  GEOSGeometry* geom = NULL;
+  GEOSGeometry* collection = NULL;
+  GEOSGeometry** collection_parts;
+  GEOSGeometry* result_collection = NULL;
+  GEOSGeometry** result_collection_parts;
+  unsigned int n_parts, n_parts_result;
+  unsigned int n_geoms;
+
+  if ((steps[1] != 0) || (steps[2] != 0) || (steps[3] != 0)) {
+    PyErr_Format(PyExc_ValueError, "coverage_clean function called with non-scalar parameters");
+    return;
+  }
+
+  double gap_width = *(double*)args[1];
+  double snapping_distance = *(double*)args[2];
+  int merge_strategy = *(int*)args[3];
+
+  // allocate a temporary array to store input GEOSGeometry objects
+  GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
+  CHECK_ALLOC(geoms);
+
+  GEOS_INIT;
+
+  GEOSCoverageCleanParams* params = GEOSCoverageCleanParams_create_r(ctx);
+
+  if (params != NULL) {
+    if (!GEOSCoverageCleanParams_setSnappingDistance_r(ctx, params, snapping_distance)) {
+      errstate = PGERR_GEOS_EXCEPTION;
+    }
+    if (!GEOSCoverageCleanParams_setGapMaximumWidth_r(ctx, params, gap_width)) {
+      errstate = PGERR_GEOS_EXCEPTION;
+    }
+    if (!GEOSCoverageCleanParams_setOverlapMergeStrategy_r(ctx, params, merge_strategy)) {
+      errstate = PGERR_GEOS_EXCEPTION;
+    }
+  } else {
+    errstate = PGERR_GEOS_EXCEPTION;
+  }
+
+  char *ip1 = args[0], *op1 = args[4], *cp1;
+  npy_intp is1 = steps[0], os1 = steps[4], cs1 = steps[5];
+  npy_intp n = dimensions[0], n_c1 = dimensions[1];
+  npy_intp i, i_c1;
+
+  npy_intp ocs1 = steps[6];
+  for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {
+    Py_BEGIN_ALLOW_THREADS;
+    CHECK_SIGNALS(i);
+
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
+
+    cp1 = ip1;
+    n_geoms = 0;
+
+    for (i_c1 = 0; i_c1 < n_c1; i_c1++, cp1 += cs1) {
+      if (!get_geom(*(GeometryObject**)cp1, &geom)) {
+        errstate = PGERR_NOT_A_GEOMETRY;
+        goto finish;
+      }
+      if (geom == NULL) {
+        continue;
+      }
+      // we do not clone the geometries, so have to release the collection later
+      geoms[n_geoms] = geom;
+      n_geoms++;
+    }
+    collection =
+        GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, geoms, n_geoms);
+    if (collection == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+
+    result_collection = GEOSCoverageCleanWithParams_r(ctx, collection, params);
+
+    Py_END_ALLOW_THREADS;
+    result_collection_parts = GEOSGeom_releaseCollection_r(ctx, result_collection, &n_parts_result);
+    geom_arr_to_npy(result_collection_parts, op1, ocs1, n_parts_result);
+    GEOSFree_r(ctx, result_collection_parts);
+    GEOSGeom_destroy_r(ctx, result_collection);
+    result_collection = NULL;
+
+    collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
+    GEOSFree_r(ctx, collection_parts);
+    GEOSGeom_destroy_r(ctx, collection);
+    collection = NULL;
+  }
+
+finish:
+  if (params != NULL) {
+    GEOSCoverageCleanParams_destroy_r(ctx, params);
+  }
+
+  if (collection != NULL) {
+    collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
+    GEOSFree_r(ctx, collection_parts);
+    GEOSGeom_destroy_r(ctx, collection);
+  }
+  if (geoms != NULL) {
+    free(geoms);
+  }
+  GEOS_FINISH;
+}
+static PyUFuncGenericFunction coverage_clean_funcs[1] = {&coverage_clean_func};
+
+#endif  // GEOS_SINCE_3_14_0
+
 static char set_precision_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void set_precision_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                void* data) {
@@ -2319,6 +2433,10 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 #if GEOS_SINCE_3_12_0
   DEFINE_GENERALIZED(coverage_is_valid, 2, "(d),()->()");
   DEFINE_GENERALIZED(coverage_invalid_edges, 2, "(d),()->(d)");
+#endif
+
+#if GEOS_SINCE_3_14_0
+  DEFINE_GENERALIZED(coverage_clean, 4, "(d),(),(),()->(d)");
 #endif
 
   Py_DECREF(ufunc);
