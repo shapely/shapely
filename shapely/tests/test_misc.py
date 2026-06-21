@@ -171,6 +171,23 @@ def test_multithreading_enabled_preserves_flag():
     assert not arr.flags.writeable
 
 
+@pytest.mark.parametrize("view_first", [False, True])
+def test_multithreading_enabled_preserves_view_and_base_flags(view_first):
+    arr = np.array([shapely.Point(0, 0)], dtype=object)
+    view = arr.view()
+
+    args = (view, arr) if view_first else (arr, view)
+
+    @multithreading_enabled
+    def pass_through(*args):
+        return None
+
+    pass_through(*args)
+
+    assert arr.flags.writeable
+    assert view.flags.writeable
+
+
 @pytest.mark.parametrize(
     "args,kwargs",
     [

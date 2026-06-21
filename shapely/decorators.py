@@ -87,8 +87,21 @@ def multithreading_enabled(func):
                 arr.flags.writeable = False
             return func(*args, **kwargs)
         finally:
-            for arr, old_flag in zip(array_args, old_flags, strict=False):
-                arr.flags.writeable = old_flag
+            pending = list(zip(array_args, old_flags, strict=False))
+            while pending:
+                remaining = []
+                last_error = None
+                for arr, old_flag in pending:
+                    try:
+                        arr.flags.writeable = old_flag
+                    except ValueError as err:
+                        if not old_flag:
+                            raise
+                        remaining.append((arr, old_flag))
+                        last_error = err
+                if len(remaining) == len(pending):
+                    raise last_error
+                pending = remaining
 
     return wrapped
 
