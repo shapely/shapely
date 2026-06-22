@@ -80,7 +80,7 @@ installing Shapely with pip from PyPI, you clone the package from Github::
 
 Install it in development mode using ``pip``::
 
-    $ pip install -e .[test]
+    $ pip install -e . --group dev
 
 For development, use of a virtual environment is strongly recommended. For
 example using ``venv``:
@@ -89,7 +89,7 @@ example using ``venv``:
 
     $ python3 -m venv .
     $ source bin/activate
-    (env) $ pip install -e .[test]
+    (env) $ pip install -e . --group dev
 
 Or using ``conda``:
 
@@ -104,7 +104,7 @@ Testing Shapely
 
 Shapely can be tested using ``pytest``::
 
-    $ pip install pytest  # or shapely[test]
+    $ pip install pytest  # or shapely --group dev
     $ pytest --pyargs shapely.tests
 
 
