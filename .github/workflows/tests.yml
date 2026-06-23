@@ -70,10 +70,10 @@ jobs:
         if: ${{ startsWith(matrix.os, 'windows') }}
 
       - name: Checkout Shapely
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Checkout GEOS (main)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: libgeos/geos
           ref: main
