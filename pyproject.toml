@@ -41,7 +41,11 @@ dependencies = [
     "numpy>=1.23",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
+dev = [
+    "pre-commit",
+    {include-group = "test"},
+]
 test = [
     "pytest",
     "pytest-cov",
