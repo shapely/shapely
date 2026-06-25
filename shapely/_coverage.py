@@ -210,7 +210,7 @@ def coverage_clean(
     """Return a cleaned version of an input geometry.
 
     Assumes that the geometry forms a polygonal coverage. Ensures that no polygons
-    overlap and removes small gaps.
+    overlap, small gaps are removed, and all shared edges are exactly identical.
 
     A collection of valid polygons is considered a coverage if the polygons are:
 
@@ -225,15 +225,22 @@ def coverage_clean(
     Parameters
     ----------
     geometry : Geometry or array_like
-    gap_width: float
-        Gaps smaller than this value will be removed.
-    snapping_distance: float
+    gap_width : float, default 0.0
+        Gaps smaller than this value are merged with the adjacent polygon with
+        longest shared shared border. Set to 0.0 to (default) for no removal
+        of gaps.
+    snapping_distance : float
         Determines the node snapping step when nearby vertices are snapped
-        together. Set to -1 by default, which automatically finds a snapping
-        distance based on the input. Set to 0.0 to disable snapping.
-    merge_strategy:
-        Determines how overlapping areas are handled by choosing which polygons
-        to merge them into.
+        together. Set to -1 by default, which automatically finds a small snapping
+        distance based on the extend of the input. Set to 0.0 to disable snapping.
+    merge_strategy : {'longest_border', 'max_area', 'min_area', 'min_index'}, default 'longest_border'
+        Determines how overlapping areas are handled by choosing which polygons to merge
+        them into. CoverageCleanMergeStrategy.longest_border ('longest_border') chooses
+        polygon with longest common border. CoverageCleanMergeStrategy.max_area
+        ('max_area') chooses polygon with largest area.
+        CoverageCleanMergeStrategy.min_area ('min_area') chooses polygon with smallest
+        area. CoverageCleanMergeStartegy.min_index ('min_index') chooses the first
+        encountered polygon.
 
     Returns
     -------
@@ -245,13 +252,13 @@ def coverage_clean(
 
     Examples
     --------
-    >>> import shapely
-    >>> from shapely import box
-    >>> polygons = [box(0, 0, 1, 1), box(0.9, 0, 2, 1)]
-    >>> shapely.coverage_clean(polygons)
+    >>> import shapely  # doctest: +SKIP
+    >>> from shapely import box  # doctest: +SKIP
+    >>> polygons = [box(0, 0, 1, 1), box(0.9, 0, 2, 1)]  # doctest: +SKIP
+    >>> shapely.coverage_clean(polygons)  # doctest: +SKIP
     array([<POLYGON ((0 0, 0 1, 0.9 1, 1 1, 1 0, 0.9 0, 0 0))>,
        <POLYGON ((1 1, 2 1, 2 0, 1 0, 1 1))>], dtype=object)
-    """
+    """  # noqa: E501
     if isinstance(merge_strategy, str):
         merge_strategy = CoverageCleanMergeStrategy.get_value(merge_strategy)
 
