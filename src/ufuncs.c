@@ -1250,6 +1250,11 @@ static void coverage_clean_func(char** args, const npy_intp* dimensions, const n
 
     result_collection = GEOSCoverageCleanWithParams_r(ctx, collection, params);
 
+    if (result_collection == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+
     Py_END_ALLOW_THREADS;
     result_collection_parts = GEOSGeom_releaseCollection_r(ctx, result_collection, &n_parts_result);
     geom_arr_to_npy(result_collection_parts, op1, ocs1, n_parts_result);
