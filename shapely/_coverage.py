@@ -259,8 +259,16 @@ def coverage_clean(
     array([<POLYGON ((0 0, 0 1, 0.9 1, 1 1, 1 0, 0.9 0, 0 0))>,
        <POLYGON ((1 1, 2 1, 2 0, 1 0, 1 1))>], dtype=object)
     """  # noqa: E501
+    if not np.isscalar(merge_strategy):
+        raise TypeError("merge_strategy only accepts scalar values")
     if isinstance(merge_strategy, str):
         merge_strategy = CoverageCleanMergeStrategy.get_value(merge_strategy)
+    if isinstance(merge_strategy, int) and not CoverageCleanMergeStrategy.has_value(
+        merge_strategy
+    ):
+        raise ValueError(f"not a valid merge strategy value: {merge_strategy}.")
+    if isinstance(merge_strategy, CoverageCleanMergeStrategy):
+        merge_strategy = merge_strategy.value
 
     geometries = np.asarray(geometry)
     # we always consider the full array as a single coverage -> ravel the input

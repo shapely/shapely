@@ -425,11 +425,27 @@ def test_coverage_clean_scalar_parameters():
         match="coverage_clean function called with non-scalar parameters",
     ):
         shapely.coverage_clean([], gap_width=[0, 0])
+
     with pytest.raises(
         ValueError,
         match="coverage_clean function called with non-scalar parameters",
     ):
         shapely.coverage_clean([], snapping_distance=[1, 1])
+
+    with pytest.raises(
+        TypeError,
+        match="merge_strategy only accepts scalar values",
+    ):
+        shapely.coverage_clean([], merge_strategy=["longest_border", "min_index"])
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 14, 0), reason="requires >= 3.14")
+def test_coverage_clean_merge_strategy_parameter():
+    with pytest.raises(
+        ValueError,
+        match="not a valid merge strategy value",
+    ):
+        shapely.coverage_clean([], merge_strategy=5)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 14, 0), reason="requires >= 3.14")

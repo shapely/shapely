@@ -21,3 +21,12 @@ class ParamEnum(IntEnum):
                     item, "', '".join(valid_options)
                 )
             )
+
+    @classmethod
+    def has_value(cls, value):
+        """Return whether integer value is a valid value in the enum."""
+        try:
+            cls(value)
+            return True
+        except ValueError:
+            return False
