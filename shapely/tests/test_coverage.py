@@ -263,17 +263,17 @@ def test_coverage_clean_unsupported_geos():
 @pytest.mark.skipif(shapely.geos_version < (3, 14, 0), reason="requires >= 3.14")
 def test_coverage_clean_overlap():
     # overlapping polygons
-    poly1 = shapely.from_wkt("POLYGON ((0 10, 10 10, 10 0, 0 0, 0 10))")
-    poly2 = shapely.from_wkt("POLYGON ((9 10, 19 10, 19 0, 9 0, 9 10))")
+    poly1 = shapely.from_wkt("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))")
+    poly2 = shapely.from_wkt("POLYGON ((9 0, 9 10, 19 10, 19 0, 9 0))")
 
     expected = shapely.from_wkt(
         [
             "POLYGON ((0 0, 0 10, 9 10, 10 10, 10 0, 9 0, 0 0))",
-            "POLYGON ((19 10, 19 0, 10 0, 10 10, 19 10))",
+            "POLYGON ((10 0, 10 10, 19 10, 19 0, 10 0))",
         ]
     )
 
-    result = shapely.coverage_clean([poly1, poly2])
+    result = shapely.normalize(shapely.coverage_clean([poly1, poly2]))
 
     assert_geometries_equal(result, expected)
 
@@ -334,11 +334,13 @@ def test_coverage_clean_snapping():
     # snapping distance 2.0 (vertices should be snapped)
     expected_2 = shapely.from_wkt(
         [
-            "POLYGON ((10.5 8.5, 10.5 1, 10 -1, 0 -1, 0 11, 10 11, 10.5 8.5))",
-            "POLYGON ((10.5 1, 10.5 8.5, 10 11, 20 13, 20 -2, 10 -1, 10.5 1))",
+            "POLYGON ((0 -1, 0 11, 10 11, 10.5 8.5, 10.5 1, 10 -1, 0 -1))",
+            "POLYGON ((10 -1, 10.5 1, 10.5 8.5, 10 11, 20 13, 20 -2, 10 -1))",
         ]
     )
-    result_2 = shapely.coverage_clean([poly1, poly2], gap_width=1, snapping_distance=2)
+    result_2 = shapely.normalize(
+        shapely.coverage_clean([poly1, poly2], gap_width=1, snapping_distance=2),
+    )
     assert_geometries_equal(result_2, expected_2)
 
 
@@ -459,3 +461,15 @@ def test_coverage_clean_overlap_multipolygons():
     result = shapely.normalize(shapely.coverage_clean([multipoly1, multipoly2]))
 
     assert_geometries_equal(result, expected)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 14, 0), reason="GEOS < 3.14")
+@pytest.mark.parametrize("geometry", all_types)
+def test_coverage_clean_geom_types(geometry):
+    if geometry.geom_type in {"Polygon", "MultiPolygon"}:
+        actual = shapely.coverage_clean([geometry, geometry])
+        assert isinstance(actual, np.ndarray)
+        assert actual.shape == (2,)
+    else:
+        with pytest.raises(TypeError, match="incorrect geometry type"):
+            shapely.coverage_clean([geometry, geometry])
