@@ -1223,6 +1223,7 @@ static void coverage_clean_func(char** args, const npy_intp* dimensions, const n
     CHECK_SIGNALS(i);
 
     if (errstate == PGERR_PYSIGNAL) {
+      Py_BLOCK_THREADS;
       goto finish;
     }
 
@@ -1232,10 +1233,18 @@ static void coverage_clean_func(char** args, const npy_intp* dimensions, const n
     for (i_c1 = 0; i_c1 < n_c1; i_c1++, cp1 += cs1) {
       if (!get_geom(*(GeometryObject**)cp1, &geom)) {
         errstate = PGERR_NOT_A_GEOMETRY;
+        Py_BLOCK_THREADS;
         goto finish;
       }
       if (geom == NULL) {
         continue;
+      }
+
+      int geom_type = GEOSGeomTypeId_r(ctx, geom);
+      if (geom_type != GEOS_POLYGON && geom_type != GEOS_MULTIPOLYGON) {
+        errstate = PGERR_GEOMETRY_TYPE;
+        Py_BLOCK_THREADS;
+        goto finish;
       }
       // we do not clone the geometries, so have to release the collection later
       geoms[n_geoms] = geom;
@@ -1245,6 +1254,7 @@ static void coverage_clean_func(char** args, const npy_intp* dimensions, const n
         GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, geoms, n_geoms);
     if (collection == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
+      Py_BLOCK_THREADS;
       goto finish;
     }
 
@@ -1252,6 +1262,7 @@ static void coverage_clean_func(char** args, const npy_intp* dimensions, const n
 
     if (result_collection == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
+      Py_BLOCK_THREADS;
       goto finish;
     }
 
