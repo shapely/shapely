@@ -802,7 +802,9 @@ class BaseGeometry(shapely.Geometry):
 
     def relate(self, other):
         """Return the DE-9IM intersection matrix for the two geometries (string)."""
-        return shapely.relate(self, other)
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.relate_scalar(self, other)
+        return _maybe_unpack(shapely.relate(self, other))
 
     def covers(self, other):
         """Return True if the geometry covers the other, else False."""
@@ -900,6 +902,12 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.dwithin` for full documentation.
         """
+        try:
+            distance = float(distance)
+        except (TypeError, ValueError):
+            pass
+        if isinstance(distance, float) and shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.dwithin_scalar(self, other, float(distance))
         return _maybe_unpack(shapely.dwithin(self, other, distance))
 
     def equals_exact(self, other, tolerance=0.0, *, normalize=False):
@@ -935,12 +943,24 @@ class BaseGeometry(shapely.Geometry):
         bool
 
         """
+        try:
+            tolerance = float(tolerance)
+        except (TypeError, ValueError):
+            pass
+        if isinstance(tolerance, float) and shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.equals_exact_scalar(
+                shapely.lib.normalize_scalar(self) if normalize else self,
+                shapely.lib.normalize_scalar(other) if normalize else other,
+                tolerance,
+            )
         return _maybe_unpack(
             shapely.equals_exact(self, other, tolerance, normalize=normalize)
         )
 
     def relate_pattern(self, other, pattern):
         """Return True if the DE-9IM relationship code satisfies the pattern."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.relate_pattern_scalar(self, other, pattern)
         return _maybe_unpack(shapely.relate_pattern(self, other, pattern))
 
     # Linear referencing
