@@ -6,13 +6,13 @@ on:
       - main  # just build the sdist & wheel, skip release
     tags:
       - "*"
-  pull_request:  # also build on PRs touching this file
-    paths:
-      - ".github/workflows/release.yml"
-      - "ci/*"
-      - "MANIFEST.in"
-      - "pyproject.toml"
-      - "setup.py"
+  # pull_request:  # also build on PRs touching this file
+  #   paths:
+  #     - ".github/workflows/release.yml"
+  #     - "ci/*"
+  #     - "MANIFEST.in"
+  #     - "pyproject.toml"
+  #     - "setup.py"
   schedule:
     # in addition run weekly for nightly upload in case no other commits happened
     - cron: '34 2 * * 0'
