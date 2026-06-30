@@ -12,6 +12,15 @@ from shapely import lib
 from shapely.errors import UnsupportedGEOSVersionError
 
 
+def _array_view_depth(arr: np.ndarray) -> int:
+    depth = 0
+    base = arr.base
+    while isinstance(base, np.ndarray):
+        depth += 1
+        base = base.base
+    return depth
+
+
 class requires_geos:
     """Decorator to require a minimum GEOS version."""
 
@@ -87,7 +96,11 @@ def multithreading_enabled(func):
                 arr.flags.writeable = False
             return func(*args, **kwargs)
         finally:
-            for arr, old_flag in zip(array_args, old_flags, strict=False):
+            restore_order = sorted(
+                zip(array_args, old_flags, strict=False),
+                key=lambda item: (item[1], _array_view_depth(item[0])),
+            )
+            for arr, old_flag in restore_order:
                 arr.flags.writeable = old_flag
 
     return wrapped

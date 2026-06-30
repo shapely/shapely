@@ -171,6 +171,17 @@ def test_multithreading_enabled_preserves_flag():
     assert not arr.flags.writeable
 
 
+def test_multithreading_enabled_restores_view_before_base():
+    arr = np.array([shapely.Point(1, 1)], dtype=object)
+    view = arr.view()
+
+    result = shapely.equals(view, arr)
+
+    assert result.tolist() == [True]
+    assert view.flags.writeable
+    assert arr.flags.writeable
+
+
 @pytest.mark.parametrize(
     "args,kwargs",
     [
