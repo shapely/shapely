@@ -40,7 +40,7 @@ jobs:
             numpy: 2.3.5
           # free threaded Python (no numpy version to indicate installing nightly cython and numpy)
           - os: ubuntu-22.04  # keep distinct from ubuntu-latest
-            python: "3.13t"
+            python: "3.14t"
             geos: 3.13.1  # keep distinct from pypy geos version
           # apple x86_64 (Intel)
           - os: macos-15-intel
