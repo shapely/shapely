@@ -44,9 +44,9 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pre-commit",
-    {include-group = "test"},
+    {include-group = "tests"},
 ]
-test = [
+tests = [
     "pytest",
     "pytest-cov",
     "scipy-doctest",
