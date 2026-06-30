@@ -1,7 +1,14 @@
 import numpy as np
 import pytest
 
-from shapely import MultiPolygon, Polygon
+from shapely import (
+    GeometryCollection,
+    LinearRing,
+    LineString,
+    MultiPolygon,
+    Point,
+    Polygon,
+)
 from shapely.geometry.base import dump_coords
 from shapely.tests.geometry.test_multi import MultiGeometryTestCase
 
@@ -140,6 +147,32 @@ def test_fail_list_of_multipolygons():
 
     with pytest.raises(ValueError):
         MultiPolygon([poly, multi])
+
+
+@pytest.mark.parametrize(
+    "geom",
+    [
+        GeometryCollection([Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])]),
+        Point(0, 0),
+        LineString([(0, 0), (1, 1)]),
+        LinearRing([(0, 0), (1, 1), (1, 0)]),
+    ],
+    ids=["GeometryCollection", "Point", "LineString", "LinearRing"],
+)
+def test_fail_list_with_non_polygon_geometry(geom):
+    """A non-Polygon geometry in the list raises a clear ValueError.
+
+    Previously a non-Polygon geometry fell through to ``shell = ob[0]`` and
+    raised a cryptic ``TypeError: ... object is not subscriptable``. It is now
+    rejected with a ValueError naming the offending type, regardless of its
+    position in the list (#2178).
+    """
+    poly = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])
+
+    # As the only element, before a valid Polygon, and after a valid Polygon.
+    for inputs in ([geom], [geom, poly], [poly, geom]):
+        with pytest.raises(ValueError, match=geom.geom_type):
+            MultiPolygon(inputs)
 
 
 def test_numpy_object_array():

@@ -2,7 +2,7 @@
 
 import shapely
 from shapely.geometry import polygon
-from shapely.geometry.base import BaseMultipartGeometry
+from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 
 __all__ = ["MultiPolygon"]
 
@@ -73,6 +73,11 @@ class MultiPolygon(BaseMultipartGeometry):
         for i in range(L):
             ob = polygons[i]
             if not isinstance(ob, polygon.Polygon):
+                if isinstance(ob, BaseGeometry):
+                    raise ValueError(
+                        "Input must be valid Polygon objects or sequences of "
+                        f"(shell, holes) tuples, got a {ob.geom_type}"
+                    )
                 shell = ob[0]
                 if len(ob) > 1:
                     holes = ob[1]
