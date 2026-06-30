@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 
 from shapely import lib
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import requires_geos
 
 __all__ = [
     "contains",
@@ -42,7 +42,6 @@ __all__ = [
 ]
 
 
-@multithreading_enabled
 def has_z(geometry, **kwargs):
     """Return True if a geometry has Z coordinates.
 
@@ -75,7 +74,6 @@ def has_z(geometry, **kwargs):
     return lib.has_z(geometry, **kwargs)
 
 
-@multithreading_enabled
 @requires_geos("3.12.0")
 def has_m(geometry, **kwargs):
     """Return True if a geometry has M coordinates.
@@ -109,7 +107,6 @@ def has_m(geometry, **kwargs):
     return lib.has_m(geometry, **kwargs)
 
 
-@multithreading_enabled
 def is_ccw(geometry, **kwargs):
     """Return True if a linestring or linearring is counterclockwise.
 
@@ -148,7 +145,6 @@ def is_ccw(geometry, **kwargs):
     return lib.is_ccw(geometry, **kwargs)
 
 
-@multithreading_enabled
 def is_closed(geometry, **kwargs):
     """Return True if a linestring's first and last points are equal.
 
@@ -178,7 +174,6 @@ def is_closed(geometry, **kwargs):
     return lib.is_closed(geometry, **kwargs)
 
 
-@multithreading_enabled
 def is_empty(geometry, **kwargs):
     """Return True if a geometry is an empty point, polygon, etc.
 
@@ -208,7 +203,6 @@ def is_empty(geometry, **kwargs):
     return lib.is_empty(geometry, **kwargs)
 
 
-@multithreading_enabled
 def is_geometry(geometry, **kwargs):
     """Return True if the object is a geometry.
 
@@ -241,7 +235,6 @@ def is_geometry(geometry, **kwargs):
     return lib.is_geometry(geometry, **kwargs)
 
 
-@multithreading_enabled
 def is_missing(geometry, **kwargs):
     """Return True if the object is not a geometry (None).
 
@@ -275,7 +268,6 @@ def is_missing(geometry, **kwargs):
     return lib.is_missing(geometry, **kwargs)
 
 
-@multithreading_enabled
 def is_prepared(geometry, **kwargs):
     """Return True if a Geometry is prepared.
 
@@ -315,7 +307,6 @@ def is_prepared(geometry, **kwargs):
     return lib.is_prepared(geometry, **kwargs)
 
 
-@multithreading_enabled
 def is_valid_input(geometry, **kwargs):
     """Return True if the object is a geometry or None.
 
@@ -350,7 +341,6 @@ def is_valid_input(geometry, **kwargs):
     return lib.is_valid_input(geometry, **kwargs)
 
 
-@multithreading_enabled
 def is_ring(geometry, **kwargs):
     """Return True if a linestring is closed and simple.
 
@@ -388,7 +378,6 @@ def is_ring(geometry, **kwargs):
     return lib.is_ring(geometry, **kwargs)
 
 
-@multithreading_enabled
 def is_simple(geometry, **kwargs):
     """Return True if the geometry is simple.
 
@@ -427,7 +416,6 @@ def is_simple(geometry, **kwargs):
     return lib.is_simple(geometry, **kwargs)
 
 
-@multithreading_enabled
 def is_valid(geometry, **kwargs):
     """Return True if a geometry is well formed.
 
@@ -496,7 +484,6 @@ def is_valid_reason(geometry, **kwargs):
     return lib.is_valid_reason(geometry, **kwargs)
 
 
-@multithreading_enabled
 def crosses(a, b, **kwargs):
     """Return True if A and B spatially cross.
 
@@ -552,7 +539,6 @@ def crosses(a, b, **kwargs):
     return lib.crosses(a, b, **kwargs)
 
 
-@multithreading_enabled
 def contains(a, b, **kwargs):
     """Return True if geometry B is completely inside geometry A.
 
@@ -615,7 +601,6 @@ def contains(a, b, **kwargs):
     return lib.contains(a, b, **kwargs)
 
 
-@multithreading_enabled
 def contains_properly(a, b, **kwargs):
     """Return True if geometry B is completely inside geometry A, with no common
     boundary points.
@@ -670,7 +655,6 @@ def contains_properly(a, b, **kwargs):
     return lib.contains_properly(a, b, **kwargs)
 
 
-@multithreading_enabled
 def covered_by(a, b, **kwargs):
     """Return True if no point in geometry A is outside geometry B.
 
@@ -725,7 +709,6 @@ def covered_by(a, b, **kwargs):
     return lib.covered_by(a, b, **kwargs)
 
 
-@multithreading_enabled
 def covers(a, b, **kwargs):
     """Return True if no point in geometry B is outside geometry A.
 
@@ -779,7 +762,6 @@ def covers(a, b, **kwargs):
     return lib.covers(a, b, **kwargs)
 
 
-@multithreading_enabled
 def disjoint(a, b, **kwargs):
     """Return True if A and B do not share any point in space.
 
@@ -826,7 +808,6 @@ def disjoint(a, b, **kwargs):
     return lib.disjoint(a, b, **kwargs)
 
 
-@multithreading_enabled
 def equals(a, b, **kwargs):
     """Return True if A and B are spatially equal.
 
@@ -861,7 +842,6 @@ def equals(a, b, **kwargs):
     return lib.equals(a, b, **kwargs)
 
 
-@multithreading_enabled
 def intersects(a, b, **kwargs):
     """Return True if A and B share any portion of space.
 
@@ -901,7 +881,6 @@ def intersects(a, b, **kwargs):
     return lib.intersects(a, b, **kwargs)
 
 
-@multithreading_enabled
 def overlaps(a, b, **kwargs):
     """Return True if A and B spatially overlap.
 
@@ -964,7 +943,6 @@ def overlaps(a, b, **kwargs):
     return lib.overlaps(a, b, **kwargs)
 
 
-@multithreading_enabled
 def touches(a, b, **kwargs):
     """Return True if the only points shared between A and B are on their boundaries.
 
@@ -1009,7 +987,6 @@ def touches(a, b, **kwargs):
     return lib.touches(a, b, **kwargs)
 
 
-@multithreading_enabled
 def within(a, b, **kwargs):
     """Return True if geometry A is completely inside geometry B.
 
@@ -1077,7 +1054,6 @@ def within(a, b, **kwargs):
     return lib.within(a, b, **kwargs)
 
 
-@multithreading_enabled
 def equals_exact(a, b, tolerance=0.0, *, normalize=False, **kwargs):
     """Return True if the geometries are structurally equivalent within a given
     tolerance.
@@ -1145,7 +1121,6 @@ def equals_exact(a, b, tolerance=0.0, *, normalize=False, **kwargs):
     return lib.equals_exact(a, b, tolerance, **kwargs)
 
 
-@multithreading_enabled
 def equals_identical(a, b, **kwargs):
     """Return True if the geometries are identical.
 
@@ -1222,7 +1197,6 @@ def relate(a, b, **kwargs):
     return lib.relate(a, b, **kwargs)
 
 
-@multithreading_enabled
 def relate_pattern(a, b, pattern, **kwargs):
     """Return True if the DE-9IM relationship code satisfies the pattern.
 
@@ -1265,7 +1239,6 @@ def relate_pattern(a, b, pattern, **kwargs):
     return lib.relate_pattern(a, b, pattern, **kwargs)
 
 
-@multithreading_enabled
 def dwithin(a, b, distance, **kwargs):
     """Return True if the geometries are within a given distance.
 
@@ -1307,7 +1280,6 @@ def dwithin(a, b, distance, **kwargs):
     return lib.dwithin(a, b, distance, **kwargs)
 
 
-@multithreading_enabled
 def contains_xy(geom, x, y=None, **kwargs):
     """Return True if the Point (x, y) is completely inside geom.
 
@@ -1363,7 +1335,6 @@ def contains_xy(geom, x, y=None, **kwargs):
     return lib.contains_xy(geom, x, y, **kwargs)
 
 
-@multithreading_enabled
 def intersects_xy(geom, x, y=None, **kwargs):
     """Return True if geom and the Point (x, y) share any portion of space.
 

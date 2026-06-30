@@ -2,13 +2,12 @@ import numpy as np
 
 from shapely import Geometry, GeometryType, lib
 from shapely._geometry import get_parts
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import requires_geos
 
 __all__ = ["coverage_invalid_edges", "coverage_is_valid", "coverage_simplify"]
 
 
 @requires_geos("3.12.0")
-@multithreading_enabled
 def coverage_is_valid(geometry, gap_width=0.0, **kwargs):
     """Verify if a coverage is valid.
 
@@ -51,7 +50,6 @@ def coverage_is_valid(geometry, gap_width=0.0, **kwargs):
 
 
 @requires_geos("3.12.0")
-@multithreading_enabled
 def coverage_invalid_edges(geometry, gap_width=0.0, **kwargs):
     """Verify if a coverage is valid and return invalid edges.
 
@@ -97,7 +95,6 @@ def coverage_invalid_edges(geometry, gap_width=0.0, **kwargs):
 
 
 @requires_geos("3.12.0")
-@multithreading_enabled
 def coverage_simplify(geometry, tolerance, *, simplify_boundary=True):
     """Return a simplified version of an input geometry using coverage simplification.
 
