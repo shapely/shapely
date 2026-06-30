@@ -7,7 +7,6 @@ import numpy as np
 from shapely import Geometry, GeometryType, lib
 from shapely.decorators import (
     deprecate_positional,
-    multithreading_enabled,
     requires_geos,
 )
 
@@ -37,7 +36,6 @@ __all__ = [
 
 
 @deprecate_positional(["grid_size"], category=DeprecationWarning)
-@multithreading_enabled
 def difference(a, b, grid_size=None, **kwargs):
     """Return the part of geometry A that does not intersect with geometry B.
 
@@ -110,7 +108,6 @@ def difference(a, b, grid_size=None, **kwargs):
 
 
 @deprecate_positional(["grid_size"], category=DeprecationWarning)
-@multithreading_enabled
 def intersection(a, b, grid_size=None, **kwargs):
     """Return the geometry that is shared between input geometries.
 
@@ -178,7 +175,6 @@ def intersection(a, b, grid_size=None, **kwargs):
 
 
 @deprecate_positional(["axis"], category=DeprecationWarning)
-@multithreading_enabled
 def intersection_all(geometries, axis=None, **kwargs):
     """Return the intersection of multiple geometries.
 
@@ -243,7 +239,6 @@ def intersection_all(geometries, axis=None, **kwargs):
 
 
 @deprecate_positional(["grid_size"], category=DeprecationWarning)
-@multithreading_enabled
 def symmetric_difference(a, b, grid_size=None, **kwargs):
     """Return the geometry with the portions of input geometries that do not intersect.
 
@@ -311,7 +306,6 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
 
 
 @deprecate_positional(["axis"], category=DeprecationWarning)
-@multithreading_enabled
 def symmetric_difference_all(geometries, axis=None, **kwargs):
     """Return the symmetric difference of multiple geometries.
 
@@ -391,7 +385,6 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
 
 
 @deprecate_positional(["grid_size"], category=DeprecationWarning)
-@multithreading_enabled
 def union(a, b, grid_size=None, **kwargs):
     """Merge geometries into one.
 
@@ -461,7 +454,6 @@ def union(a, b, grid_size=None, **kwargs):
 
 
 @deprecate_positional(["grid_size", "axis"], category=DeprecationWarning)
-@multithreading_enabled
 def union_all(geometries, grid_size=None, axis=None, **kwargs):
     """Return the union of multiple geometries.
 
@@ -556,7 +548,6 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
 unary_union = union_all
 
 
-@multithreading_enabled
 def coverage_union(a, b, **kwargs):
     """Merge multiple polygons into one.
 
@@ -605,7 +596,6 @@ def coverage_union(a, b, **kwargs):
 
 
 @deprecate_positional(["axis"], category=DeprecationWarning)
-@multithreading_enabled
 def coverage_union_all(geometries, axis=None, **kwargs):
     """Return the union of multiple polygons of a geometry collection.
 
@@ -671,7 +661,6 @@ def coverage_union_all(geometries, axis=None, **kwargs):
 
 
 @requires_geos("3.12.0")
-@multithreading_enabled
 def disjoint_subset_union(a, b, **kwargs):
     """Merge multiple polygons into one using algorithm optimised for subsets.
 
@@ -725,7 +714,6 @@ def disjoint_subset_union(a, b, **kwargs):
 
 
 @requires_geos("3.12.0")
-@multithreading_enabled
 def disjoint_subset_union_all(geometries, *, axis=None, **kwargs):
     """Return the union of multiple polygons.
 

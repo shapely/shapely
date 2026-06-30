@@ -1,5 +1,6 @@
 import os
 import sys
+import warnings
 from copy import deepcopy
 from inspect import cleandoc
 from itertools import chain
@@ -128,44 +129,49 @@ def test_requires_geos_method(version, mocked_geos_version, sphinx_doc_build):
     assert wrapped.__doc__ == expected_docstring(version=version, indent=" " * 8)
 
 
-@multithreading_enabled
-def set_first_element(value, *args, **kwargs):
-    for arg in chain(args, kwargs.values()):
-        if hasattr(arg, "__setitem__"):
-            arg[0] = value
-            return arg
+@pytest.fixture
+def multithreading_enabled_func():
+    def set_first_element(value, *args, **kwargs):
+        for arg in chain(args, kwargs.values()):
+            if hasattr(arg, "__setitem__"):
+                arg[0] = value
+                return arg
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # GEO
+        return multithreading_enabled(set_first_element)
 
 
-def test_multithreading_enabled_raises_arg():
+def test_multithreading_enabled_raises_arg(multithreading_enabled_func):
     arr = np.empty((1,), dtype=object)
 
     # set_first_element cannot change the input array
     with pytest.raises(ValueError):
-        set_first_element(42, arr)
+        multithreading_enabled_func(42, arr)
 
     # afterwards, we can
     arr[0] = 42
     assert arr[0] == 42
 
 
-def test_multithreading_enabled_raises_kwarg():
+def test_multithreading_enabled_raises_kwarg(multithreading_enabled_func):
     arr = np.empty((1,), dtype=object)
 
     # set_first_element cannot change the input array
     with pytest.raises(ValueError):
-        set_first_element(42, arr=arr)
+        multithreading_enabled_func(42, arr=arr)
 
     # writable flag goes to original state
     assert arr.flags.writeable
 
 
-def test_multithreading_enabled_preserves_flag():
+def test_multithreading_enabled_preserves_flag(multithreading_enabled_func):
     arr = np.empty((1,), dtype=object)
     arr.flags.writeable = False
 
     # set_first_element cannot change the input array
     with pytest.raises(ValueError):
-        set_first_element(42, arr)
+        multithreading_enabled_func(42, arr)
 
     # writable flag goes to original state
     assert not arr.flags.writeable
@@ -185,9 +191,14 @@ def test_multithreading_enabled_preserves_flag():
         ),  # ufunc kwarg 'where' is untouched
     ],
 )
-def test_multithreading_enabled_ok(args, kwargs):
-    result = set_first_element(42, *args, **kwargs)
+def test_multithreading_enabled_ok(args, kwargs, multithreading_enabled_func):
+    result = multithreading_enabled_func(42, *args, **kwargs)
     assert result[0] == 42
+
+
+def test_multithreading_enabled_deprecation_warning():
+    with pytest.warns(FutureWarning):
+        multithreading_enabled(lambda x: x)
 
 
 @pytest.mark.parametrize(

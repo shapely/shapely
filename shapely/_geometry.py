@@ -6,7 +6,6 @@ from shapely import _geometry_helpers, lib
 from shapely._enum import ParamEnum
 from shapely.decorators import (
     deprecate_positional,
-    multithreading_enabled,
     requires_geos,
 )
 
@@ -56,7 +55,6 @@ class GeometryType(IntEnum):
 # generic
 
 
-@multithreading_enabled
 def get_type_id(geometry, **kwargs):
     """Return the type ID of a geometry.
 
@@ -96,7 +94,6 @@ def get_type_id(geometry, **kwargs):
     return lib.get_type_id(geometry, **kwargs)
 
 
-@multithreading_enabled
 def get_dimensions(geometry, **kwargs):
     """Return the inherent dimensionality of a geometry.
 
@@ -132,7 +129,6 @@ def get_dimensions(geometry, **kwargs):
     return lib.get_dimensions(geometry, **kwargs)
 
 
-@multithreading_enabled
 def get_coordinate_dimension(geometry, **kwargs):
     """Return the dimensionality of the coordinates in a geometry (2, 3 or 4).
 
@@ -169,7 +165,6 @@ def get_coordinate_dimension(geometry, **kwargs):
     return lib.get_coordinate_dimension(geometry, **kwargs)
 
 
-@multithreading_enabled
 def get_num_coordinates(geometry, **kwargs):
     """Return the total number of coordinates in a geometry.
 
@@ -203,7 +198,6 @@ def get_num_coordinates(geometry, **kwargs):
     return lib.get_num_coordinates(geometry, **kwargs)
 
 
-@multithreading_enabled
 def get_srid(geometry, **kwargs):
     """Return the SRID of a geometry.
 
@@ -235,7 +229,6 @@ def get_srid(geometry, **kwargs):
     return lib.get_srid(geometry, **kwargs)
 
 
-@multithreading_enabled
 def set_srid(geometry, srid, **kwargs):
     """Return a geometry with its SRID set.
 
@@ -270,7 +263,6 @@ def set_srid(geometry, srid, **kwargs):
 # points
 
 
-@multithreading_enabled
 def get_x(point, **kwargs):
     """Return the x-coordinate of a point.
 
@@ -298,7 +290,6 @@ def get_x(point, **kwargs):
     return lib.get_x(point, **kwargs)
 
 
-@multithreading_enabled
 def get_y(point, **kwargs):
     """Return the y-coordinate of a point.
 
@@ -326,7 +317,6 @@ def get_y(point, **kwargs):
     return lib.get_y(point, **kwargs)
 
 
-@multithreading_enabled
 def get_z(point, **kwargs):
     """Return the z-coordinate of a point.
 
@@ -357,7 +347,6 @@ def get_z(point, **kwargs):
     return lib.get_z(point, **kwargs)
 
 
-@multithreading_enabled
 @requires_geos("3.12.0")
 def get_m(point, **kwargs):
     """Return the m-coordinate of a point.
@@ -396,7 +385,6 @@ def get_m(point, **kwargs):
 # linestrings
 
 
-@multithreading_enabled
 def get_point(geometry, index, **kwargs):
     """Return the nth point of a linestring or linearring.
 
@@ -441,7 +429,6 @@ def get_point(geometry, index, **kwargs):
     return lib.get_point(geometry, np.intc(index), **kwargs)
 
 
-@multithreading_enabled
 def get_num_points(geometry, **kwargs):
     """Return the number of points in a linestring or linearring.
 
@@ -478,7 +465,6 @@ def get_num_points(geometry, **kwargs):
 # polygons
 
 
-@multithreading_enabled
 def get_exterior_ring(geometry, **kwargs):
     """Return the exterior ring of a polygon.
 
@@ -506,7 +492,6 @@ def get_exterior_ring(geometry, **kwargs):
     return lib.get_exterior_ring(geometry, **kwargs)
 
 
-@multithreading_enabled
 def get_interior_ring(geometry, index, **kwargs):
     """Return the nth interior ring of a polygon.
 
@@ -548,7 +533,6 @@ def get_interior_ring(geometry, index, **kwargs):
     return lib.get_interior_ring(geometry, np.intc(index), **kwargs)
 
 
-@multithreading_enabled
 def get_num_interior_rings(geometry, **kwargs):
     """Return number of internal rings in a polygon.
 
@@ -591,7 +575,6 @@ def get_num_interior_rings(geometry, **kwargs):
 # collections
 
 
-@multithreading_enabled
 def get_geometry(geometry, index, **kwargs):
     """Return the nth geometry from a collection of geometries.
 
@@ -786,7 +769,6 @@ def get_rings(geometry, return_index=False):
     return _geometry_helpers.get_parts(geometry, extract_rings=True)[0]
 
 
-@multithreading_enabled
 def get_num_geometries(geometry, **kwargs):
     """Return number of geometries in a collection.
 
@@ -820,7 +802,6 @@ def get_num_geometries(geometry, **kwargs):
     return lib.get_num_geometries(geometry, **kwargs)
 
 
-@multithreading_enabled
 def get_precision(geometry, **kwargs):
     """Get the precision of a geometry.
 
@@ -864,7 +845,6 @@ class SetPrecisionMode(ParamEnum):
     keep_collapsed = 2
 
 
-@multithreading_enabled
 def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     """Return geometry with the precision set to a precision grid size.
 
@@ -948,7 +928,6 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     return lib.set_precision(geometry, grid_size, np.intc(mode), **kwargs)
 
 
-@multithreading_enabled
 def force_2d(geometry, **kwargs):
     """Force the dimensionality of a geometry to 2D.
 
@@ -978,7 +957,6 @@ def force_2d(geometry, **kwargs):
     return lib.force_2d(geometry, **kwargs)
 
 
-@multithreading_enabled
 def force_3d(geometry, z=0.0, **kwargs):
     """Force the dimensionality of a geometry to 3D.
 
@@ -1016,7 +994,6 @@ def force_3d(geometry, z=0.0, **kwargs):
     return lib.force_3d(geometry, z, **kwargs)
 
 
-@multithreading_enabled
 def get_segments(
     geometry,
     *,

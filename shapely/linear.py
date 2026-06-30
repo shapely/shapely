@@ -1,7 +1,7 @@
 """Linear geometry functions."""
 
 from shapely import lib
-from shapely.decorators import deprecate_positional, multithreading_enabled
+from shapely.decorators import deprecate_positional
 from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
@@ -22,7 +22,6 @@ __all__ = [
 
 
 @deprecate_positional(["normalized"], category=DeprecationWarning)
-@multithreading_enabled
 def line_interpolate_point(line, distance, normalized=False, **kwargs):
     """Return a point interpolated at given distance on a line.
 
@@ -74,7 +73,6 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
 
 
 @deprecate_positional(["normalized"], category=DeprecationWarning)
-@multithreading_enabled
 def line_locate_point(line, other, normalized=False, **kwargs):
     """Return the distance to the line origin of given point.
 
@@ -115,7 +113,6 @@ def line_locate_point(line, other, normalized=False, **kwargs):
         return lib.line_locate_point(line, other)
 
 
-@multithreading_enabled
 def line_merge(line, directed=False, **kwargs):
     """Return (Multi)LineStrings formed by combining the lines in a MultiLineString.
 
@@ -168,7 +165,6 @@ directed=True)
     return lib.line_merge(line, **kwargs)
 
 
-@multithreading_enabled
 def shared_paths(a, b, **kwargs):
     """Return the shared paths between a and b.
 
@@ -202,7 +198,6 @@ def shared_paths(a, b, **kwargs):
     return lib.shared_paths(a, b, **kwargs)
 
 
-@multithreading_enabled
 def shortest_line(a, b, **kwargs):
     """Return the shortest line between two geometries.
 

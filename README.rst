@@ -68,7 +68,13 @@ Shapely functions generally support multithreading by releasing the Global
 Interpreter Lock (GIL) during execution. Normally in Python, the GIL prevents
 multiple threads from computing at the same time. Shapely functions
 internally release this constraint so that the heavy lifting done by GEOS can
-be done in parallel, from a single Python process.
+be done concurrently from a single Python process.
+
+When sharing NumPy array of geometries between threads, extreme care
+must be taken to avoid creating thread safety issues when mutating arrays. This
+holds for any NumPy array, but even more so for arrays of Shapely geometries.
+When overwriting a geometry in an array, the old geometry is deallocated. If at the
+same time another thread operates on that geometry, interpreter crashes will occur.
 
 Usage
 =====
