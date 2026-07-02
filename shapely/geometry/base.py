@@ -79,6 +79,14 @@ def _maybe_unpack(result):
         return result
 
 
+def _unpickle(wkb, precision=0.0):
+    geometry = shapely.from_wkb(wkb)
+    if precision:
+        # WKB does not carry the precision grid size, so restore it.
+        geometry = shapely.set_precision(geometry, precision)
+    return geometry
+
+
 class CAP_STYLE:
     """Buffer cap styles."""
 
@@ -189,7 +197,13 @@ class BaseGeometry(shapely.Geometry):
 
     def __reduce__(self):
         """Pickle support."""
-        return (shapely.from_wkb, (shapely.to_wkb(self, include_srid=True),))
+        return (
+            _unpickle,
+            (
+                shapely.to_wkb(self, include_srid=True),
+                float(shapely.get_precision(self)),
+            ),
+        )
 
     # Operators
     # ---------
