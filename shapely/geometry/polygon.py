@@ -13,12 +13,14 @@ from shapely.geometry.point import Point
 __all__ = ["LinearRing", "Polygon", "orient"]
 
 
-def _unpickle_linearring(wkb):
+def _unpickle_linearring(wkb, precision=0.0):
     linestring = shapely.from_wkb(wkb)
     srid = shapely.lib.get_srid_scalar(linestring)
     linearring = _geometry_helpers.linestring_to_linearring(linestring)
     if srid:
         linearring = shapely.lib.set_srid_scalar(linearring, int(srid))
+    if precision:
+        linearring = shapely.set_precision(linearring, precision)
     return linearring
 
 
@@ -117,7 +119,13 @@ class LinearRing(LineString):
         WKB doesn't differentiate between LineString and LinearRing so we
         need to move the coordinate sequence into the correct geometry type
         """
-        return (_unpickle_linearring, (shapely.to_wkb(self, include_srid=True),))
+        return (
+            _unpickle_linearring,
+            (
+                shapely.to_wkb(self, include_srid=True),
+                float(shapely.get_precision(self)),
+            ),
+        )
 
     @property
     def is_ccw(self):
