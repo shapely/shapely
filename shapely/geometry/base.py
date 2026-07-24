@@ -350,7 +350,10 @@ class BaseGeometry(shapely.Geometry):
         return _maybe_unpack(shapely.distance(self, other))
 
     def hausdorff_distance(self, other):
-        """Unitless hausdorff distance to other geometry (float)."""
+        """Unitless discrete Hausdorff distance to other geometry (float).
+
+        Only geometry vertices are considered for the discrete approximation.
+        """
         if shapely.lib.is_valid_input_scalar(other):
             return shapely.lib.hausdorff_distance_scalar(self, other)
         return _maybe_unpack(shapely.hausdorff_distance(self, other))
