@@ -2033,85 +2033,63 @@ Other Transformations
 Shapely supports map projections and other arbitrary transformations of
 geometric objects.
 
-.. function:: shapely.ops.transform(func, geom)
+.. function:: shapely.transform(geometry, transformation, ...)
+  :no-index:
 
-  Applies `func` to all coordinates of `geom` and returns a new
-  geometry of the same type from the transformed coordinates.
+  Applies `transformation` to the coordinates of a geometry or an array of
+  geometries. By default, the function receives an ``(N, 2)`` or ``(N, 3)``
+  NumPy array and must return an array of the same shape. This is the preferred
+  function for transformations that preserve the number of coordinates.
 
-  `func` maps x, y, and optionally z to output xp, yp, zp. The input
-  parameters may be iterable types like lists or arrays or single values.
-  The output shall be of the same type: scalars in, scalars out;
-  lists in, lists out.
+  Set ``interleaved=False`` when the transformation accepts separate ``x``,
+  ``y``, and optional ``z`` arrays instead of a single coordinate array.
 
-  `transform` tries to determine which kind of function was passed in
-  by calling `func` first with n iterables of coordinates, where n
-  is the dimensionality of the input geometry. If `func` raises
-  a `TypeError` when called with iterables as arguments,
-  then it will instead call `func` on each individual coordinate
-  in the geometry.
+.. function:: shapely.transform_coordseq(geometry, transformation, ...)
+  :no-index:
 
-  `New in version 1.2.18`.
+  Applies `transformation` to each coordinate sequence of a single geometry.
+  Unlike :func:`shapely.transform`, this function allows the number of
+  coordinates in a sequence to change. Use it for operations such as custom
+  simplification; :func:`shapely.transform` is faster when the coordinate
+  count does not change.
 
-For example, here is an identity function applicable to both types of input
-(scalar or array).
+The legacy :func:`shapely.ops.transform` function is deprecated since Shapely
+2.2. It is retained for compatibility with code written against Shapely 1.x;
+new code should use one of the functions above.
+
+For example, the following transformation shifts every coordinate by one unit:
 
 .. code-block:: python
 
-    def id_func(x, y, z=None):
-        return tuple(filter(None, [x, y, z]))
+    from shapely import Point, transform
 
-    g2 = transform(id_func, g1)
+    point = Point(0, 0)
+    shifted = transform(point, lambda coordinates: coordinates + 1)
 
 
-If using `pyproj>=2.1.0`, the preferred method to project geometries is:
+With `pyproj>=2.1.0`, geometries can be projected by passing separate
+coordinate arrays to the transformer:
 
 .. code-block:: python
 
     import pyproj
 
-    from shapely import Point
-    from shapely.ops import transform
+    from shapely import Point, transform
 
     wgs84_pt = Point(-72.2495, 43.886)
 
     wgs84 = pyproj.CRS('EPSG:4326')
     utm = pyproj.CRS('EPSG:32618')
 
-    project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
-    utm_point = transform(project, wgs84_pt)
+    project = pyproj.Transformer.from_crs(
+        wgs84, utm, always_xy=True
+    ).transform
+    utm_point = transform(wgs84_pt, project, interleaved=False)
 
 It is important to note that in the example above, the `always_xy` kwarg is
 required as Shapely only supports coordinates in X,Y order, and in PROJ 6 the
 WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the
 expected Lon/Lat.
-
-If using `pyproj < 2.1`, then the canonical example is:
-
-.. code-block:: python
-
-    from functools import partial
-    import pyproj
-
-    from shapely.ops import transform
-
-    wgs84 = pyproj.Proj(init='epsg:4326')
-    utm = pyproj.Proj(init='epsg:32618')
-
-    project = partial(
-        pyproj.transform,
-        wgs84,
-        utm)
-
-    utm_point = transform(project, wgs84_pt)
-
-Lambda expressions such as the one in
-
-.. code-block:: python
-
-    g2 = transform(lambda x, y, z=None: (x+1.0, y+1.0), g1)
-
-also satisfy the requirements for `func`.
-
 
 Other Operations
 ================
