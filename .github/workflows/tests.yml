@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest] #[ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         geos: [3.10.7, 3.11.5, 3.12.3, 3.13.1, 3.14.1, main]
         include:
           # 2021
@@ -95,10 +95,10 @@ jobs:
       - name: Cache GEOS and pip packages
         uses: actions/cache@v5
         with:
-          key: ${{ matrix.os }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}-0
+          key: ${{ matrix.os }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}
           path: |
             ~/.cache/pip
-            # ${{ github.workspace }}/geosinstall
+            ${{ github.workspace }}/geosinstall
 
       - name: Activate MSVC
         uses: ilammy/msvc-dev-cmd@v1
