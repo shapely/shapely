@@ -98,13 +98,13 @@ jobs:
           key: ${{ matrix.os }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}-0
           path: |
             ~/.cache/pip
-            ${{ github.workspace }}/geosinstall
+            # ${{ github.workspace }}/geosinstall
 
       - name: Activate MSVC
         uses: ilammy/msvc-dev-cmd@v1
         if: ${{ startsWith(matrix.os, 'windows') }}
         with:
-          toolset: "14.50"
+          toolset: "14.44"
 
       - name: Install GEOS
         run: |
