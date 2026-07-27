@@ -95,7 +95,7 @@ jobs:
       - name: Cache GEOS and pip packages
         uses: actions/cache@v5
         with:
-          key: ${{ matrix.os }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}
+          key: ${{ matrix.os }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}-0
           path: |
             ~/.cache/pip
             ${{ github.workspace }}/geosinstall
@@ -103,6 +103,8 @@ jobs:
       - name: Activate MSVC
         uses: ilammy/msvc-dev-cmd@v1
         if: ${{ startsWith(matrix.os, 'windows') }}
+        with:
+          toolset: 14.50
 
       - name: Install GEOS
         run: |
