@@ -96,14 +96,16 @@ def test_coverage_is_valid_gap_width():
 
     # invalid coverage -> gap_width value does not matter
     assert not shapely.coverage_is_valid([poly1, poly2_extra], gap_width=0.0)
-    assert not shapely.coverage_is_valid([poly1, poly2_extra], gap_width=2.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        assert not shapely.coverage_is_valid([poly1, poly2_extra], gap_width=2.0)
 
     expected = shapely.from_wkt(
         ["LINESTRING (10 7, 10 3)", "LINESTRING (10 3, 10 5, 10 7)"]
     )
     result = shapely.coverage_invalid_edges([poly1, poly2_extra], gap_width=0.0)
     assert_geometries_equal(result, expected)
-    result = shapely.coverage_invalid_edges([poly1, poly2_extra], gap_width=2.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        result = shapely.coverage_invalid_edges([poly1, poly2_extra], gap_width=2.0)
     assert_geometries_equal(result, expected)
 
     # coverage with gap of 1 unit wide
