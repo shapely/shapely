@@ -110,20 +110,24 @@ def test_coverage_is_valid_gap_width():
 
     # coverage with gap of 1 unit wide
     assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=0.0)
-    assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=0.5)
-    assert not shapely.coverage_is_valid([poly1, poly2_shift], gap_width=1.0)
-    assert not shapely.coverage_is_valid([poly1, poly2_shift], gap_width=1.5)
-    # TODO why this behaviour?
-    assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=2.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=0.5)
+        assert not shapely.coverage_is_valid([poly1, poly2_shift], gap_width=1.0)
+        assert not shapely.coverage_is_valid([poly1, poly2_shift], gap_width=1.5)
+        # TODO why this behaviour?
+        assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=2.0)
 
     assert_geometries_equal(
         shapely.coverage_invalid_edges([poly1, poly2_shift], gap_width=0.0),
         [empty_line_string] * 2,
     )
-    assert_geometries_equal(
-        shapely.coverage_invalid_edges([poly1, poly2_shift], gap_width=1.0),
-        shapely.from_wkt(["LINESTRING (10 7, 10 3)", "LINESTRING (10 3, 11 5, 10 7)"]),
-    )
+    with ignore_invalid(sys.platform == "darwin"):
+        assert_geometries_equal(
+            shapely.coverage_invalid_edges([poly1, poly2_shift], gap_width=1.0),
+            shapely.from_wkt(
+                ["LINESTRING (10 7, 10 3)", "LINESTRING (10 3, 11 5, 10 7)"]
+            ),
+        )
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="requires >= 3.12")
