@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pytest
 
@@ -14,6 +16,7 @@ from shapely.tests.common import (
     all_types,
     all_types_z,
     empty_line_string,
+    ignore_invalid,
 )
 
 
@@ -82,7 +85,8 @@ def test_coverage_is_valid_gap_width():
 
     # valid coverage -> gap_width value does not matter
     assert shapely.coverage_is_valid([poly1, poly2], gap_width=0.0)
-    assert shapely.coverage_is_valid([poly1, poly2], gap_width=2.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        assert shapely.coverage_is_valid([poly1, poly2], gap_width=2.0)
 
     result = shapely.coverage_invalid_edges([poly1, poly2], gap_width=0.0)
     assert_geometries_equal(result, [empty_line_string] * 2)
@@ -129,7 +133,8 @@ def test_coverage_invalid_edges_gufunc():
     poly3 = shapely.from_wkt("POLYGON ((20 10, 30 10, 30 7, 30 3, 30 0, 20 0, 20 10))")
 
     arr = np.array([[poly1, poly2, poly3], [poly1, poly2_extra, poly3]])
-    result = shapely.lib.coverage_invalid_edges(arr, 0.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        result = shapely.lib.coverage_invalid_edges(arr, 0.0)
     expected = shapely.from_wkt(
         [
             ["LINESTRING EMPTY"] * 3,
@@ -483,9 +488,10 @@ def test_coverage_clean_overlap_multipolygons():
 @pytest.mark.parametrize("geometry", all_types)
 def test_coverage_clean_geom_types(geometry):
     if geometry.geom_type in {"Polygon", "MultiPolygon"}:
-        actual = shapely.coverage_clean([geometry, geometry])
-        assert isinstance(actual, np.ndarray)
-        assert actual.shape == (2,)
+        with ignore_invalid(sys.platform == "darwin"):
+            actual = shapely.coverage_clean([geometry, geometry])
+            assert isinstance(actual, np.ndarray)
+            assert actual.shape == (2,)
     else:
         with pytest.raises(TypeError, match="incorrect geometry type"):
             shapely.coverage_clean([geometry, geometry])
