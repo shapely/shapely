@@ -1507,7 +1507,7 @@ def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
     >>> from shapely import Polygon
     >>> poly = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
     >>> shapely.maximum_inscribed_circle(poly)
-    <LINESTRING (5 5, 0 5)>
+    <LINESTRING (5 5, 10 5)>
 
     See Also
     --------
