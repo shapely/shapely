@@ -252,10 +252,10 @@ def coverage_clean(
 
     Examples
     --------
-    >>> import shapely  # doctest: +SKIP
-    >>> from shapely import box  # doctest: +SKIP
-    >>> polygons = [box(0, 0, 1, 1), box(0.9, 0, 2, 1)]  # doctest: +SKIP
-    >>> shapely.coverage_clean(polygons)  # doctest: +SKIP
+    >>> import shapely
+    >>> from shapely import box
+    >>> polygons = [box(0, 0, 1, 1), box(0.9, 0, 2, 1)]
+    >>> shapely.coverage_clean(polygons)
     array([<POLYGON ((0 0, 0 1, 0.9 1, 1 1, 1 0, 0.9 0, 0 0))>,
        <POLYGON ((1 1, 2 1, 2 0, 1 0, 1 1))>], dtype=object)
     """  # noqa: E501
