@@ -69,9 +69,9 @@ class TestMultiPoint(MultiGeometryTestCase):
         else:
             with ignore_invalid(sys.platform == "darwin"):
                 result = MultiPoint([(0, 0), (np.nan, np.nan)])
-            expected = shapely.multipoints(
-                shapely.points([(0, 0), (np.nan, np.nan)], handle_nan="allow")
-            )
+                expected = shapely.multipoints(
+                    shapely.points([(0, 0), (np.nan, np.nan)], handle_nan="allow")
+                )
             assert result == expected
 
 

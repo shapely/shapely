@@ -90,7 +90,8 @@ def test_coverage_is_valid_gap_width():
 
     result = shapely.coverage_invalid_edges([poly1, poly2], gap_width=0.0)
     assert_geometries_equal(result, [empty_line_string] * 2)
-    result = shapely.coverage_invalid_edges([poly1, poly2], gap_width=2.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        result = shapely.coverage_invalid_edges([poly1, poly2], gap_width=2.0)
     assert_geometries_equal(result, [empty_line_string] * 2)
 
     # invalid coverage -> gap_width value does not matter
@@ -148,7 +149,8 @@ def test_coverage_invalid_edges_gufunc():
     assert_geometries_equal(result, expected)
 
     arr2 = np.array(arr, order="F")
-    result = shapely.lib.coverage_invalid_edges(arr2, 0.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        result = shapely.lib.coverage_invalid_edges(arr2, 0.0)
     assert_geometries_equal(result, expected)
 
 
