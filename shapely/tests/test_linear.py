@@ -98,6 +98,15 @@ def test_line_interpolate_point_deprecate_positional():
         shapely.line_interpolate_point(line_string, 0, False)
 
 
+@pytest.mark.parametrize("normalized", [False, True])
+def test_line_interpolate_point_out(normalized):
+    out = np.empty((), dtype=object)
+    actual = shapely.line_interpolate_point(
+        line_string, 0.2, normalized=normalized, out=out
+    )
+    assert actual is out
+
+
 def test_line_locate_point_geom_array():
     point = shapely.points(0, 1)
     actual = shapely.line_locate_point([line_string, linear_ring], point)
@@ -140,6 +149,15 @@ def test_line_locate_point_deprecate_positional():
         match="positional argument `normalized` for `line_locate_point` is deprecated"
     ):
         shapely.line_locate_point(line_string, point, False)
+
+
+@pytest.mark.parametrize("normalized", [False, True])
+def test_line_locate_point_out(normalized):
+    out = np.empty((), dtype=np.float64)
+    actual = shapely.line_locate_point(
+        line_string, point, normalized=normalized, out=out
+    )
+    assert actual is out
 
 
 def test_line_merge_geom_array():
