@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pytest
 
@@ -5,6 +7,7 @@ import shapely
 from shapely import MultiPoint, Point
 from shapely.errors import EmptyPartError
 from shapely.geometry.base import dump_coords
+from shapely.tests.common import ignore_invalid
 from shapely.tests.geometry.test_multi import MultiGeometryTestCase
 
 
@@ -64,10 +67,11 @@ class TestMultiPoint(MultiGeometryTestCase):
                 MultiPoint(np.array([(0, 0), (np.nan, np.nan)]))
 
         else:
-            result = MultiPoint([(0, 0), (np.nan, np.nan)])
-            expected = shapely.multipoints(
-                shapely.points([(0, 0), (np.nan, np.nan)], handle_nan="allow")
-            )
+            with ignore_invalid(sys.platform == "darwin"):
+                result = MultiPoint([(0, 0), (np.nan, np.nan)])
+                expected = shapely.multipoints(
+                    shapely.points([(0, 0), (np.nan, np.nan)], handle_nan="allow")
+                )
             assert result == expected
 
 
