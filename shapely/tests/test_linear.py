@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pytest
 
@@ -8,6 +10,7 @@ from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     empty_line_string,
     empty_point,
+    ignore_invalid,
     line_string,
     linear_ring,
     multi_line_string,
@@ -170,7 +173,8 @@ def test_line_merge_error():
 def test_shared_paths_linestring():
     g1 = shapely.linestrings([(0, 0), (1, 0), (1, 1)])
     g2 = shapely.linestrings([(0, 0), (1, 0)])
-    actual1 = shapely.shared_paths(g1, g2)
+    with ignore_invalid(sys.platform == "darwin"):
+        actual1 = shapely.shared_paths(g1, g2)
     assert_geometries_equal(
         shapely.get_geometry(actual1, 0), shapely.multilinestrings([g2])
     )

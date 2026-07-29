@@ -192,10 +192,12 @@ def test_make_valid_none():
     "geom,expected",
     [
         (point, point),  # a valid geometry stays the same (but is copied)
-        # an L shaped polygon without area is converted to a multilinestring
+        # an L shaped polygon without area is converted to a (multi)linestring
         (
             Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]),
-            MultiLineString([((1, 1), (1, 2)), ((0, 0), (1, 1))]),
+            LineString([(0, 0), (1, 1), (1, 2)])
+            if shapely.geos_version >= (3, 15, 0)
+            else MultiLineString([((1, 1), (1, 2)), ((0, 0), (1, 1))]),
         ),
         # a polygon with self-intersection (bowtie) is converted into polygons
         (

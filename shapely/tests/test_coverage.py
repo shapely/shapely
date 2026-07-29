@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pytest
 
@@ -14,6 +16,7 @@ from shapely.tests.common import (
     all_types,
     all_types_z,
     empty_line_string,
+    ignore_invalid,
 )
 
 
@@ -82,41 +85,49 @@ def test_coverage_is_valid_gap_width():
 
     # valid coverage -> gap_width value does not matter
     assert shapely.coverage_is_valid([poly1, poly2], gap_width=0.0)
-    assert shapely.coverage_is_valid([poly1, poly2], gap_width=2.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        assert shapely.coverage_is_valid([poly1, poly2], gap_width=2.0)
 
     result = shapely.coverage_invalid_edges([poly1, poly2], gap_width=0.0)
     assert_geometries_equal(result, [empty_line_string] * 2)
-    result = shapely.coverage_invalid_edges([poly1, poly2], gap_width=2.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        result = shapely.coverage_invalid_edges([poly1, poly2], gap_width=2.0)
     assert_geometries_equal(result, [empty_line_string] * 2)
 
     # invalid coverage -> gap_width value does not matter
     assert not shapely.coverage_is_valid([poly1, poly2_extra], gap_width=0.0)
-    assert not shapely.coverage_is_valid([poly1, poly2_extra], gap_width=2.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        assert not shapely.coverage_is_valid([poly1, poly2_extra], gap_width=2.0)
 
     expected = shapely.from_wkt(
         ["LINESTRING (10 7, 10 3)", "LINESTRING (10 3, 10 5, 10 7)"]
     )
     result = shapely.coverage_invalid_edges([poly1, poly2_extra], gap_width=0.0)
     assert_geometries_equal(result, expected)
-    result = shapely.coverage_invalid_edges([poly1, poly2_extra], gap_width=2.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        result = shapely.coverage_invalid_edges([poly1, poly2_extra], gap_width=2.0)
     assert_geometries_equal(result, expected)
 
     # coverage with gap of 1 unit wide
     assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=0.0)
-    assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=0.5)
-    assert not shapely.coverage_is_valid([poly1, poly2_shift], gap_width=1.0)
-    assert not shapely.coverage_is_valid([poly1, poly2_shift], gap_width=1.5)
-    # TODO why this behaviour?
-    assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=2.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=0.5)
+        assert not shapely.coverage_is_valid([poly1, poly2_shift], gap_width=1.0)
+        assert not shapely.coverage_is_valid([poly1, poly2_shift], gap_width=1.5)
+        # TODO why this behaviour?
+        assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=2.0)
 
     assert_geometries_equal(
         shapely.coverage_invalid_edges([poly1, poly2_shift], gap_width=0.0),
         [empty_line_string] * 2,
     )
-    assert_geometries_equal(
-        shapely.coverage_invalid_edges([poly1, poly2_shift], gap_width=1.0),
-        shapely.from_wkt(["LINESTRING (10 7, 10 3)", "LINESTRING (10 3, 11 5, 10 7)"]),
-    )
+    with ignore_invalid(sys.platform == "darwin"):
+        assert_geometries_equal(
+            shapely.coverage_invalid_edges([poly1, poly2_shift], gap_width=1.0),
+            shapely.from_wkt(
+                ["LINESTRING (10 7, 10 3)", "LINESTRING (10 3, 11 5, 10 7)"]
+            ),
+        )
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="requires >= 3.12")
@@ -129,7 +140,8 @@ def test_coverage_invalid_edges_gufunc():
     poly3 = shapely.from_wkt("POLYGON ((20 10, 30 10, 30 7, 30 3, 30 0, 20 0, 20 10))")
 
     arr = np.array([[poly1, poly2, poly3], [poly1, poly2_extra, poly3]])
-    result = shapely.lib.coverage_invalid_edges(arr, 0.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        result = shapely.lib.coverage_invalid_edges(arr, 0.0)
     expected = shapely.from_wkt(
         [
             ["LINESTRING EMPTY"] * 3,
@@ -143,7 +155,8 @@ def test_coverage_invalid_edges_gufunc():
     assert_geometries_equal(result, expected)
 
     arr2 = np.array(arr, order="F")
-    result = shapely.lib.coverage_invalid_edges(arr2, 0.0)
+    with ignore_invalid(sys.platform == "darwin"):
+        result = shapely.lib.coverage_invalid_edges(arr2, 0.0)
     assert_geometries_equal(result, expected)
 
 
@@ -483,9 +496,10 @@ def test_coverage_clean_overlap_multipolygons():
 @pytest.mark.parametrize("geometry", all_types)
 def test_coverage_clean_geom_types(geometry):
     if geometry.geom_type in {"Polygon", "MultiPolygon"}:
-        actual = shapely.coverage_clean([geometry, geometry])
-        assert isinstance(actual, np.ndarray)
-        assert actual.shape == (2,)
+        with ignore_invalid(sys.platform == "darwin"):
+            actual = shapely.coverage_clean([geometry, geometry])
+            assert isinstance(actual, np.ndarray)
+            assert actual.shape == (2,)
     else:
         with pytest.raises(TypeError, match="incorrect geometry type"):
             shapely.coverage_clean([geometry, geometry])
