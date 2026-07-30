@@ -1105,6 +1105,7 @@ static void coverage_invalid_edges_func(char** args, const npy_intp* dimensions,
     Py_BEGIN_ALLOW_THREADS;
     CHECK_SIGNALS(i);
     if (errstate == PGERR_PYSIGNAL) {
+      Py_BLOCK_THREADS;
       goto finish;
     }
     cp1 = ip1;
@@ -1112,6 +1113,7 @@ static void coverage_invalid_edges_func(char** args, const npy_intp* dimensions,
     BINARY_SINGLE_COREDIM_LOOP_INNER {
       if (!get_geom(*(GeometryObject**)cp1, &geom)) {
         errstate = PGERR_NOT_A_GEOMETRY;
+        Py_BLOCK_THREADS;
         goto finish;
       }
       if (geom == NULL) {
@@ -1125,12 +1127,14 @@ static void coverage_invalid_edges_func(char** args, const npy_intp* dimensions,
         GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, geoms, n_geoms);
     if (collection == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
+      Py_BLOCK_THREADS;
       goto finish;
     }
 
     ret = GEOSCoverageIsValid_r(ctx, collection, gap_width, &result_collection);
     if ((ret == 2) || (result_collection == NULL)) {
       errstate = PGERR_GEOS_EXCEPTION;
+      Py_BLOCK_THREADS;
       goto finish;
     }
 

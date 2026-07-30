@@ -8,6 +8,7 @@ from shapely import (
     Geometry,
     LineString,
     MultiPolygon,
+    Point,
     Polygon,
 )
 from shapely.errors import UnsupportedGEOSVersionError
@@ -158,6 +159,12 @@ def test_coverage_invalid_edges_gufunc():
     with ignore_invalid(sys.platform == "darwin"):
         result = shapely.lib.coverage_invalid_edges(arr2, 0.0)
     assert_geometries_equal(result, expected)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="requires >= 3.12")
+def test_coverage_invalid_edges_invalid_input():
+    with pytest.raises(TypeError, match="One of the arguments is of incorrect type"):
+        shapely.coverage_invalid_edges([Point(1, 1), 2.5])
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
