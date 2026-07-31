@@ -106,21 +106,23 @@ jobs:
         with:
           arch: x64
 
-      #- name: Remove /usr/bin/link (MSVC workaround)
-      #  if: ${{ startsWith(matrix.os, 'windows') }}
-      #  run: rm -rfv /usr/bin/link
+      - name: Remove /usr/bin/link (MSVC workaround)
+        # Avoid: meson.build:1:0: ERROR: Found GNU link.exe instead of MSVC link.exe
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        run: rm -rfv /usr/bin/link
 
       - name: Install GEOS
         run: bash ci/install_geos.sh
 
       - name: Install python dependencies
         run: |
-          python -m pip install --disable-pip-version-check --upgrade pip
-          pip config set global.progress_bar off
-          pip install --group dev
+          pip install --upgrade pip
+          pip install --group dev coveralls
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install --upgrade --pre pytest pytest-cov coveralls;
+            pip install --upgrade --pre pytest;
             pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython numpy
+          else
+            pip install numpy==${{ matrix.numpy }};
           fi
           if [ -n "${{ matrix.matplotlib }}" ]; then
             pip install matplotlib
@@ -148,12 +150,8 @@ jobs:
           -Csetup-args="-Dcmake_prefix_path=${{ env.GEOS_INSTALL }}"
           -Csetup-args="-Dgeos_libdir=${{ env.GEOS_LIBDIR }}"
           -Ccompile-args="--verbose"
-          .
-
-      - name: Install different NumPy for runtime
-        if: ${{ matrix.numpy }}
-        run:
-          pip install numpy==${{ matrix.numpy }}
+          -Ceditable-verbose=true
+          --editable .
 
       - name: Overview of the Python environment (pip list)
         run: pip list

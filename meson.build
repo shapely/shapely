@@ -73,8 +73,30 @@ cython_gen = generator(cython, arguments : cython_args, output : '@BASENAME@.c')
 add_project_arguments('-DNPY_NO_DEPRECATED_API=0', language: 'c')
 min_numpy_runtime_version = '1.23'  # keep in sync with [project.dependencies] in pyproject.toml
 add_project_arguments('-DNPY_TARGET_VERSION=NPY_1_23_API_VERSION', language: 'c')  # runtime
-min_numpy_build_version = '2.0.0'  # keep in sync with [build-system.requires] in pyproject.toml
-numpy_dep = dependency('numpy', version : f'>=@min_numpy_build_version@')
+min_numpy_build_version = '1.23'  # keep in sync with [build-system.requires] in pyproject.toml
+
+# get numpy dependency using different methods if numpy < 2
+numpy_version = run_command(py,
+  ['-c', 'import numpy as np; print(np.__version__)'], check: true).stdout().strip()
+if numpy_version.version_compare('>=2.0')
+  numpy_dep = dependency('numpy', version : f'>=@min_numpy_build_version@')
+else  # support numpy < 2
+  numpy_incdir = run_command(py, ['-c', '''
+import os
+import numpy as np
+try:
+    # Check if include directory is inside the shapely dir e.g. a venv created
+    # inside the shapely dir. If so, convert it to a relative path.
+    incdir = os.path.relpath(np.get_include())
+except Exception:
+    incdir = np.get_include()
+print(incdir)
+'''], check: true).stdout().strip()
+  numpy_dep = declare_dependency(
+    include_directories : include_directories(numpy_incdir),
+    version : numpy_version,
+  )
+endif
 
 subdir('src')
 subdir('shapely')
