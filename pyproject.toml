@@ -51,6 +51,7 @@ build = [
     "numpy>=2.0.0,!=2.5.0",
 ]
 tests = [
+    "coveralls",
     "pytest",
     "pytest-cov",
     "scipy-doctest",

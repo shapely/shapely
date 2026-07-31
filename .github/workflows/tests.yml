@@ -101,12 +101,12 @@ jobs:
             ${{ github.workspace }}/geosinstall
 
       - name: Activate MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: TheMrMilchmann/setup-msvc-dev@v4
         if: ${{ startsWith(matrix.os, 'windows') }}
 
-      - name: Remove /usr/bin/link (MSVC workaround)
-        if: ${{ startsWith(matrix.os, 'windows') }}
-        run: rm -rfv /usr/bin/link
+      #- name: Remove /usr/bin/link (MSVC workaround)
+      #  if: ${{ startsWith(matrix.os, 'windows') }}
+      #  run: rm -rfv /usr/bin/link
 
       - name: Install GEOS
         run: bash ci/install_geos.sh
@@ -119,8 +119,6 @@ jobs:
           if [ -z "${{ matrix.numpy }}" ]; then
             pip install --upgrade --pre pytest pytest-cov coveralls;
             pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython numpy
-          else
-            pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
           if [ -n "${{ matrix.matplotlib }}" ]; then
             pip install matplotlib
@@ -150,6 +148,11 @@ jobs:
           -Ccompile-args="--verbose"
           -Ceditable-verbose=true
           --editable .
+
+      - name: Install different NumPy for runtime
+        if: ${{ matrix.numpy }}
+        run:
+          pip install numpy==${{ matrix.numpy }}
 
       - name: Overview of the Python environment (pip list)
         run: pip list
