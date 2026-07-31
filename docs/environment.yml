@@ -13,3 +13,4 @@ dependencies:
   - pip
   - cmake
   - meson
+  - meson-python

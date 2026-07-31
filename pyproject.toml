@@ -1,11 +1,11 @@
 [build-system]
+# NOTE: when updating this table, also update `dependency-groups.build`
 requires = [
     "Cython",
-    # Starting with NumPy 1.25, NumPy is (by default) as far back compatible
-    # as oldest-support-numpy was (customizable with a NPY_TARGET_VERSION
-    # define).
-    "numpy>=1.25,<3",
-    "meson-python>=0.13.1",
+    "meson-python>=0.15.0",
+    # numpy >= 2.0 keeps wheels compatible with numpy 1 and 2. Exclude 2.5.0:
+    # wheels built against it segfault on older numpy
+    "numpy>=2.0.0,!=2.5.0",
 ]
 build-backend = "mesonpy"
 
@@ -38,13 +38,17 @@ classifiers = [
 ]
 requires-python = ">=3.11"  # keep in sync with `min_python_version` in meson.build
 dependencies = [
-    "numpy>=1.23",  # keep in sync with `min_numpy_version` in meson.build
+    "numpy>=1.23",  # keep in sync with `min_numpy_runtime_version` in meson.build
 ]
 
 [dependency-groups]
-dev = [
-    "pre-commit",
-    {include-group = "tests"},
+build = [
+    "cmake",
+    "Cython",
+    "meson",
+    "meson-python>=0.15.0",
+    "ninja",
+    "numpy>=2.0.0,!=2.5.0",
 ]
 tests = [
     "pytest",
@@ -58,6 +62,11 @@ docs = [
     "sphinx-book-theme",
     "sphinx-remove-toctrees",
 ]
+dev = [
+    "pre-commit",
+    {include-group = "build"},
+    {include-group = "tests"},
+]
 
 [project.urls]
 Documentation = "https://shapely.readthedocs.io/"
@@ -66,13 +75,12 @@ Repository = "https://github.com/shapely/shapely"
 [tool.cibuildwheel]
 skip = ["*_i686", "*_ppc64le", "*_s390x"]
 build-verbosity = 1
-before-build = "pip install -r requirements-dev.txt"
+before-build = "pip install --group build"
 build-frontend = { name = "pip", args = ["--no-build-isolation"] }
 test-requires = "pytest"
 test-command = "pytest --pyargs shapely.tests"
 
 [tool.cibuildwheel.windows]
-before-build = "pip install -r requirements-dev.txt delvewheel"
 config-settings = { setup-args = ["--vsenv"] }
 
 [tool.coverage.run]

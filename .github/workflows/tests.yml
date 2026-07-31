@@ -115,7 +115,7 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check --upgrade pip
           pip config set global.progress_bar off
-          pip install -r requirements-dev.txt
+          pip install --group dev
           if [ -z "${{ matrix.numpy }}" ]; then
             pip install --upgrade --pre pytest pytest-cov coveralls;
             pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython numpy
