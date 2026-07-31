@@ -103,6 +103,8 @@ jobs:
       - name: Activate MSVC
         uses: TheMrMilchmann/setup-msvc-dev@v4
         if: ${{ startsWith(matrix.os, 'windows') }}
+        with:
+          arch: x64
 
       #- name: Remove /usr/bin/link (MSVC workaround)
       #  if: ${{ startsWith(matrix.os, 'windows') }}
@@ -146,8 +148,7 @@ jobs:
           -Csetup-args="-Dcmake_prefix_path=${{ env.GEOS_INSTALL }}"
           -Csetup-args="-Dgeos_libdir=${{ env.GEOS_LIBDIR }}"
           -Ccompile-args="--verbose"
-          -Ceditable-verbose=true
-          --editable .
+          .
 
       - name: Install different NumPy for runtime
         if: ${{ matrix.numpy }}
