@@ -11,6 +11,14 @@ project(
   ],
 )
 
+cc = meson.get_compiler('c')
+_global_c_args = cc.get_supported_arguments(
+  # TODO: resolve warnings
+  '-Wno-cast-function-type',
+  '-Wno-unused-parameter',
+)
+add_project_arguments(_global_c_args, language : 'c')
+
 py = import('python').find_installation(pure: false)
 
 min_python_version = '3.11'  # keep in sync with [project.requires-python] in pyproject.toml
@@ -72,7 +80,6 @@ cython_gen = generator(cython, arguments : cython_args, output : '@BASENAME@.c')
 
 add_project_arguments('-DNPY_NO_DEPRECATED_API=0', language: 'c')
 min_numpy_runtime_version = '1.23'  # keep in sync with [project.dependencies] in pyproject.toml
-add_project_arguments('-DNPY_TARGET_VERSION=NPY_1_23_API_VERSION', language: 'c')  # runtime
 min_numpy_build_version = '1.23'  # keep in sync with [build-system.requires] in pyproject.toml
 
 # get numpy dependency using different methods if numpy < 2
