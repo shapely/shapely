@@ -6,10 +6,11 @@ on:
       - main  # just build the sdist & wheel, skip release
     tags:
       - "*"
-  pull_request:  # also build on PRs touching this file
+  pull_request:  # also build on PRs touching these files
     paths:
       - ".github/workflows/release.yml"
       - "ci/*"
+      - "**meson.build"
       - "pyproject.toml"
   schedule:
     # in addition run weekly for nightly upload in case no other commits happened
