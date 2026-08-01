@@ -79,8 +79,8 @@ build-frontend = { name = "pip", args = ["--no-build-isolation"] }
 test-requires = "pytest"
 test-command = "pytest --pyargs shapely.tests"
 
-[tool.cibuildwheel.windows]
-config-settings = { setup-args = ["--vsenv"] }
+# [tool.cibuildwheel.windows]
+# config-settings = { setup-args = ["--vsenv"] }
 
 [tool.coverage.run]
 source = ["shapely"]
