@@ -44,7 +44,7 @@ dependencies = [
 build = [
     "cmake",
     "Cython",
-    "meson",
+    "meson>=1.2.1",
     "meson-python>=0.15.0",
     "ninja",
     "numpy>=1.23,!=2.5.0",

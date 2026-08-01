@@ -3,7 +3,7 @@ project(
   'c', 'cython',
   version: '2.2.0.dev0',
   license: 'BSD-3-Clause',
-  meson_version: '>=1.2.1',
+  meson_version: '>=1.2.1',  # keep in sync with [dependency-groups.build] in pyproject.toml
   default_options: [
     'buildtype=release',
     'c_std=c11',
