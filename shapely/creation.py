@@ -100,6 +100,10 @@ def points(
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
+    See Also
+    --------
+    Point : A geometry type that represents a single coordinate.
+
     Examples
     --------
     >>> import shapely
@@ -192,6 +196,10 @@ def linestrings(
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
+
+    See Also
+    --------
+    LineString : A geometry type composed of one or more line segments.
 
     Examples
     --------
@@ -293,6 +301,7 @@ def linearrings(
     See Also
     --------
     linestrings
+    LinearRing : A geometry type forming a closed ring of line segments.
 
     Examples
     --------
@@ -358,6 +367,10 @@ def polygons(geometries, holes=None, indices=None, *, out=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
+
+    See Also
+    --------
+    Polygon : A geometry type representing an area that is enclosed by a linear ring.
 
     Notes
     -----
@@ -516,6 +529,10 @@ def multipoints(geometries, indices=None, *, out=None, **kwargs):
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
+    See Also
+    --------
+    MultiPoint : A collection of one or more Points.
+
     Notes
     -----
 
@@ -612,6 +629,7 @@ def multilinestrings(geometries, indices=None, *, out=None, **kwargs):
     See Also
     --------
     multipoints
+    MultiLineString : A collection of one or more LineStrings.
 
     """
     typ = GeometryType.MULTILINESTRING
@@ -668,6 +686,7 @@ def multipolygons(geometries, indices=None, *, out=None, **kwargs):
     See Also
     --------
     multipoints
+    MultiPolygon : A collection of one or more Polygons.
 
     """
     typ = GeometryType.MULTIPOLYGON
@@ -723,6 +742,7 @@ def geometrycollections(geometries, indices=None, out=None, **kwargs):
     See Also
     --------
     multipoints
+    GeometryCollection : A collection of geometries of possibly different types.
 
     """
     typ = GeometryType.GEOMETRYCOLLECTION

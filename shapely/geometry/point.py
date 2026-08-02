@@ -30,6 +30,10 @@ class Point(BaseGeometry):
     x, y, z, m : float
         Coordinate values
 
+    See Also
+    --------
+    points : Create an array of points.
+
     Examples
     --------
     Constructing the Point using separate parameters for x and y:

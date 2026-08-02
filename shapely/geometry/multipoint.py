@@ -26,6 +26,10 @@ class MultiPoint(BaseMultipartGeometry):
     geoms : sequence
         A sequence of Points
 
+    See Also
+    --------
+    multipoints : Create multipoints from arrays of points.
+
     Examples
     --------
     Construct a MultiPoint containing two Points
