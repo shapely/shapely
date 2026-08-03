@@ -174,7 +174,7 @@ jobs:
         if: ${{ startsWith(matrix.os, 'windows') }}
 
       - name: Activate MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: TheMrMilchmann/setup-msvc-dev@v4
         with:
           arch: ${{ matrix.msvc_arch }}
           # TODO temporarily pin to older MSVC version to avoid crashes, remove once

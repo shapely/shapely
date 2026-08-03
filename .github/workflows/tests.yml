@@ -101,7 +101,7 @@ jobs:
             ${{ github.workspace }}/geosinstall
 
       - name: Activate MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: TheMrMilchmann/setup-msvc-dev@v4
         if: ${{ startsWith(matrix.os, 'windows') }}
         with:
           # TODO temporarily pin to older MSVC version to avoid crashes, remove once
