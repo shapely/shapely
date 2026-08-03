@@ -104,6 +104,7 @@ jobs:
         uses: TheMrMilchmann/setup-msvc-dev@v4
         if: ${{ startsWith(matrix.os, 'windows') }}
         with:
+          arch: x64
           # TODO temporarily pin to older MSVC version to avoid crashes, remove once
           # there is a new GEOS bug-fix release (https://github.com/libgeos/geos/issues/1449)
           toolset: "14.44"
