@@ -104,6 +104,8 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         if: ${{ startsWith(matrix.os, 'windows') }}
         with:
+          # TODO temporarily pin to older MSVC version to avoid crashes, remove once
+          # there is a new GEOS bug-fix release (https://github.com/libgeos/geos/issues/1449)
           toolset: "14.44"
 
       - name: Install GEOS

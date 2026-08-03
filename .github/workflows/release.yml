@@ -185,6 +185,9 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.msvc_arch }}
+          # TODO temporarily pin to older MSVC version to avoid crashes, remove once
+          # there is a new GEOS bug-fix release (https://github.com/libgeos/geos/issues/1449)
+          toolset: "14.44"
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
