@@ -16,6 +16,7 @@ py.extension_module(
   subdir: 'shapely',
 )
 
+# top-level modules
 py.install_sources([
     '__init__.py',
     'affinity.py',
@@ -51,8 +52,12 @@ py.install_sources([
   ],
   subdir: 'shapely',
 )
-
-subdir('algorithms')
-subdir('geometry')
-subdir('tests')
-subdir('vectorized')
+subdirs_list = [
+  'algorithms',
+  'geometry',
+  'tests',
+  'vectorized',
+]
+foreach subdir : subdirs_list
+  install_subdir(subdir, install_dir: py.get_install_dir() / 'shapely')
+endforeach
