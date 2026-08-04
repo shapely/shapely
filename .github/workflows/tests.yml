@@ -109,10 +109,10 @@ jobs:
           # there is a new GEOS bug-fix release (https://github.com/libgeos/geos/issues/1449)
           toolset: "14.44"
 
-      #- name: Remove /usr/bin/link (MSVC workaround)
-      #  # Avoid: meson.build:1:0: ERROR: Found GNU link.exe instead of MSVC link.exe
-      #  if: ${{ startsWith(matrix.os, 'windows') }}
-      #  run: rm -rfv /usr/bin/link
+      - name: Remove /usr/bin/link (MSVC workaround)
+        # Avoid: meson.build:1:0: ERROR: Found GNU link.exe instead of MSVC link.exe
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        run: rm -rfv /usr/bin/link
 
       - name: Install GEOS
         run: bash ci/install_geos.sh
