@@ -109,20 +109,15 @@ jobs:
           # there is a new GEOS bug-fix release (https://github.com/libgeos/geos/issues/1449)
           toolset: "14.44"
 
-      - name: Install GEOS
-        run: |
-          bash ci/install_geos.sh
-
       - name: Install python dependencies
         run: |
-          python -m pip install --disable-pip-version-check --upgrade pip
-          pip config set global.progress_bar off
-          pip install --upgrade wheel setuptools
+          python -m pip install --upgrade pip
+          pip install --group dev coveralls
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install --upgrade --pre pytest pytest-cov coveralls;
+            pip install --upgrade --pre pytest;
             pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython numpy
           else
-            pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
+            pip install numpy==${{ matrix.numpy }};
           fi
           if [ -n "${{ matrix.matplotlib }}" ]; then
             pip install matplotlib
@@ -131,6 +126,9 @@ jobs:
             pip install pyproj scipy-doctest
           fi
           pip list
+
+      - name: Install GEOS
+        run: bash ci/install_geos.sh
 
       - name: Set environment variables (Linux)
         run: |
