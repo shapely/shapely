@@ -84,8 +84,6 @@ include = ["shapely", "shapely.*"]
 [tool.cibuildwheel]
 skip = ["*_i686", "*_ppc64le", "*_s390x"]
 build-verbosity = 1
-before-build = "pip install --group build"
-build-frontend = { name = "pip", args = ["--no-build-isolation"] }
 test-requires = "pytest"
 test-command = "pytest --pyargs shapely.tests"
 
