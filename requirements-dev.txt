@@ -1,6 +1,0 @@
-cmake
-cython
-meson
-meson-python
-ninja
-numpy

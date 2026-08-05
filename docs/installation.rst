@@ -110,7 +110,7 @@ For example:
 
 .. code-block:: console
 
-    $ conda create -n shapely-dev --file requirements-dev.txt geos pip pytest
+    $ conda create -n shapely-dev cmake cython meson meson-python ninja numpy geos pip pytest
 
 Activate the environment and install shapely in editable mode using ``pip``:
 .. code-block:: console
