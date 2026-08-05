@@ -93,13 +93,13 @@ development packages:
 
     $ python3 -m venv .
     $ source bin/activate
-    (env) $ pip install -e . --group dev
+    (env) $ pip install --group dev
 
 Install shapely in editable mode using ``pip``:
 
 .. code-block:: console
 
-    $ pip install --no-build-isolation -e . --dev
+    (env) $ pip install --no-build-isolation -e .
 
 Conda environments
 ^^^^^^^^^^^^^^^^^^
@@ -123,7 +123,6 @@ Testing Shapely
 
 Shapely can be tested using ``pytest``::
 
-    $ pip install pytest  # or shapely --group dev
     $ pytest --pyargs shapely.tests
 
 
