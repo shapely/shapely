@@ -1,4 +1,5 @@
 import os
+import pickle
 import sys
 from copy import deepcopy
 from inspect import cleandoc
@@ -211,3 +212,37 @@ def test_deepcopy_empty_geometries(geom):
     geom_copied = deepcopy(geom)  # should not raise any exception
 
     assert geom.equals(geom_copied)
+
+
+def _via_pickle(geom):
+    return pickle.loads(pickle.dumps(geom, pickle.HIGHEST_PROTOCOL))
+
+
+@pytest.mark.parametrize("copy_func", [deepcopy, _via_pickle])
+@pytest.mark.parametrize(
+    "geom",
+    [
+        shapely.Point(0.14, 0.16),
+        shapely.Point(0.14, 0.16, 3.7),
+        shapely.LineString([(0, 0), (1.23, 4.56), (2, 2)]),
+        shapely.LinearRing([(0, 0), (1, 0), (1, 1), (0, 0)]),
+        shapely.Polygon(
+            [(0, 0), (10, 0), (10, 10), (0, 10)], holes=[[(2, 2), (2, 4), (4, 4)]]
+        ),
+        shapely.MultiPolygon([shapely.box(0, 0, 1, 1), shapely.box(2, 2, 3, 3)]),
+    ],
+)
+def test_copy_preserves_precision(geom, copy_func):
+    """Copying a geometry should preserve the precision grid size.
+
+    https://github.com/shapely/shapely/issues/2073
+    """
+    geom = shapely.set_precision(geom, 0.5)
+    copied = copy_func(geom)
+
+    assert shapely.get_precision(copied) == shapely.get_precision(geom) == 0.5
+    assert type(copied) is type(geom)
+    assert copied.has_z == geom.has_z
+    # re-applying the precision on unpickle may renormalize polygon rings, so
+    # compare the normalized geometries rather than the exact coordinates
+    assert shapely.equals_exact(shapely.normalize(copied), shapely.normalize(geom))

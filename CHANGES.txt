@@ -26,6 +26,11 @@ coordinates in each input LineString or LinearRing (#2306).
 `Polygon.from_bounds` now builds the ring in counterclockwise order, consistent
 with `shapely.box`, so the result satisfies the GeoJSON right-hand rule (#2396).
 
+Bug fixes:
+
+- `copy.deepcopy` and pickling now preserve the precision grid size set with
+  `set_precision` (#2073).
+
 
 2.1.2 (2025-09-24)
 ------------------
