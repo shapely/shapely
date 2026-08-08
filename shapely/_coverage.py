@@ -227,7 +227,7 @@ def coverage_clean(
     geometry : Geometry or array_like
     gap_width : float, default 0.0
         Gaps smaller than this value are merged with the adjacent polygon with
-        longest shared shared border. Set to 0.0 to (default) for no removal
+        longest shared border. Set to 0.0 to (default) for no removal
         of gaps.
     snapping_distance : float
         Determines the node snapping step when nearby vertices are snapped
