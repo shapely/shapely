@@ -149,7 +149,7 @@ def test_dump_binary_load_hex(some_point, tmpdir):
 
     # TODO(shapely-2.0) on windows this doesn't seem to error with pygeos,
     # but you get back a point with garbage coordinates
-    if sys.platform == "win32":
+    if sys.platform == "win32" and sys.version_info < (3, 15):
         with open(file) as file_pointer:
             restored = load(file_pointer, hex=True)
         assert some_point != restored
