@@ -26,6 +26,8 @@ coordinates in each input LineString or LinearRing (#2306).
 `Polygon.from_bounds` now builds the ring in counterclockwise order, consistent
 with `shapely.box`, so the result satisfies the GeoJSON right-hand rule (#2396).
 
+Wheels are available for Python 3.15.
+
 
 2.1.2 (2025-09-24)
 ------------------
