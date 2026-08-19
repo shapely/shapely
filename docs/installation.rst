@@ -101,6 +101,9 @@ Install shapely in editable mode using ``pip``:
 
     (env) $ pip install --no-build-isolation -e .
 
+This approach relies on a local or system installation of GEOS, since it is
+not available as a package on the PyPI ecosystem (unlike conda).
+
 Conda environments
 ^^^^^^^^^^^^^^^^^^
 

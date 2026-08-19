@@ -2,9 +2,9 @@
 
 
 def _set_geos_libdir():
-    b"""Might be required for editable builds to avoid ImportError.
+    r"""Might be required for editable builds to avoid ImportError.
 
-    E.g. add -Csetup-args="-Dgeos_libdir=C:\\OSGeo4W\bin"
+    E.g. add -Csetup-args="-Dgeos_libdir=C:\OSGeo4W\bin"
     """
     import os
     import sys
