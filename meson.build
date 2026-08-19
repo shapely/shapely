@@ -68,15 +68,9 @@ endif
 add_project_arguments('-DGEOS_USE_ONLY_R_API', language : 'c')
 
 cy = meson.get_compiler('cython')
-
-# generator() doesn't accept compilers, only found programs - cast it.
-cython = find_program(cy.cmd_array()[0])
-cython_args = ['-3', '--fast-fail', '--output-file', '@OUTPUT@', '--include-dir', '@BUILD_ROOT@', '@INPUT@']
 if cy.version().version_compare('>=3.1.0')
-  cython_args += ['-Xfreethreading_compatible=true']
+  cython_args = ['-Xfreethreading_compatible=true']
 endif
-cython_gen = generator(cython, arguments : cython_args, output : '@BASENAME@.c')
-
 
 add_project_arguments('-DNPY_NO_DEPRECATED_API=0', language: 'c')
 min_numpy_runtime_version = '1.23'  # keep in sync with [project.dependencies] in pyproject.toml

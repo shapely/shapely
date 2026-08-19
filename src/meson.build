@@ -25,7 +25,7 @@ py.extension_module(
   'strtree.c',
   'ufuncs.c',
   'vector.c',
-  install: true,
-  subdir: 'shapely',
-  dependencies: [numpy_dep, geos_dep],
+  install : true,
+  subdir : 'shapely',
+  dependencies : [numpy_dep, geos_dep],
 )
