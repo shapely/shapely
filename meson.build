@@ -1,10 +1,10 @@
 project(
   'shapely',
   'c', 'cython',
-  version: '2.2.0.dev0',
-  license: 'BSD-3-Clause',
-  meson_version: '>=1.2.1',  # keep in sync with [dependency-groups.build] in pyproject.toml
-  default_options: [
+  version : run_command('python3', 'shapely/_version.py', check : true).stdout().strip(),
+  license : 'BSD-3-Clause',
+  meson_version : '>=1.2.1',  # keep in sync with [dependency-groups.build] in pyproject.toml
+  default_options : [
     'buildtype=release',
     'c_std=c11',
     'warning_level=1',
@@ -19,7 +19,7 @@ _global_c_args = cc.get_supported_arguments(
 )
 add_project_arguments(_global_c_args, language : 'c')
 
-py = import('python').find_installation(pure: false)
+py = import('python').find_installation(pure : false)
 
 min_python_version = '3.11'  # keep in sync with [project.requires-python] in pyproject.toml
 python_version = py.language_version()
@@ -34,14 +34,11 @@ from os import environ
 for name in ['GEOS_INCLUDE_PATH', 'GEOS_LIBRARY_PATH', 'GEOS_CONFIG']:
     if name in environ:
         print(name + "=" + environ[name])
-'''],
-  check: true,
-).stdout().strip().split()
+'''], check : true).stdout().strip().split()
 if ignored_env_vars != []
   warning(
     'These previously-supported environment variable(s) are not supported:',
-    ignored_env_vars,
-    '; use `cmake_prefix_path` approach instead')
+    ignored_env_vars, '; use `cmake_prefix_path` approach instead')
 endif
 
 # A custom GEOS installation can be provided with configuration option:
@@ -59,13 +56,13 @@ if cy.version().version_compare('>=3.1.0')
   cython_args = ['-Xfreethreading_compatible=true']
 endif
 
-add_project_arguments('-DNPY_NO_DEPRECATED_API=0', language: 'c')
+add_project_arguments('-DNPY_NO_DEPRECATED_API=0', language : 'c')
 min_numpy_runtime_version = '1.23'  # keep in sync with [project.dependencies] in pyproject.toml
 min_numpy_build_version = '1.23'  # keep in sync with [build-system.requires] in pyproject.toml
 
 # get numpy dependency using different methods if numpy < 2
 numpy_version = run_command(py,
-  ['-c', 'import numpy as np; print(np.__version__)'], check: true).stdout().strip()
+  ['-c', 'import numpy as np; print(np.__version__)'], check : true).stdout().strip()
 if numpy_version.version_compare('>=2.0')
   numpy_dep = dependency('numpy', version : f'>=@min_numpy_build_version@')
 else  # support numpy < 2
@@ -79,7 +76,7 @@ try:
 except Exception:
     incdir = np.get_include()
 print(incdir)
-'''], check: true).stdout().strip()
+'''], check : true).stdout().strip()
   numpy_dep = declare_dependency(
     include_directories : include_directories(numpy_incdir),
     version : numpy_version,

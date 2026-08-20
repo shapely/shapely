@@ -46,9 +46,8 @@ from shapely.geometry import (
     LinearRing,
 )
 
-# TODO: re-enable dynamic version
-__version__ = "2.2.0.dev0"
-__git_version__ = ""
+from shapely import _version
 
+__version__ = _version.get_versions()["version"]
 
 setup_signal_checks()
