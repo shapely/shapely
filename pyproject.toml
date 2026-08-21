@@ -33,6 +33,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Scientific/Engineering :: GIS",
 ]
 requires-python = ">=3.11"  # keep in sync with `min_python_version` in meson.build
@@ -90,6 +91,10 @@ max-line-length = 79
 [tool.meson-python.args]
 # setup = ["--vsenv"]  # ERROR: Tried to modify read only option "vsenv"
 # setup = ["--clearcache"]  # uncomment to clear build cache with local builds
+
+[tool.pytest.ini_options]
+doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
+xfail_strict = true
 
 [tool.ruff]
 line-length = 88
