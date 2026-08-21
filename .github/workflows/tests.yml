@@ -154,7 +154,6 @@ jobs:
         run: >
           pip install --verbose --no-build-isolation
           -Csetup-args="-Dcmake_prefix_path=${{ env.GEOS_INSTALL }}"
-          -Csetup-args="-Dgeos_libdir=${{ env.GEOS_LIBDIR }}"
           -Ccompile-args="--verbose"
           -Ceditable-verbose=true
           --editable .

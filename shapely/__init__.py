@@ -1,29 +1,21 @@
 """Manipulation and analysis of geometric objects in the Cartesian plane."""
 
+import os
+import platform
 
-def _set_geos_libdir():
-    r"""Might be required for editable builds to avoid ImportError.
-
-    E.g. add -Csetup-args="-Dgeos_libdir=C:\OSGeo4W\bin"
-    """
-    import os
-    import sys
-
-    if not sys.platform.startswith("win"):
-        return
-
-    import importlib.resources
-
-    pth = importlib.resources.files("shapely").joinpath("geos_libdir.txt")
+if platform.system() == "Windows":
     try:
-        geos_libdir = pth.read_text().strip()
-    except FileNotFoundError:
-        return
-    os.add_dll_directory(geos_libdir)
+        from shapely.lib import GEOSException
+    except ImportError:  # DLL load failed while importing lib...
+        # This is possibly an editable build, which requires an
+        # environment variable GEOS_LIBDIR to be specified at runtime
+        # e.g.: set GEOS_LIBDIR=C:\OSGeo4W\bin
+        if "GEOS_LIBDIR" in os.environ:
+            os.add_dll_directory(os.environ["GEOS_LIBDIR"])
+        else:
+            raise
 
-
-_set_geos_libdir()
-del _set_geos_libdir
+del os, platform
 
 from shapely.lib import GEOSException
 from shapely.lib import Geometry

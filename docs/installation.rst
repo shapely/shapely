@@ -158,6 +158,13 @@ variable needs to be set before running, for example:
 
     $ export LD_LIBRARY_PATH=$HOME/opt/geos/lib
 
+Windows users need to set an environment variable to the folder with GEOS' DLLs
+that will be used at runtime, e.g.:
+
+.. code-block:: bat
+
+    > set GEOS_LIBDIR=C:\OSGeo4W\bin
+
 Read more about GEOS runtime discovery in the next section.
 
 .. note::
