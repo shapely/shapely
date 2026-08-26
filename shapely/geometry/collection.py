@@ -4,6 +4,13 @@ import shapely
 from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 
 
+def _unpickle_geometrycollection(geoms, srid):
+    collection = GeometryCollection(geoms)
+    if srid:
+        collection = shapely.lib.set_srid_scalar(collection, int(srid))
+    return collection
+
+
 class GeometryCollection(BaseMultipartGeometry):
     """Collection of one or more geometries that can be of different types.
 
@@ -45,6 +52,13 @@ class GeometryCollection(BaseMultipartGeometry):
             return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
 
         return shapely.geometrycollections(geoms)
+
+    def __reduce__(self):
+        """Pickle support."""
+        return (
+            _unpickle_geometrycollection,
+            (tuple(self.geoms), shapely.lib.get_srid_scalar(self)),
+        )
 
     @property
     def __geo_interface__(self):

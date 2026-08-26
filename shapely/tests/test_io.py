@@ -3,6 +3,7 @@ import pickle
 import struct
 import warnings
 from contextlib import nullcontext
+from copy import deepcopy
 
 import numpy as np
 import pytest
@@ -1147,6 +1148,24 @@ def test_to_wkb_point_empty_srid():
 def test_pickle(geom):
     pickled = pickle.dumps(geom)
     assert_geometries_equal(pickle.loads(pickled), geom, tolerance=0)
+
+
+@pytest.mark.parametrize(
+    "round_trip",
+    [deepcopy, lambda geom: pickle.loads(pickle.dumps(geom))],
+    ids=["deepcopy", "pickle"],
+)
+def test_geometrycollection_linearring_round_trip(round_trip):
+    ring = LinearRing([(0, 0), (2, 0), (2, 2), (0, 0)])
+    geom1 = GeometryCollection([ring, GeometryCollection([ring])])
+    geom1 = shapely.set_srid(geom1, 4326)
+
+    geom2 = round_trip(geom1)
+
+    assert geom2.wkt == geom1.wkt
+    assert type(geom2.geoms[0]) is LinearRing
+    assert type(geom2.geoms[1].geoms[0]) is LinearRing
+    assert shapely.get_srid(geom2) == 4326
 
 
 @pytest.mark.parametrize("geom", all_types_z)
