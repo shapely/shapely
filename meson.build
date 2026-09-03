@@ -41,12 +41,20 @@ if ignored_env_vars != []
     ignored_env_vars, '; use `cmake_prefix_path` approach instead')
 endif
 
-# A custom GEOS installation can be provided with configuration option:
-# -Dcmake_prefix_path=/path/to/geos-install
-
+# GEOS dependency method priority if built-in option is specified
 min_geos_version = '3.10'
-geos_dep = dependency('geos', version : f'>=@min_geos_version@',
-  method : 'cmake',  modules : ['GEOS::geos_c'])
+geos_dep = dependency('', required: false)
+if not geos_dep.found() and get_option('cmake_prefix_path').length() > 0
+  # possibly configured with -Dcmake_prefix_path=/path/to/prefix
+  geos_dep = dependency('geos', version : f'>=@min_geos_version@', method : 'cmake', modules : ['GEOS::geos_c'], required : false)
+endif
+if not geos_dep.found() and get_option('pkg_config_path').length() > 0
+  # possibly configured with -Dpkg_config_path=/path/to/prefix/lib/pkgconfig
+  geos_dep = dependency('geos', version : f'>=@min_geos_version@', method : 'pkg-config', required : false)
+endif
+if not geos_dep.found() # any method
+  geos_dep = dependency('geos', version : f'>=@min_geos_version@', modules : ['GEOS::geos_c'])
+endif
 
 # avoid accidental use of non-reentrant functions
 add_project_arguments('-DGEOS_USE_ONLY_R_API', language : 'c')

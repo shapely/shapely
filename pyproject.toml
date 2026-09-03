@@ -89,7 +89,6 @@ allow-long-titles = true
 max-line-length = 79
 
 [tool.meson-python.args]
-# setup = ["--vsenv"]  # ERROR: Tried to modify read only option "vsenv"
 # setup = ["--clearcache"]  # uncomment to clear build cache with local builds
 
 [tool.pytest.ini_options]

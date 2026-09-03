@@ -144,11 +144,18 @@ and install it to ``$HOME/opt/geos`` as follows:
     $ cmake --install _build
 
 If it is installed to a custom path, then it can be discovered by setting the
-``cmake_prefix_path`` meson setup option:
+``cmake_prefix_path`` built-in meson setup option:
 
 .. code-block:: console
 
     $ pip install --no-build-isolation -e . -Csetup-args="-Dcmake_prefix_path=$HOME/opt/geos"
+
+Alternatively, ``pkg-config`` can be used to declare a GEOS dependency in
+a custom path using the ``pkg_config_path`` built-in meson setup option:
+
+.. code-block:: console
+
+    $ pip install --no-build-isolation -e . -Csetup-args="-Dpkg_config_path=$HOME/opt/geos/lib/pkgconfig"
 
 For Linux, if the GEOS library is not on the dynamic linker run-time path (i.e.
 it was installed to a custom path), then the ``LD_LIBRARY_PATH`` environment
