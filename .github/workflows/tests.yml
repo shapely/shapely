@@ -118,9 +118,6 @@ jobs:
         if: ${{ startsWith(matrix.os, 'windows') }}
         run: rm -rfv /usr/bin/link
 
-      - name: Install GEOS
-        run: bash ci/install_geos.sh
-
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
