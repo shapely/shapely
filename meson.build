@@ -55,7 +55,7 @@ for name in ['GEOS_INCLUDE_PATH', 'GEOS_LIBRARY_PATH', 'GEOS_CONFIG']:
 if ignored_env_vars != []
   warning(
     'These previously-supported environment variable(s) are not supported:',
-    ignored_env_vars, '; use `cmake_prefix_path` '
+    ignored_env_vars, '; use `cmake_prefix_path` ',
     'or `pkg_config_path` approach instead')
 endif
 
