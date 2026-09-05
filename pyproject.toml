@@ -42,7 +42,6 @@ dependencies = [
 
 [dependency-groups]
 build = [
-    "cmake",
     "Cython",
     "meson>=1.2.1",
     "meson-python>=0.15.0",
