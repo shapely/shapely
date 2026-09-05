@@ -1,3 +1,5 @@
+# C source files for the "shapely.lib" Python module
+
 py.extension_module(
   'lib', # i.e. shapely.lib
   'c_api.c',
@@ -25,7 +27,7 @@ py.extension_module(
   'strtree.c',
   'ufuncs.c',
   'vector.c',
-  install : true,
-  subdir : 'shapely',
-  dependencies : [numpy_dep, geos_dep],
+  install: true,
+  subdir: 'shapely',
+  dependencies: [numpy_dep, geos_dep],
 )

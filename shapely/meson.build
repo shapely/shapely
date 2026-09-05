@@ -1,21 +1,23 @@
+# Python and Cython source files for the "shapely.*" top-level modules
+
 py.extension_module(
   '_geometry_helpers',
   '_geometry_helpers.pyx',
-  cython_args : cython_args,
-  include_directories : ['../src'],
-  dependencies : [numpy_dep, geos_dep],
-  install : true,
-  subdir : 'shapely',
+  cython_args: cython_args,
+  include_directories: ['../src'],
+  dependencies: [numpy_dep, geos_dep],
+  install: true,
+  subdir: 'shapely',
 )
 
 py.extension_module(
   '_geos',
   '_geos.pyx',
-  cython_args : cython_args,
-  include_directories : ['../src'],
-  dependencies : [numpy_dep, geos_dep],
-  install : true,
-  subdir : 'shapely',
+  cython_args: cython_args,
+  include_directories: ['../src'],
+  dependencies: [numpy_dep, geos_dep],
+  install: true,
+  subdir: 'shapely',
 )
 
 # top-level modules
@@ -52,7 +54,7 @@ py.install_sources([
     '_geos.pxd',
     '_pygeos_api.pxd',
   ],
-  subdir : 'shapely',
+  subdir: 'shapely',
 )
 subdirs_list = [
   'algorithms',
@@ -61,5 +63,5 @@ subdirs_list = [
   'vectorized',
 ]
 foreach subdir : subdirs_list
-  install_subdir(subdir, install_dir : py.get_install_dir() / 'shapely')
+  install_subdir(subdir, install_dir: py.get_install_dir() / 'shapely')
 endforeach
