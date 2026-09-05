@@ -18,11 +18,11 @@ jobs:
           # 2021
           - python: "3.11"
             geos: 3.10.7
-            numpy: 1.23.5
+            numpy: 1.25.2
           # 2022
           - python: "3.11"
             geos: 3.11.5
-            numpy: 1.23.5
+            numpy: 1.25.2
           # 2023
           - python: "3.12"
             geos: 3.12.3

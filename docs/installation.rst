@@ -55,12 +55,16 @@ On macOS::
     $ pip install shapely --no-binary shapely
 
 If you've installed GEOS to a standard location on Linux or macOS, the
-installation will automatically find it using CMake. If GEOS is installed
-into a non-standard location, this will need to be specified. On Linux::
+installation will automatically find it using CMake or pkg-config. If GEOS
+is installed into a non-standard location, this will need to be specified.
+To specify path to a CMake prefix::
 
     $ GEOS_INSTALL=/path/to/geos-3.14.1
     $ pip install shapely --no-binary shapely -Csetup-args=-Dcmake_prefix_path="$GEOS_INSTALL"
 
+Or using pkg-config::
+
+    $ pip install shapely --no-binary shapely -Csetup-args="-Dpkg_config_path=$GEOS_INSTALL/lib/pkgconfig"
 
 Installation for local development
 -----------------------------------
@@ -104,6 +108,10 @@ Install shapely in editable mode using ``pip``:
 This approach relies on a local or system installation of GEOS, since it is
 not available as a package on the PyPI ecosystem (unlike conda).
 
+To see compilation details, add ``-v`` (or ``--verbose``) to ``pip install``.
+Further inspection of compilation details can be enabled by also adding
+``-Ceditable-verbose=true`` to the command.
+
 Conda environments
 ^^^^^^^^^^^^^^^^^^
 
@@ -113,13 +121,13 @@ For example:
 
 .. code-block:: console
 
-    $ conda create -n shapely-dev cmake cython meson meson-python ninja numpy geos pip pytest
+    $ conda create -n shapely-dev cython meson meson-python pkg-config ninja numpy geos pip pytest
 
 Activate the environment and install shapely in editable mode using ``pip``:
 .. code-block:: console
 
     $ conda activate shapely-dev
-    (shapely-dev) $ pip install --no-build-isolation -e .
+    (shapely-dev) $ pip install --no-build-isolation -e . -v -Ceditable-verbose=true
 
 Testing Shapely
 ---------------

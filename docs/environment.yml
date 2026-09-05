@@ -11,6 +11,6 @@ dependencies:
   - numpydoc=1.1
   - matplotlib
   - pip
-  - cmake
+  - pkg-config
   - meson
   - meson-python

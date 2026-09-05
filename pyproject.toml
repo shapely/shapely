@@ -3,8 +3,7 @@
 requires = [
     "Cython",
     "meson-python>=0.15.0",
-    # Exclude 2.5.0: wheels built against it segfault on older numpy
-    "numpy>=1.23,!=2.5.0",
+    "numpy>=1.25,<3",
 ]
 build-backend = "mesonpy"
 
@@ -48,7 +47,7 @@ build = [
     "meson>=1.2.1",
     "meson-python>=0.15.0",
     "ninja",
-    "numpy>=1.23,!=2.5.0",
+    "numpy>=1.25,<3",
 ]
 tests = [
     "pytest",
