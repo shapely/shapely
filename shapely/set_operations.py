@@ -679,7 +679,7 @@ def disjoint_subset_union(a, b, **kwargs):
     divided into subsets that do not intersect.
 
     If there is only one such subset, performance can be expected to be worse than
-    :func:`union`. As such, it is recommeded to use ``disjoint_subset_union`` with
+    :func:`union`. As such, it is recommended to use ``disjoint_subset_union`` with
     GeometryCollections rather than individual geometries.
 
     .. versionadded:: 2.1.0
