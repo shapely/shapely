@@ -5,7 +5,7 @@ requires = [
     # Starting with NumPy 1.25, NumPy is (by default) as far back compatible
     # as oldest-support-numpy was (customizable with a NPY_TARGET_VERSION
     # define).
-    "numpy>=1.25,<3",
+    "numpy>=1.26,<3",
     "setuptools>=77.0.3",
 ]
 build-backend = "setuptools.build_meta"
