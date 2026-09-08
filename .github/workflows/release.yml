@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
 
 env:
-  GEOS_VERSION: "3.13.1"
+  GEOS_VERSION: "3.14.1"
 
 jobs:
   build_sdist:
@@ -75,7 +75,7 @@ jobs:
             cibw_build: "*musllinux_aarch64"
             arch: aarch64
     env:
-      basetag: 2026.08.08-1
+      basetag: 2026.09.05-1
 
     steps:
       - name: Checkout source
