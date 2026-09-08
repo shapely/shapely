@@ -7,7 +7,7 @@ if platform.system() == "Windows":
     try:
         from shapely.lib import GEOSException
     except ImportError:  # DLL load failed while importing lib...
-        # This is possibly a local` build, which requires an
+        # This is possibly a local build, which requires an
         # environment variable GEOS_LIBDIR to be specified at runtime
         # e.g.: set GEOS_LIBDIR=C:\OSGeo4W\bin
         if "GEOS_LIBDIR" in os.environ:

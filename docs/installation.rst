@@ -109,8 +109,8 @@ This approach relies on a local or system installation of GEOS, since it is
 not available as a package on the PyPI ecosystem (unlike conda).
 
 To see compilation details, add ``-v`` (or ``--verbose``) to ``pip install``.
-Further inspection of compilation details can be enabled by also adding
-``-Ceditable-verbose=true`` to the command.
+To also see compilation details when an automatic rebuild of the extension
+modules happens in editable mode, add ``-Ceditable-verbose=true`` to the command.
 
 Conda environments
 ^^^^^^^^^^^^^^^^^^
