@@ -238,9 +238,13 @@ General Attributes and Methods
 
 .. method:: object.hausdorff_distance(other)
 
-  Returns the Hausdorff distance (``float``) to the `other` geometric object.
+  Returns the discrete, undirected Hausdorff distance (``float``) to the
+  `other` geometric object. This approximation considers the vertices of each
+  geometry, measuring each vertex to its closest point on the other geometry.
+  Points along segments are not considered unless they are vertices.
 
-  Check out :func:`shapely.hausdorff_distance` for more details.
+  For a finer approximation, use :func:`shapely.hausdorff_distance` with the
+  ``densify`` parameter to add points along the segments before measuring.
 
   `New in Shapely 1.6.0`
 
