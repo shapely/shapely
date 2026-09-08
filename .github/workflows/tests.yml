@@ -18,15 +18,15 @@ jobs:
           # 2021
           - python: "3.11"
             geos: 3.10.7
-            numpy: 1.23.5
+            numpy: 1.26.4
           # 2022
           - python: "3.11"
             geos: 3.11.5
-            numpy: 1.23.5
+            numpy: 1.26.4
           # 2023
           - python: "3.12"
             geos: 3.12.3
-            numpy: 1.26.4
+            numpy: 2.0.2
           # 2024
           - python: "3.13"
             geos: 3.13.1
@@ -41,7 +41,7 @@ jobs:
           # 2026
           - python: "3.15"
             geos: 3.14.0  # update to 3.15.0 once released (here and above in the `geos` matrix)
-            numpy: 2.5.2
+            numpy: 2.5.3
           # free threaded Python (no numpy version to indicate installing nightly cython and numpy)
           - os: ubuntu-22.04  # keep distinct from ubuntu-latest
             python: "3.14t"
@@ -59,7 +59,7 @@ jobs:
           - os: ubuntu-22.04  # keep distinct from ubuntu-latest
             python: "pypy3.11"
             geos: 3.12.3  # keep distinct from free threaded geos version
-            numpy: 2.3.2
+            numpy: 2.3.5
     env:
       GEOS_VERSION: ${{ matrix.geos }}
       GEOS_VERSION_SPEC: ${{ matrix.geos }}
