@@ -92,8 +92,8 @@ endif
 # NumPy setup
 ###############################################################
 
-min_numpy_runtime_version = '1.23'  # keep in sync with [project.dependencies] in pyproject.toml
-min_numpy_build_version = '1.25'  # keep in sync with [build-system.requires] in pyproject.toml
+min_numpy_runtime_version = '1.26'  # keep in sync with [project.dependencies] in pyproject.toml
+min_numpy_build_version = '1.26'  # keep in sync with [build-system.requires] in pyproject.toml
 
 # get numpy dependency using different methods if numpy < 2
 numpy_version = run_command(py,
