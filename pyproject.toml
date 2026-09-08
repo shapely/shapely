@@ -3,7 +3,7 @@
 requires = [
     "Cython",
     "meson-python>=0.15.0",
-    "numpy>=1.25,<3",
+    "numpy>=1.26,<3",
 ]
 build-backend = "mesonpy"
 
@@ -37,7 +37,7 @@ classifiers = [
 ]
 requires-python = ">=3.11"  # keep in sync with `min_python_version` in meson.build
 dependencies = [
-    "numpy>=1.23",  # keep in sync with `min_numpy_runtime_version` in meson.build
+    "numpy>=1.26",  # keep in sync with `min_numpy_runtime_version` in meson.build
 ]
 
 [dependency-groups]
@@ -46,7 +46,7 @@ build = [
     "meson>=1.2.1",
     "meson-python>=0.15.0",
     "ninja",
-    "numpy>=1.25,<3",
+    "numpy>=1.26,<3",
 ]
 tests = [
     "pytest",
