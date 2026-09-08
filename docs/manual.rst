@@ -2785,6 +2785,15 @@ Python arrays of `x` and `y` values via the ``xy`` attribute.
   >>> LineString([(0, 0), (1, 1)]).xy
   (array('d', [0.0, 1.0]), array('d', [0.0, 1.0]))
 
+The ``xy`` attribute is only available on these single coordinate sequence
+types. Other geometries, such as `Polygon` and the multi-part geometries
+(`MultiPoint`, `MultiLineString`, `MultiPolygon`, `GeometryCollection`), do not
+have a single sequence of coordinates, so accessing ``xy`` on them raises
+``NotImplementedError``. For those, use the ``xy`` attribute of a polygon's
+rings (``polygon.exterior.xy`` or ``polygon.interiors[i].xy``), iterate over
+the ``geoms`` of a multi-part geometry, or use :func:`shapely.get_coordinates`
+to obtain the coordinates of any geometry as a single array.
+
 Python Geo Interface
 --------------------
 

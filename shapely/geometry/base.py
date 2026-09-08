@@ -223,7 +223,27 @@ class BaseGeometry(shapely.Geometry):
 
     @property
     def xy(self):
-        """Separate arrays of X and Y coordinate values."""
+        """Separate arrays of X and Y coordinate values.
+
+        This property is only available on geometries that are backed by a
+        single coordinate sequence: :class:`~shapely.Point`,
+        :class:`~shapely.LineString` and :class:`~shapely.LinearRing`.
+
+        It is not implemented on :class:`~shapely.Polygon` or on the
+        multi-part geometries (:class:`~shapely.MultiPoint`,
+        :class:`~shapely.MultiLineString`, :class:`~shapely.MultiPolygon`,
+        :class:`~shapely.GeometryCollection`). A polygon consists of an
+        exterior ring and any number of interior rings (holes), and a
+        multi-part geometry consists of several geometries, so there is no
+        single sequence of (x, y) values to return. Accessing this property
+        on those types raises ``NotImplementedError``.
+
+        For a polygon, use the ``xy`` property of its rings, for example
+        ``polygon.exterior.xy`` or ``polygon.interiors[i].xy``. For a
+        multi-part geometry, iterate over ``geom.geoms`` and access ``xy`` on
+        each part. To get the coordinates of any geometry as a single array,
+        use :func:`shapely.get_coordinates`.
+        """
         raise NotImplementedError
 
     # Python feature protocol
