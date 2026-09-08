@@ -4,7 +4,7 @@ py.extension_module(
   '_geometry_helpers',
   '_geometry_helpers.pyx',
   cython_args: cython_args,
-  include_directories: ['../src'],
+  include_directories: ['lib'],
   dependencies: [numpy_dep, geos_dep],
   install: true,
   subdir: 'shapely',
@@ -14,7 +14,7 @@ py.extension_module(
   '_geos',
   '_geos.pyx',
   cython_args: cython_args,
-  include_directories: ['../src'],
+  include_directories: ['lib'],
   dependencies: [numpy_dep, geos_dep],
   install: true,
   subdir: 'shapely',
@@ -56,6 +56,8 @@ py.install_sources([
   ],
   subdir: 'shapely',
 )
+
+# Gather Python source files from these subdirectories
 subdirs_list = [
   'algorithms',
   'geometry',

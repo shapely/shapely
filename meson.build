@@ -3,7 +3,7 @@
 project(
   'shapely',
   'c', 'cython',
-  version: run_command('python3', 'shapely/_version.py', check: true).stdout().strip(),
+  version: run_command('python3', 'src/shapely/_version.py', check: true).stdout().strip(),
   license: 'BSD-3-Clause',
   meson_version: '>=1.2.1',  # keep in sync with [dependency-groups.build] in pyproject.toml
   default_options: [
@@ -121,8 +121,8 @@ endif
 add_project_arguments('-DNPY_NO_DEPRECATED_API=0', language: 'c')
 
 ###############################################################
-# Module sources
+# Module sources - each subdir has a meson.build file
 ###############################################################
 
-subdir('src')
-subdir('shapely')
+subdir('src/shapely/lib')
+subdir('src/shapely')

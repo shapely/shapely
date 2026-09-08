@@ -1,1 +1,1 @@
-shapely/_version.py export-subst
+src/shapely/_version.py export-subst
