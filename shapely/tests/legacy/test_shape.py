@@ -1,6 +1,6 @@
 import pytest
 
-from shapely.geometry import MultiLineString, Point, Polygon, shape
+from shapely.geometry import MultiLineString, MultiPolygon, Point, Polygon, shape
 from shapely.geometry.geo import _is_coordinates_empty
 
 
@@ -41,6 +41,26 @@ def test_polygon_not_empty_np_array():
 )
 def test_multilinestring_empty(geom):
     assert shape(geom) == MultiLineString()
+
+
+def test_multipolygon_with_empty_member():
+    geom = {
+        "type": "MultiPolygon",
+        "coordinates": [
+            [],
+            [[(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]],
+        ],
+    }
+
+    result = shape(geom)
+
+    assert result == MultiPolygon(
+        [
+            [(), []],
+            [[(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]],
+        ]
+    )
+    assert result.geoms[0].is_empty
 
 
 @pytest.mark.parametrize("coords", [[], [[]], [[], []], None, [[[]]]])
