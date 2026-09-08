@@ -29,6 +29,7 @@
    constructive
    linear
    coverage
+   affinity
    coordinates
    strtree
    testing
