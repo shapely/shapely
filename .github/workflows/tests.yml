@@ -167,7 +167,7 @@ jobs:
         # continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
           python -c "import shapely; print(f'GEOS version: {shapely.geos_version_string}')"
-          pytest shapely/tests -r a --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
+          pytest --pyargs shapely.tests -r a --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
       - name: Run doctests on manual docs
@@ -178,7 +178,7 @@ jobs:
       - name: Run doctests on shapely module
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.doctest }}
         run: |
-          pytest --doctest-modules shapely --ignore=shapely/tests
+          pytest --doctest-modules src/shapely --ignore=src/shapely/tests
 
       - name: Upload coverage
         env:

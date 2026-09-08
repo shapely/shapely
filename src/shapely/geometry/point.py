@@ -30,6 +30,11 @@ class Point(BaseGeometry):
     x, y, z, m : float
         Coordinate values
 
+    See Also
+    --------
+    points : Create an array of points.
+    empty : Create a geometry array prefilled with None or with empty geometries.
+
     Examples
     --------
     Constructing the Point using separate parameters for x and y:

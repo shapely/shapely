@@ -36,6 +36,11 @@ class LinearRing(LineString):
         an array-like with shape (N, 2) or (N, 3).
         Also can be a sequence of Point objects.
 
+    See Also
+    --------
+    linearrings : Create an array of linearrings.
+    empty : Create a geometry array prefilled with None or with empty geometries.
+
     Notes
     -----
     Rings are automatically closed. There is no need to specify a final
@@ -209,6 +214,12 @@ class Polygon(BaseGeometry):
         The ring which bounds the positive space of the polygon.
     interiors : sequence
         A sequence of rings which bound all existing holes.
+
+    See Also
+    --------
+    polygons : Create an array of polygons.
+    box : Create box polygons.
+    empty : Create a geometry array prefilled with None or with empty geometries.
 
     Examples
     --------
