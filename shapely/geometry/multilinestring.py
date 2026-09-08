@@ -24,6 +24,11 @@ class MultiLineString(BaseMultipartGeometry):
     geoms : sequence
         A sequence of LineStrings
 
+    See Also
+    --------
+    shapely.multilinestrings : Create MultiLineString geometries from arrays.
+    LineString : Single line string geometry.
+
     Examples
     --------
     Construct a MultiLineString containing two LineStrings.

@@ -30,6 +30,10 @@ class Point(BaseGeometry):
     x, y, z, m : float
         Coordinate values
 
+    See Also
+    --------
+    shapely.points : Create multiple points efficiently from coordinate arrays.
+
     Examples
     --------
     Constructing the Point using separate parameters for x and y:
