@@ -9,8 +9,20 @@ import shapely
 __all__ = ["affine_transform", "rotate", "scale", "skew", "translate"]
 
 
+def _apply_to_array(func, geom):
+    geometries = np.asarray(geom, dtype=object)
+    result = np.empty_like(geometries)
+    for index in np.ndindex(geometries.shape):
+        part = geometries[index]
+        result[index] = None if part is None else func(part)
+    return result
+
+
 def affine_transform(geom, matrix):
-    r"""Return a transformed geometry using an affine transformation matrix.
+    r"""Return transformed geometries using an affine transformation matrix.
+
+    ``geom`` may be a geometry or an array-like of geometries. Array-like
+    inputs return a NumPy array with the same shape.
 
     The coefficient matrix is provided as a list or tuple with 6 or 12 items
     for 2D or 3D transformations, respectively.
@@ -48,19 +60,16 @@ def affine_transform(geom, matrix):
         z' = g * x + h * y + i * z + zoff
     """
     if len(matrix) == 6:
-        ndim = 2
         a, b, d, e, xoff, yoff = matrix
-        if geom.has_z:
-            ndim = 3
-            i = 1.0
-            c = f = g = h = zoff = 0.0
+        i = 1.0
+        c = f = g = h = zoff = 0.0
     elif len(matrix) == 12:
-        ndim = 3
         a, b, c, d, e, f, g, h, i, xoff, yoff, zoff = matrix
-        if not geom.has_z:
-            ndim = 2
     else:
         raise ValueError("'matrix' expects either 6 or 12 coefficients")
+
+    if geom is None:
+        raise AttributeError("'NoneType' object has no attribute 'has_z'")
 
     # if ndim == 2:
     #     A = np.array([[a, b], [d, e]], dtype=float)
@@ -74,12 +83,12 @@ def affine_transform(geom, matrix):
         #   result = np.matmul(coords, A.T) + off
         #   result = np.matmul(A, coords.T).T + off
         # Therefore, manual matrix multiplication is needed
-        if ndim == 2:
+        if coords.shape[1] == 2:
             x, y = coords.T
             xp = a * x + b * y + xoff
             yp = d * x + e * y + yoff
             result = np.stack([xp, yp]).T
-        elif ndim == 3:
+        else:
             x, y, z = coords.T
             xp = a * x + b * y + c * z + xoff
             yp = d * x + e * y + f * z + yoff
@@ -87,7 +96,7 @@ def affine_transform(geom, matrix):
             result = np.stack([xp, yp, zp]).T
         return result
 
-    return shapely.transform(geom, _affine_coords, include_z=ndim == 3)
+    return shapely.transform(geom, _affine_coords, include_z=None)
 
 
 def interpret_origin(geom, origin, ndim):
@@ -124,7 +133,11 @@ def interpret_origin(geom, origin, ndim):
 
 
 def rotate(geom, angle, origin="center", use_radians=False):
-    r"""Return a rotated geometry on a 2D plane.
+    r"""Return geometries rotated on a 2D plane.
+
+    ``geom`` may be a geometry or an array-like of geometries. Array-like
+    inputs return a NumPy array with the same shape, and keyword origins are
+    interpreted separately for each geometry.
 
     The angle of rotation can be specified in either degrees (default) or
     radians by setting ``use_radians=True``. Positive angles are
@@ -145,6 +158,11 @@ def rotate(geom, angle, origin="center", use_radians=False):
         xoff = x0 - x0 * cos(r) + y0 * sin(r)
         yoff = y0 - x0 * sin(r) - y0 * cos(r)
     """
+    if isinstance(geom, (list, tuple, np.ndarray)):
+        return _apply_to_array(
+            lambda part: rotate(part, angle, origin=origin, use_radians=use_radians),
+            geom,
+        )
     if geom.is_empty:
         return geom
     if not use_radians:  # convert from degrees
@@ -167,7 +185,11 @@ def rotate(geom, angle, origin="center", use_radians=False):
 
 
 def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin="center"):
-    r"""Return a scaled geometry, scaled by factors along each dimension.
+    r"""Return geometries scaled by factors along each dimension.
+
+    ``geom`` may be a geometry or an array-like of geometries. Array-like
+    inputs return a NumPy array with the same shape, and keyword origins are
+    interpreted separately for each geometry.
 
     The point of origin can be a keyword 'center' for the 2D bounding box
     center (default), 'centroid' for the geometry's 2D centroid, a Point
@@ -188,6 +210,13 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin="center"):
         yoff = y0 - y0 * yfact
         zoff = z0 - z0 * zfact
     """
+    if isinstance(geom, (list, tuple, np.ndarray)):
+        return _apply_to_array(
+            lambda part: scale(
+                part, xfact=xfact, yfact=yfact, zfact=zfact, origin=origin
+            ),
+            geom,
+        )
     if geom.is_empty:
         return geom
     x0, y0, z0 = interpret_origin(geom, origin, 3)
@@ -202,7 +231,11 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin="center"):
 
 
 def skew(geom, xs=0.0, ys=0.0, origin="center", use_radians=False):
-    r"""Return a skewed geometry, sheared by angles along x and y dimensions.
+    r"""Return geometries sheared by angles along x and y dimensions.
+
+    ``geom`` may be a geometry or an array-like of geometries. Array-like
+    inputs return a NumPy array with the same shape, and keyword origins are
+    interpreted separately for each geometry.
 
     The shear angle can be specified in either degrees (default) or radians
     by setting ``use_radians=True``.
@@ -222,6 +255,13 @@ def skew(geom, xs=0.0, ys=0.0, origin="center", use_radians=False):
         xoff = -y0 * tan(xs)
         yoff = -x0 * tan(ys)
     """
+    if isinstance(geom, (list, tuple, np.ndarray)):
+        return _apply_to_array(
+            lambda part: skew(
+                part, xs=xs, ys=ys, origin=origin, use_radians=use_radians
+            ),
+            geom,
+        )
     if geom.is_empty:
         return geom
     if not use_radians:  # convert from degrees
@@ -245,7 +285,10 @@ def skew(geom, xs=0.0, ys=0.0, origin="center", use_radians=False):
 
 
 def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
-    r"""Return a translated geometry shifted by offsets along each dimension.
+    r"""Return geometries shifted by offsets along each dimension.
+
+    ``geom`` may be a geometry or an array-like of geometries. Array-like
+    inputs return a NumPy array with the same shape.
 
     The general 3D affine transformation matrix for translation is:
 
@@ -254,9 +297,6 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
         | 0  0  1 zoff |
         \ 0  0  0   1  /
     """
-    if geom.is_empty:
-        return geom
-
     # fmt: off
     matrix = (1.0, 0.0, 0.0,
               0.0, 1.0, 0.0,

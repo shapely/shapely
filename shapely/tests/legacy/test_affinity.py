@@ -4,6 +4,7 @@ from math import pi
 import numpy as np
 import pytest
 
+import shapely
 from shapely import affinity
 from shapely.geometry import Point
 from shapely.wkt import loads as load_wkt
@@ -177,6 +178,33 @@ class TransformOpsTestCase(unittest.TestCase):
         assert theta.item() == pi / 2
         assert rls.equals(els)
 
+    def test_rotate_geometry_array_uses_each_geometry_origin(self):
+        lines = np.array(
+            [
+                load_wkt("LINESTRING (0 0, 2 0)"),
+                load_wkt("LINESTRING (10 0, 14 0)"),
+            ]
+        )
+
+        rotated = affinity.rotate(lines, 90)
+
+        expected = np.array(
+            [
+                load_wkt("LINESTRING (1 -1, 1 1)"),
+                load_wkt("LINESTRING (12 -2, 12 2)"),
+            ]
+        )
+        assert rotated.shape == lines.shape
+        assert np.all(shapely.equals_exact(rotated, expected))
+
+    def test_rotate_geometry_array_preserves_none(self):
+        points = np.array([Point(0, 0), None, Point(2, 0)])
+
+        rotated = affinity.rotate(points, 90, origin=(0, 0))
+
+        assert rotated[1] is None
+        assert shapely.equals_exact(rotated[[0, 2]], [Point(0, 0), Point(0, 2)]).all()
+
     def test_scale(self):
         ls = load_wkt("LINESTRING(240 400 10, 240 300 30, 300 300 20)")
         # test defaults of 1.0
@@ -215,6 +243,25 @@ class TransformOpsTestCase(unittest.TestCase):
         sls = affinity.scale(load_wkt("LINESTRING EMPTY"))
         els = load_wkt("LINESTRING EMPTY")
         assert sls.equals(els)
+
+    def test_scale_geometry_array_uses_each_geometry_origin(self):
+        lines = np.array(
+            [
+                load_wkt("LINESTRING (0 0, 2 0)"),
+                load_wkt("LINESTRING (10 0, 14 0)"),
+            ]
+        )
+
+        scaled = affinity.scale(lines, xfact=2)
+
+        expected = np.array(
+            [
+                load_wkt("LINESTRING (-1 0, 3 0)"),
+                load_wkt("LINESTRING (8 0, 16 0)"),
+            ]
+        )
+        assert scaled.shape == lines.shape
+        assert np.all(shapely.equals_exact(scaled, expected))
 
     def test_skew(self):
         ls = load_wkt("LINESTRING(240 400 10, 240 300 30, 300 300 20)")
@@ -264,6 +311,25 @@ class TransformOpsTestCase(unittest.TestCase):
         els = load_wkt("LINESTRING EMPTY")
         assert sls.equals(els)
 
+    def test_skew_geometry_array_uses_each_geometry_origin(self):
+        lines = np.array(
+            [
+                load_wkt("LINESTRING (0 0, 0 2)"),
+                load_wkt("LINESTRING (10 0, 10 4)"),
+            ]
+        )
+
+        skewed = affinity.skew(lines, xs=45)
+
+        expected = np.array(
+            [
+                load_wkt("LINESTRING (-1 0, 1 2)"),
+                load_wkt("LINESTRING (8 0, 12 4)"),
+            ]
+        )
+        assert skewed.shape == lines.shape
+        assert np.all(shapely.equals_exact(skewed, expected, tolerance=1e-12))
+
     def test_skew_xs_ys_array(self):
         ls = load_wkt("LINESTRING(240 400 10, 240 300 30, 300 300 20)")
         els = load_wkt(
@@ -306,3 +372,21 @@ class TransformOpsTestCase(unittest.TestCase):
         els = load_wkt("LINESTRING EMPTY")
         self.assertTrue(tls.equals(els))
         assert tls.equals(els)
+
+    def test_translate_geometry_array(self):
+        points = np.array([[Point(0, 1), Point(2, 3)], [Point(4, 5), Point(6, 7)]])
+
+        translated = affinity.translate(points, xoff=1, yoff=-1)
+
+        expected = np.array([[Point(1, 0), Point(3, 2)], [Point(5, 4), Point(7, 6)]])
+        assert translated.shape == points.shape
+        assert np.all(translated == expected)
+
+    def test_translate_geometry_array_preserves_dimensions(self):
+        points = np.array([Point(1, 2), Point(1, 2, 3)])
+
+        translated = affinity.translate(points, xoff=1, yoff=2, zoff=3)
+
+        expected = np.array([Point(2, 4), Point(2, 4, 6)])
+        assert shapely.equals_exact(translated, expected).all()
+        assert shapely.has_z(translated).tolist() == [False, True]
