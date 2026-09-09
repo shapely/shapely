@@ -461,7 +461,7 @@ def polygons(geometries, holes=None, indices=None, *, out=None, **kwargs):
 @deprecate_positional(["ccw"], category=DeprecationWarning)
 @multithreading_enabled
 def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
-    """Create a box Polygon.
+    """Create a box Polygon (or an array of boxes).
 
     Parameters
     ----------
