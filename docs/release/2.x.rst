@@ -91,6 +91,7 @@ Packaging
 
 - Shapely 2.2.0 requires GEOS >= 3.10, Python >= 3.11, and NumPy >= 1.26
   (#2302, #2301, #2499).
+- Shapely now uses ``meson-python`` for its build backend (#2357).
 - Binary wheels are now also built for the Windows ARM64 platform (#2307).
 - Linux wheels are upgraded from manylinux2014 to manylinux_2_28 (#2363).
 - Upgraded the GEOS version in the binary wheel distributions to 3.14.1.
