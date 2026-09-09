@@ -63,7 +63,9 @@ coverage.xml
 # Pipenv
 .venv
 Pipfile
-Pipfile.lock
+
+# lock files (e.g., uv, pixi, Pipfile)
+*.lock
 
 # Documentation
 docs/_build/

@@ -5,7 +5,6 @@ import warnings
 import numpy as np
 
 from shapely import lib
-from shapely.decorators import multithreading_enabled
 
 __all__ = [
     "area",
@@ -20,7 +19,6 @@ __all__ = [
 ]
 
 
-@multithreading_enabled
 def area(geometry, **kwargs):
     """Compute the area of a (multi)polygon.
 
@@ -50,7 +48,6 @@ def area(geometry, **kwargs):
     return lib.area(geometry, **kwargs)
 
 
-@multithreading_enabled
 def distance(a, b, **kwargs):
     """Compute the Cartesian distance between two geometries.
 
@@ -81,7 +78,6 @@ def distance(a, b, **kwargs):
     return lib.distance(a, b, **kwargs)
 
 
-@multithreading_enabled
 def bounds(geometry, **kwargs):
     """Compute the bounds (extent) of a geometry.
 
@@ -163,7 +159,6 @@ def total_bounds(geometry, **kwargs):
         )
 
 
-@multithreading_enabled
 def length(geometry, **kwargs):
     """Compute the length of a (multi)linestring or polygon perimeter.
 
@@ -196,15 +191,18 @@ def length(geometry, **kwargs):
     return lib.length(geometry, **kwargs)
 
 
-@multithreading_enabled
 def hausdorff_distance(a, b, densify=None, **kwargs):
-    """Compute the discrete Hausdorff distance between two geometries.
+    """Compute the discrete, undirected Hausdorff distance between two geometries.
 
     The Hausdorff distance is a measure of similarity: it is the greatest
-    distance between any point in A and the closest point in B. The discrete
-    distance is an approximation of this metric: only vertices are considered.
-    The parameter 'densify' makes this approximation less coarse by splitting
-    the line segments between vertices before computing the distance.
+    distance between any point in A and the closest point in B.
+
+    The discrete distance is an approximation of this metric: only vertices are
+    considered. The parameter 'densify' makes this approximation less coarse by
+    splitting the line segments between vertices before computing the distance.
+
+    This implementation is undirected or symmetric Hausdorff, meaning that the
+    distance from A to B is the same as from B to A.
 
     Parameters
     ----------
@@ -237,7 +235,6 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
         return lib.hausdorff_distance_densify(a, b, densify, **kwargs)
 
 
-@multithreading_enabled
 def frechet_distance(a, b, densify=None, **kwargs):
     """Compute the discrete Fréchet distance between two geometries.
 
@@ -281,7 +278,6 @@ def frechet_distance(a, b, densify=None, **kwargs):
     return lib.frechet_distance_densify(a, b, densify, **kwargs)
 
 
-@multithreading_enabled
 def minimum_clearance(geometry, **kwargs):
     """Compute the Minimum Clearance distance.
 
@@ -318,7 +314,6 @@ def minimum_clearance(geometry, **kwargs):
     return lib.minimum_clearance(geometry, **kwargs)
 
 
-@multithreading_enabled
 def minimum_bounding_radius(geometry, **kwargs):
     """Compute the radius of the minimum bounding circle of an input geometry.
 

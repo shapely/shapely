@@ -68,7 +68,18 @@ def multithreading_enabled(func):
 
     NB: multithreading also requires the GIL to be released, which is done in
     the C extension (ufuncs.c).
+
+    Notes
+    -----
+
+    .. deprecated:: 2.2.0
+        Deprecated in shapely 2.2.0, and will be removed in a future release.
     """
+    warnings.warn(
+        "multithreading_enabled is deprecated and will be removed in a future version.",
+        FutureWarning,
+        stacklevel=2,
+    )
 
     @wraps(func)
     def wrapped(*args, **kwargs):

@@ -14,11 +14,23 @@ Improved performance by changing the GEOS context handling. Instead of initializ
 on every call, GEOS contexts are reused through a threadlocal. It should give a performance
 increase of about 75 nanoseconds per call.
 
+Improved performance by removing the multithreading protection, which was not complete protection
+anyway. Now it is up to the user to avoid race conditions when mutating arrays of geometries
+from multiple threads (#2338).
+
 Added `transform_coordseq`, which applies a transformation function per coordinate sequence
 in a more performant way than `shapely.ops.transform` does. `shapely.ops.transform` is now deprecated.
 
 Added return values to `prepare` and `destroy_prepared`. They now return whether something was done;
 calling `prepare` twice on a geometry will first return `True`, and then `False`.
+
+Added `get_segments`, which returns individual linear features from all pairwise
+coordinates in each input LineString or LinearRing (#2306).
+
+`Polygon.from_bounds` now builds the ring in counterclockwise order, consistent
+with `shapely.box`, so the result satisfies the GeoJSON right-hand rule (#2396).
+
+Wheels are available for Python 3.15.
 
 
 2.1.2 (2025-09-24)

@@ -21,7 +21,15 @@
 #include "geos_funcs_Y_b.h"
 #include "geos_funcs_Y_i.h"
 #include "geos_funcs_Yi_Y.h"
+#include "geos_funcs_YY_Y.h"
+#include "geos_funcs_Yd_Y.h"
+#include "geos_funcs_Ydb_Y.h"
+#include "geos_funcs_YY_b.h"
+#include "geos_funcs_YYd_d.h"
+#include "geos_funcs_YY_d.h"
+#include "geos_funcs_YYd_Y.h"
 #include "geos_funcs_O_b.h"
+#include "geos_funcs_Ydd_b.h"
 
 /* This tells Python what methods this module has. */
 static PyMethodDef GeosModule[] = {
@@ -118,7 +126,39 @@ PyMODINIT_FUNC PyInit_lib(void) {
     return NULL;
   };
 
+  if (init_geos_funcs_Yd_Y(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_Ydb_Y(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_YY_b(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_YY_d(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_YY_Y(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_YYd_Y(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_YYd_d(m, d) < 0) {
+    return NULL;
+  };
+
   if (init_geos_funcs_O_b(m, d) < 0) {
+    return NULL;
+  };
+
+  if (init_geos_funcs_Ydd_b(m, d) < 0) {
     return NULL;
   };
 

@@ -65,6 +65,11 @@ XY_PREDICATES = (
     (shapely.intersects_xy, shapely.intersects),
 )
 
+XY_PREDICATES_SCALAR = (
+    (shapely.lib.contains_xy_scalar, shapely.contains),
+    (shapely.lib.intersects_xy_scalar, shapely.intersects),
+)
+
 
 @pytest.mark.parametrize("geometry", all_types + all_types_z)
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
@@ -181,6 +186,22 @@ def test_xy_missing(func):
         np.array([point.y, point.y, np.nan, point.y]),
     )
     np.testing.assert_allclose(actual, [True, False, False, False])
+
+
+@pytest.mark.parametrize("func, func_bin", XY_PREDICATES_SCALAR)
+@pytest.mark.parametrize("prepare", [False, True])
+def test_xy_scalar(func, func_bin, prepare):
+    x = _prepare_with_copy(polygon) if prepare else polygon
+    actual = func(x, 2, 3)
+    expected = func_bin(x, Point(2, 3))
+    assert actual == expected
+
+
+@pytest.mark.parametrize("func, func_bin", XY_PREDICATES_SCALAR)
+def test_xy_scalar_missing(func, func_bin):
+    assert func(None, 2, 3) is False
+    assert func(polygon, np.nan, 3) is False
+    assert func(polygon, 2, np.nan) is False
 
 
 def test_equals_exact_tolerance():
@@ -304,9 +325,12 @@ def test_is_closed(geometry, expected):
     assert shapely.is_closed(geometry) == expected
 
 
-def test_relate():
+@pytest.mark.parametrize("prepared", [False, True])
+def test_relate(prepared):
     p1 = shapely.points(0, 0)
     p2 = shapely.points(1, 1)
+    if prepared:
+        shapely.prepare(p1)
     actual = shapely.relate(p1, p2)
     assert isinstance(actual, str)
     assert actual == "FF0FFF0F2"
@@ -317,9 +341,12 @@ def test_relate_none(g1, g2):
     assert shapely.relate(g1, g2) is None
 
 
-def test_relate_pattern():
+@pytest.mark.parametrize("prepared", [False, True])
+def test_relate_pattern(prepared):
     g = shapely.linestrings([(0, 0), (1, 0), (1, 1)])
     polygon = shapely.box(0, 0, 2, 2)
+    if prepared:
+        shapely.prepare(g)
     assert shapely.relate(g, polygon) == "11F00F212"
     assert shapely.relate_pattern(g, polygon, "11F00F212")
     assert shapely.relate_pattern(g, polygon, "*********")

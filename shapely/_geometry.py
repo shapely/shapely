@@ -6,7 +6,6 @@ from shapely import _geometry_helpers, lib
 from shapely._enum import ParamEnum
 from shapely.decorators import (
     deprecate_positional,
-    multithreading_enabled,
     requires_geos,
 )
 
@@ -28,6 +27,7 @@ __all__ = [
     "get_point",
     "get_precision",
     "get_rings",
+    "get_segments",
     "get_srid",
     "get_type_id",
     "get_x",
@@ -55,7 +55,6 @@ class GeometryType(IntEnum):
 # generic
 
 
-@multithreading_enabled
 def get_type_id(geometry, **kwargs):
     """Return the type ID of a geometry.
 
@@ -95,7 +94,6 @@ def get_type_id(geometry, **kwargs):
     return lib.get_type_id(geometry, **kwargs)
 
 
-@multithreading_enabled
 def get_dimensions(geometry, **kwargs):
     """Return the inherent dimensionality of a geometry.
 
@@ -131,7 +129,6 @@ def get_dimensions(geometry, **kwargs):
     return lib.get_dimensions(geometry, **kwargs)
 
 
-@multithreading_enabled
 def get_coordinate_dimension(geometry, **kwargs):
     """Return the dimensionality of the coordinates in a geometry (2, 3 or 4).
 
@@ -168,7 +165,6 @@ def get_coordinate_dimension(geometry, **kwargs):
     return lib.get_coordinate_dimension(geometry, **kwargs)
 
 
-@multithreading_enabled
 def get_num_coordinates(geometry, **kwargs):
     """Return the total number of coordinates in a geometry.
 
@@ -202,7 +198,6 @@ def get_num_coordinates(geometry, **kwargs):
     return lib.get_num_coordinates(geometry, **kwargs)
 
 
-@multithreading_enabled
 def get_srid(geometry, **kwargs):
     """Return the SRID of a geometry.
 
@@ -234,7 +229,6 @@ def get_srid(geometry, **kwargs):
     return lib.get_srid(geometry, **kwargs)
 
 
-@multithreading_enabled
 def set_srid(geometry, srid, **kwargs):
     """Return a geometry with its SRID set.
 
@@ -269,7 +263,6 @@ def set_srid(geometry, srid, **kwargs):
 # points
 
 
-@multithreading_enabled
 def get_x(point, **kwargs):
     """Return the x-coordinate of a point.
 
@@ -297,7 +290,6 @@ def get_x(point, **kwargs):
     return lib.get_x(point, **kwargs)
 
 
-@multithreading_enabled
 def get_y(point, **kwargs):
     """Return the y-coordinate of a point.
 
@@ -325,7 +317,6 @@ def get_y(point, **kwargs):
     return lib.get_y(point, **kwargs)
 
 
-@multithreading_enabled
 def get_z(point, **kwargs):
     """Return the z-coordinate of a point.
 
@@ -356,7 +347,6 @@ def get_z(point, **kwargs):
     return lib.get_z(point, **kwargs)
 
 
-@multithreading_enabled
 @requires_geos("3.12.0")
 def get_m(point, **kwargs):
     """Return the m-coordinate of a point.
@@ -395,7 +385,6 @@ def get_m(point, **kwargs):
 # linestrings
 
 
-@multithreading_enabled
 def get_point(geometry, index, **kwargs):
     """Return the nth point of a linestring or linearring.
 
@@ -440,7 +429,6 @@ def get_point(geometry, index, **kwargs):
     return lib.get_point(geometry, np.intc(index), **kwargs)
 
 
-@multithreading_enabled
 def get_num_points(geometry, **kwargs):
     """Return the number of points in a linestring or linearring.
 
@@ -477,7 +465,6 @@ def get_num_points(geometry, **kwargs):
 # polygons
 
 
-@multithreading_enabled
 def get_exterior_ring(geometry, **kwargs):
     """Return the exterior ring of a polygon.
 
@@ -505,7 +492,6 @@ def get_exterior_ring(geometry, **kwargs):
     return lib.get_exterior_ring(geometry, **kwargs)
 
 
-@multithreading_enabled
 def get_interior_ring(geometry, index, **kwargs):
     """Return the nth interior ring of a polygon.
 
@@ -547,7 +533,6 @@ def get_interior_ring(geometry, index, **kwargs):
     return lib.get_interior_ring(geometry, np.intc(index), **kwargs)
 
 
-@multithreading_enabled
 def get_num_interior_rings(geometry, **kwargs):
     """Return number of internal rings in a polygon.
 
@@ -590,7 +575,6 @@ def get_num_interior_rings(geometry, **kwargs):
 # collections
 
 
-@multithreading_enabled
 def get_geometry(geometry, index, **kwargs):
     """Return the nth geometry from a collection of geometries.
 
@@ -785,7 +769,6 @@ def get_rings(geometry, return_index=False):
     return _geometry_helpers.get_parts(geometry, extract_rings=True)[0]
 
 
-@multithreading_enabled
 def get_num_geometries(geometry, **kwargs):
     """Return number of geometries in a collection.
 
@@ -819,7 +802,6 @@ def get_num_geometries(geometry, **kwargs):
     return lib.get_num_geometries(geometry, **kwargs)
 
 
-@multithreading_enabled
 def get_precision(geometry, **kwargs):
     """Get the precision of a geometry.
 
@@ -863,7 +845,6 @@ class SetPrecisionMode(ParamEnum):
     keep_collapsed = 2
 
 
-@multithreading_enabled
 def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     """Return geometry with the precision set to a precision grid size.
 
@@ -947,7 +928,6 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     return lib.set_precision(geometry, grid_size, np.intc(mode), **kwargs)
 
 
-@multithreading_enabled
 def force_2d(geometry, **kwargs):
     """Force the dimensionality of a geometry to 2D.
 
@@ -977,7 +957,6 @@ def force_2d(geometry, **kwargs):
     return lib.force_2d(geometry, **kwargs)
 
 
-@multithreading_enabled
 def force_3d(geometry, z=0.0, **kwargs):
     """Force the dimensionality of a geometry to 3D.
 
@@ -1013,3 +992,126 @@ def force_3d(geometry, z=0.0, **kwargs):
     if np.isnan(z).any():
         raise ValueError("It is not allowed to set the Z coordinate to NaN.")
     return lib.force_3d(geometry, z, **kwargs)
+
+
+def get_segments(
+    geometry,
+    *,
+    include_z=False,
+    return_index=False,
+    **kwargs,
+):
+    """Get segments of each input linear geometry object.
+
+    Here 'segments' is defined as the individual pairwise coordinates
+    comprising a LineString or LinearRing. Multi* geometry objects are not supported.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        A single linear object or collection of linear objects.
+    include_z : bool, default False
+        If True, return LINESTRING Z (3D) geometries.
+    return_index : bool, default False
+        If True, also return the index of each returned geometry as a separate
+        ndarray of integers.
+    **kwargs : dict
+        Keyword arguments to pass into ``shapely.linestrings()``.
+
+    Returns
+    -------
+    ndarray of constituent pairwise segments.
+
+    See Also
+    --------
+    get_parts, get_coordinates, linestrings
+
+    Examples
+    --------
+    >>> from shapely import get_segments
+    >>> from shapely import LineString, LinearRing
+
+    Return the 2 constituent pairwise segments of a 3-coordinate linestring.
+
+    >>> get_segments(LineString(([0, 0], [1, 1], [2, 2]))).tolist()
+    [<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>]
+
+    Return the 3 constituent pairwise segments of a 4-coordinate linearring.
+
+    >>> get_segments(LinearRing(([0, 0], [1, 1], [2, 2], [0,0]))).tolist()
+    [<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>, <LINESTRING (2 2, 0 0)>]
+
+    When ``return_index=True``, indexes are returned also:
+
+    >>> segments, index = get_segments(
+    ...      [
+    ...          LineString(([0, 0], [1, 1], [2, 2])),
+    ...          LinearRing(([0, 0], [1, 1], [2, 2], [0,0])),
+    ...      ],
+    ...      return_index=True,
+    ... )
+    >>> segments.tolist(), index.tolist()
+    ([<LINESTRING (0 0, 1 1)>,
+      <LINESTRING (1 1, 2 2)>,
+      <LINESTRING (0 0, 1 1)>,
+      <LINESTRING (1 1, 2 2)>,
+      <LINESTRING (2 2, 0 0)>],
+     [0, 0, 1, 1, 1])
+
+    By default the third dimension (Z) is ignored.
+
+    >>> get_segments(LineString(([0, 0, 1], [1, 1, 1], [2, 2, 1]))).tolist()
+    [<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>]
+    >>> get_segments(
+    ...     LineString(([0, 0, 1], [1, 1, 1], [2, 2, 1])), include_z=True,
+    ... ).tolist()
+    [<LINESTRING Z (0 0 1, 1 1 1)>, <LINESTRING Z (1 1 1, 2 2 1)>]
+
+    If geometries don't have a Z dimension, these values will be NaN.
+
+    >>> get_segments(LineString(([0, 0], [1, 1], [2, 2])), include_z=True).tolist()
+    [<LINESTRING Z (0 0 NaN, 1 1 NaN)>, <LINESTRING Z (1 1 NaN, 2 2 NaN)>]
+
+    """
+    geometry = np.asarray(geometry, dtype=np.object_)
+    geometry = np.atleast_1d(geometry)
+    if geometry.ndim != 1:
+        raise ValueError("Array should be one dimensional")
+
+    # Ensure valid geometry type
+    allowed_type_values = [
+        GeometryType.LINESTRING.value,
+        GeometryType.LINEARRING.value,
+        GeometryType.MISSING.value,
+    ]
+    valid_geometries = np.isin(get_type_id(geometry), allowed_type_values)
+    if not valid_geometries.all():
+        raise ValueError("Geometry type is not supported")
+
+    # Not currently supported for linestrings
+    include_m = False
+    # Always return index for get_coordinates()
+    xys, idx_coords = lib.get_coordinates(geometry, include_z, include_m, True)
+
+    # Create a mask for which coordinates are NOT the last in their group
+    # Last coordinate in each group has idx_coords[i] != idx_coords[i+1]
+    is_not_last = np.concatenate((idx_coords[:-1] == idx_coords[1:], [False]))
+
+    # Get indices of segment starts (all coords except last in each group)
+    segment_starts = np.where(is_not_last)[0]
+    segment_ends = segment_starts + 1
+
+    # Stack the segment coordinates: each segment is [start_point, end_point]
+    segment_coords = np.stack([xys[segment_starts], xys[segment_ends]], axis=1)
+
+    # 'allow' NaN linestrings
+    allow_nan = np.intc(0)
+    lines = lib.linestrings(segment_coords, allow_nan, **kwargs)
+
+    # Efficiently compute idx_lines from segment_starts
+    if return_index:
+        # Return the index location of the original input geometry
+        idx_lines = idx_coords[segment_starts]
+        return lines, idx_lines
+    else:
+        return lines

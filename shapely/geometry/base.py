@@ -273,12 +273,18 @@ class BaseGeometry(shapely.Geometry):
 
     @property
     def wkb(self):
-        """WKB representation of the geometry."""
+        """WKB representation of the geometry.
+
+        See :func:`shapely.to_wkb` for limitations of WKB serialization.
+        """
         return shapely.to_wkb(self)
 
     @property
     def wkb_hex(self):
-        """WKB hex representation of the geometry."""
+        """WKB hex representation of the geometry.
+
+        See :func:`shapely.to_wkb` for limitations of WKB serialization.
+        """
         return shapely.to_wkb(self, hex=True)
 
     def svg(self, scale_factor=1.0, **kwargs):
@@ -339,10 +345,14 @@ class BaseGeometry(shapely.Geometry):
 
     def distance(self, other):
         """Unitless distance to other geometry (float)."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.distance_scalar(self, other)
         return _maybe_unpack(shapely.distance(self, other))
 
     def hausdorff_distance(self, other):
         """Unitless hausdorff distance to other geometry (float)."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.hausdorff_distance_scalar(self, other)
         return _maybe_unpack(shapely.hausdorff_distance(self, other))
 
     @property
@@ -620,7 +630,21 @@ class BaseGeometry(shapely.Geometry):
         option is used, the algorithm may produce self-intersecting or
         otherwise invalid geometries.
         """
-        return shapely.simplify(self, tolerance, preserve_topology=preserve_topology)
+        try:
+            tolerance = float(tolerance)
+        except (TypeError, ValueError):
+            func = (
+                shapely.lib.simplify_preserve_topology
+                if preserve_topology
+                else shapely.lib.simplify
+            )
+        else:
+            func = (
+                shapely.lib.simplify_preserve_topology_scalar
+                if preserve_topology
+                else shapely.lib.simplify_scalar
+            )
+        return func(self, tolerance)
 
     def normalize(self):
         """Convert geometry to normal form (or canonical form).
@@ -656,6 +680,11 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.difference` for full documentation.
         """
+        if shapely.lib.is_valid_input_scalar(other):
+            if grid_size is None:
+                return shapely.lib.difference_scalar(self, other)
+            else:
+                return shapely.lib.difference_prec_scalar(self, other, float(grid_size))
         return shapely.difference(self, other, grid_size=grid_size)
 
     # Note: future plan is to change this signature over a few releases:
@@ -672,6 +701,13 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.intersection` for full documentation.
         """
+        if shapely.lib.is_valid_input_scalar(other):
+            if grid_size is None:
+                return shapely.lib.intersection_scalar(self, other)
+            else:
+                return shapely.lib.intersection_prec_scalar(
+                    self, other, float(grid_size)
+                )
         return shapely.intersection(self, other, grid_size=grid_size)
 
     # Note: future plan is to change this signature over a few releases:
@@ -688,6 +724,13 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.symmetric_difference` for full documentation.
         """
+        if shapely.lib.is_valid_input_scalar(other):
+            if grid_size is None:
+                return shapely.lib.symmetric_difference_scalar(self, other)
+            else:
+                return shapely.lib.symmetric_difference_prec_scalar(
+                    self, other, float(grid_size)
+                )
         return shapely.symmetric_difference(self, other, grid_size=grid_size)
 
     # Note: future plan is to change this signature over a few releases:
@@ -704,6 +747,11 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.union` for full documentation.
         """
+        if shapely.lib.is_valid_input_scalar(other):
+            if grid_size is None:
+                return shapely.lib.union_scalar(self, other)
+            else:
+                return shapely.lib.union_prec_scalar(self, other, float(grid_size))
         return shapely.union(self, other, grid_size=grid_size)
 
     # Unary predicates
@@ -764,14 +812,20 @@ class BaseGeometry(shapely.Geometry):
 
     def covers(self, other):
         """Return True if the geometry covers the other, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.covers_scalar(self, other)
         return _maybe_unpack(shapely.covers(self, other))
 
     def covered_by(self, other):
         """Return True if the geometry is covered by the other, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.covered_by_scalar(self, other)
         return _maybe_unpack(shapely.covered_by(self, other))
 
     def contains(self, other):
         """Return True if the geometry contains the other, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.contains_scalar(self, other)
         return _maybe_unpack(shapely.contains(self, other))
 
     def contains_properly(self, other):
@@ -781,14 +835,20 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.contains_properly` for full documentation.
         """
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.contains_properly_scalar(self, other)
         return _maybe_unpack(shapely.contains_properly(self, other))
 
     def crosses(self, other):
         """Return True if the geometries cross, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.crosses_scalar(self, other)
         return _maybe_unpack(shapely.crosses(self, other))
 
     def disjoint(self, other):
         """Return True if geometries are disjoint, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.disjoint_scalar(self, other)
         return _maybe_unpack(shapely.disjoint(self, other))
 
     def equals(self, other):
@@ -813,22 +873,32 @@ class BaseGeometry(shapely.Geometry):
         bool
 
         """
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.equals_scalar(self, other)
         return _maybe_unpack(shapely.equals(self, other))
 
     def intersects(self, other):
         """Return True if geometries intersect, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.intersects_scalar(self, other)
         return _maybe_unpack(shapely.intersects(self, other))
 
     def overlaps(self, other):
         """Return True if geometries overlap, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.overlaps_scalar(self, other)
         return _maybe_unpack(shapely.overlaps(self, other))
 
     def touches(self, other):
         """Return True if geometries touch, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.touches_scalar(self, other)
         return _maybe_unpack(shapely.touches(self, other))
 
     def within(self, other):
         """Return True if geometry is within the other, else False."""
+        if shapely.lib.is_valid_input_scalar(other):
+            return shapely.lib.within_scalar(self, other)
         return _maybe_unpack(shapely.within(self, other))
 
     def dwithin(self, other, distance):
@@ -944,7 +1014,7 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `interpolate`.
         """
-        return shapely.line_interpolate_point(self, distance, normalized=normalized)
+        return self._line_interpolate_point(distance, normalized=normalized)
 
     # Note: future plan is to change this signature over a few releases:
     # shapely 2.0:
@@ -966,7 +1036,24 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `line_interpolate_point`.
         """
-        return shapely.line_interpolate_point(self, distance, normalized=normalized)
+        return self._line_interpolate_point(distance, normalized=normalized)
+
+    def _line_interpolate_point(self, distance, *, normalized):
+        try:
+            distance = float(distance)
+        except (TypeError, ValueError):
+            func = (
+                shapely.lib.line_interpolate_point_normalized
+                if normalized
+                else shapely.lib.line_interpolate_point
+            )
+        else:
+            func = (
+                shapely.lib.line_interpolate_point_normalized_scalar
+                if normalized
+                else shapely.lib.line_interpolate_point_scalar
+            )
+        return func(self, distance)
 
     def segmentize(self, max_segment_length):
         """Add vertices to line segments based on maximum segment length.
@@ -993,7 +1080,13 @@ class BaseGeometry(shapely.Geometry):
         <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
 
         """  # noqa: E501
-        return shapely.segmentize(self, max_segment_length)
+        try:
+            max_segment_length = float(max_segment_length)
+        except (TypeError, ValueError):
+            func = shapely.lib.segmentize
+        else:
+            func = shapely.lib.segmentize_scalar
+        return func(self, max_segment_length)
 
     def reverse(self):
         """Return a copy of this geometry with the order of coordinates reversed.

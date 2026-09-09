@@ -5,7 +5,7 @@ import numpy as np
 from shapely import Geometry, GeometryType, lib
 from shapely._enum import ParamEnum
 from shapely._geometry_helpers import collections_1d, simple_geometries_1d
-from shapely.decorators import deprecate_positional, multithreading_enabled
+from shapely.decorators import deprecate_positional
 from shapely.io import from_wkt
 
 __all__ = [
@@ -50,7 +50,6 @@ def _xyz_to_coords(x, y, z):
 
 
 @deprecate_positional(["indices"], category=DeprecationWarning)
-@multithreading_enabled
 def points(
     coords,
     y=None,
@@ -142,7 +141,6 @@ def points(
 
 
 @deprecate_positional(["indices"], category=DeprecationWarning)
-@multithreading_enabled
 def linestrings(
     coords,
     y=None,
@@ -241,7 +239,6 @@ def linestrings(
 
 
 @deprecate_positional(["indices"], category=DeprecationWarning)
-@multithreading_enabled
 def linearrings(
     coords,
     y=None,
@@ -341,7 +338,6 @@ def linearrings(
 
 
 @deprecate_positional(["indices"], category=DeprecationWarning)
-@multithreading_enabled
 def polygons(geometries, holes=None, indices=None, *, out=None, **kwargs):
     """Create an array of Polygons.
 
@@ -459,7 +455,6 @@ def polygons(geometries, holes=None, indices=None, *, out=None, **kwargs):
 
 
 @deprecate_positional(["ccw"], category=DeprecationWarning)
-@multithreading_enabled
 def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
     """Create a box Polygon (or an array of boxes).
 
@@ -515,7 +510,6 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
 
 
 @deprecate_positional(["indices"], category=DeprecationWarning)
-@multithreading_enabled
 def multipoints(geometries, indices=None, *, out=None, **kwargs):
     """Create an array of MultiPoints.
 
@@ -604,7 +598,6 @@ def multipoints(geometries, indices=None, *, out=None, **kwargs):
 
 
 @deprecate_positional(["indices"], category=DeprecationWarning)
-@multithreading_enabled
 def multilinestrings(geometries, indices=None, *, out=None, **kwargs):
     """Create an array of MultiLineStrings.
 
@@ -661,7 +654,6 @@ def multilinestrings(geometries, indices=None, *, out=None, **kwargs):
 
 
 @deprecate_positional(["indices"], category=DeprecationWarning)
-@multithreading_enabled
 def multipolygons(geometries, indices=None, *, out=None, **kwargs):
     """Create an array of MultiPolygons.
 
@@ -717,7 +709,6 @@ def multipolygons(geometries, indices=None, *, out=None, **kwargs):
 
 
 @deprecate_positional(["indices"], category=DeprecationWarning)
-@multithreading_enabled
 def geometrycollections(geometries, indices=None, out=None, **kwargs):
     """Create an array of GeometryCollections.
 

@@ -3,7 +3,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 import shapely
-from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
+from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon, lib
 from shapely.tests.common import (
     empty,
     geometry_collection,
@@ -161,14 +161,18 @@ def test_hausdorff_distance():
     assert actual == pytest.approx(22.360679775, abs=1e-7)
 
 
-def test_hausdorff_distance_densify():
+# NB: The scalar version is called from nowhere, test it directly
+@pytest.mark.parametrize(
+    "func", [shapely.hausdorff_distance, lib.hausdorff_distance_densify_scalar]
+)
+def test_hausdorff_distance_densify(func):
     # example from GEOS docs
     a = shapely.linestrings([[0, 0], [100, 0], [10, 100], [10, 100]])
     b = shapely.linestrings([[0, 100], [0, 10], [80, 10]])
     with ignore_invalid(shapely.geos_version < (3, 12, 0)):
         # Hausdorff distance emits "invalid value encountered"
         # (see https://github.com/libgeos/geos/issues/515)
-        actual = shapely.hausdorff_distance(a, b, densify=0.001)
+        actual = func(a, b, 0.001)
     assert actual == pytest.approx(47.8, abs=0.1)
 
 
@@ -240,21 +244,18 @@ def test_frechet_distance(geom1, geom2, expected):
     assert actual == pytest.approx(expected, abs=1e-12)
 
 
+# NB: The scalar version is called from nowhere, test it directly
 @pytest.mark.parametrize(
-    "geom1, geom2, densify, expected",
-    [
-        # example from GEOS tests
-        (
-            shapely.linestrings([[0, 0], [100, 0]]),
-            shapely.linestrings([[0, 0], [50, 50], [100, 0]]),
-            0.002,
-            50,
-        )
-    ],
+    "func",
+    [shapely.frechet_distance, lib.frechet_distance_densify_scalar],
 )
-def test_frechet_distance_densify(geom1, geom2, densify, expected):
-    actual = shapely.frechet_distance(geom1, geom2, densify=densify)
-    assert actual == pytest.approx(expected, abs=1e-12)
+def test_frechet_distance_densify(func):
+    actual = func(
+        shapely.linestrings([[0, 0], [100, 0]]),
+        shapely.linestrings([[0, 0], [50, 50], [100, 0]]),
+        0.002,
+    )
+    assert actual == pytest.approx(50, abs=1e-12)
 
 
 @pytest.mark.parametrize(
@@ -297,6 +298,29 @@ def test_frechet_densify_invalid_values(densify):
 def test_frechet_distance_densify_empty():
     actual = shapely.frechet_distance(line_string, empty, densify=0.2)
     assert np.isnan(actual)
+
+
+@pytest.mark.parametrize(
+    "func",
+    [
+        lib.hausdorff_distance_densify_scalar,
+        lib.frechet_distance_densify_scalar,
+    ],
+)
+@pytest.mark.parametrize(
+    "geom1, geom2, param",
+    [
+        (None, point, 0.5),
+        (point, None, 0.5),
+        (point, point, np.nan),
+        (point, empty, 0.5),
+        (empty, point, 0.5),
+    ],
+)
+def test_distance_densify_scalar_nan(func, geom1, geom2, param):
+    """Test scalar distance functions with None/NaN/empty inputs return NaN"""
+    result = func(geom1, geom2, param)
+    assert np.isnan(result)
 
 
 def test_minimum_clearance():

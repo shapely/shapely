@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+import shapely
 from shapely import LinearRing, LineString, Point, Polygon
 from shapely.coords import CoordinateSequence
 from shapely.errors import TopologicalError
@@ -398,8 +399,14 @@ class TestPolygon:
 
     def test_from_bounds(self):
         xmin, ymin, xmax, ymax = -180, -90, 180, 90
-        coords = [(xmin, ymin), (xmin, ymax), (xmax, ymax), (xmax, ymin)]
+        coords = [(xmax, ymin), (xmax, ymax), (xmin, ymax), (xmin, ymin)]
         assert Polygon(coords) == Polygon.from_bounds(xmin, ymin, xmax, ymax)
+
+    def test_from_bounds_orientation(self):
+        # from_bounds should match box() and be counterclockwise
+        poly = Polygon.from_bounds(1, 2, 3, 4)
+        assert poly.equals_exact(shapely.box(1, 2, 3, 4), tolerance=0)
+        assert poly.exterior.is_ccw
 
     def test_empty_polygon_exterior(self):
         p = Polygon()

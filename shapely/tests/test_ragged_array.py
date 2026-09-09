@@ -158,12 +158,14 @@ def test_include_m_default():
 @pytest.mark.parametrize("geom", all_types)
 def test_read_only_arrays(geom):
     # https://github.com/shapely/shapely/pull/1744
-    typ, coords, offsets = shapely.to_ragged_array([geom, geom])
+    arr = np.array([geom, geom])
+    arr.flags.writeable = False
+    typ, coords, offsets = shapely.to_ragged_array(arr)
     coords.flags.writeable = False
-    for arr in offsets:
-        arr.flags.writeable = False
+    for a in offsets:
+        a.flags.writeable = False
     result = shapely.from_ragged_array(typ, coords, offsets)
-    assert_geometries_equal(result, [geom, geom])
+    assert_geometries_equal(result, arr)
 
 
 @pytest.mark.parametrize("geom", all_types_not_supported)

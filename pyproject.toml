@@ -1,13 +1,11 @@
 [build-system]
 requires = [
+    # keep in sync with a subset of [dependency-groups.build]
     "Cython",
-    # Starting with NumPy 1.25, NumPy is (by default) as far back compatible
-    # as oldest-support-numpy was (customizable with a NPY_TARGET_VERSION
-    # define).
-    "numpy>=1.25,<3",
-    "setuptools>=77.0.3",
+    "meson-python>=0.15.0",
+    "numpy>=1.26,<3",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "mesonpy"
 
 [project]
 name = "shapely"
@@ -34,15 +32,24 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.11"  # keep in sync with `min_python_version` in meson.build
 dependencies = [
-    "numpy>=1.23",
+    "numpy>=1.26",  # keep in sync with `min_numpy_runtime_version` in meson.build
 ]
 
-[project.optional-dependencies]
-test = [
+[dependency-groups]
+build = [
+    # keep in sync with a superset of [build-system.requires]
+    "Cython",
+    "meson>=1.2.1",
+    "meson-python>=0.15.0",
+    "ninja",
+    "numpy>=1.26,<3",
+]
+tests = [
     "pytest",
     "pytest-cov",
     "scipy-doctest",
@@ -54,26 +61,21 @@ docs = [
     "sphinx-book-theme",
     "sphinx-remove-toctrees",
 ]
+dev = [
+    "pre-commit",
+    {include-group = "build"},
+    {include-group = "tests"},
+]
 
 [project.urls]
 Documentation = "https://shapely.readthedocs.io/"
 Repository = "https://github.com/shapely/shapely"
 
-[tool.setuptools]
-include-package-data = false
-
-[tool.setuptools.packages.find]
-include = ["shapely", "shapely.*"]
-
-[tool.setuptools.package-data]
-"shapely" = ["*.pxd"]
-
 [tool.cibuildwheel]
-skip = ["pp*", "*_i686", "*_ppc64le", "*_s390x"]
+skip = ["*_i686", "*_ppc64le", "*_s390x"]
 build-verbosity = 1
 test-requires = "pytest"
 test-command = "pytest --pyargs shapely.tests"
-enable = ["cpython-freethreading"]
 
 [tool.coverage.run]
 source = ["shapely"]
@@ -84,6 +86,13 @@ include = ["docs"]
 ignore = ["D000", "D004"]
 allow-long-titles = true
 max-line-length = 79
+
+[tool.meson-python.args]
+# setup = ["--clearcache"]  # uncomment to clear build cache with local builds
+
+[tool.pytest.ini_options]
+doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
+xfail_strict = true
 
 [tool.ruff]
 line-length = 88

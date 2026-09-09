@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import Geometry, GeometryCollection, Polygon
+from shapely import Geometry, GeometryCollection, LineString, Point, Polygon
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import all_types, empty, ignore_invalid, point, polygon
 
@@ -417,6 +417,35 @@ def test_difference_deprecate_positional():
         match="positional argument `grid_size` for `difference` is deprecated"
     ):
         shapely.difference(point, point, None)
+
+
+@pytest.mark.parametrize(
+    "geom",
+    [
+        Point(0, 0),
+        Point(0, 0, 0),
+        LineString([[2, 0], [0, 2]]),
+        LineString([[2, 0, 0], [0, 2, 0]]),
+        Polygon([[0, 0], [2, 0], [0, 2], [0, 0]]),
+        Polygon([[0, 0, 0], [2, 0, 0], [0, 2, 0], [0, 0, 0]]),
+    ],
+)
+@pytest.mark.skipif(
+    shapely.geos_version < (3, 12, 0),
+    reason="GEOS < 3.12 does not always preserve dimension on empty result",
+)
+def test_difference_dim_empty_result(geom):
+    """Test that difference preserves coordinate dimension even when result is empty.
+
+    Was fixed for all situations starting from GEOS 3.12.
+
+    Reference: https://github.com/shapely/shapely/issues/1686
+    """
+    exp_dim = shapely.get_coordinate_dimension(geom)
+
+    result = geom.difference(geom)
+    assert shapely.get_coordinate_dimension(result) == exp_dim
+    assert result.is_empty
 
 
 def test_intersection_deprecate_positional():

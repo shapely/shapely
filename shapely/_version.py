@@ -691,3 +691,6 @@ def get_versions():
         "error": "unable to compute version",
         "date": None,
     }
+
+if __name__ == "__main__":
+    print(get_versions()["version"])

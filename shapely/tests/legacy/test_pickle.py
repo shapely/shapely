@@ -53,7 +53,7 @@ def test_pickle_round_trip(geom1):
 
 
 @pytest.mark.parametrize(
-    "fname", (HERE / "data").glob("*.pickle"), ids=lambda fname: fname.name
+    "fname", list((HERE / "data").glob("*.pickle")), ids=lambda fname: fname.name
 )
 def test_unpickle_pre_20(fname):
     from shapely.testing import assert_geometries_equal
