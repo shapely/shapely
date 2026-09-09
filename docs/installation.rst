@@ -6,13 +6,13 @@ Built distributions
 
 Built distributions don't require compiling Shapely and its dependencies,
 and can be installed using ``pip`` or ``conda``. In addition, Shapely is also
-available via some system package management tools like apt.
+available via some system package management tools like apt or OSGeo4W.
 
 Installation from PyPI
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Shapely is available as a binary distribution (wheel) for Linux, macOS, and
-Windows platforms on `PyPI <https://pypi.org/project/Shapely/>`__. The
+Windows platforms on `PyPI <https://pypi.org/project/shapely/>`__. The
 distribution includes the most recent version of GEOS available at the time
 of the Shapely release. Install the binary wheel with pip as follows::
 
@@ -55,87 +55,139 @@ On macOS::
     $ pip install shapely --no-binary shapely
 
 If you've installed GEOS to a standard location on Linux or macOS, the
-installation will automatically find it using ``geos-config``. See the notes
-below on GEOS discovery at compile time to configure this.
+installation will automatically find it using CMake or pkg-config. If GEOS
+is installed into a non-standard location, this will need to be specified.
+To specify path to a CMake prefix::
 
-We do not have a recipe for Windows platforms. The following steps should
-enable you to build Shapely yourself:
+    $ GEOS_INSTALL=/path/to/geos-3.14.1
+    $ pip install shapely --no-binary shapely -Csetup-args=-Dcmake_prefix_path="$GEOS_INSTALL"
 
-- Get a C compiler applicable to your Python version (https://wiki.python.org/moin/WindowsCompilers)
-- Download and install a GEOS binary (https://trac.osgeo.org/osgeo4w/)
-- Set GEOS_INCLUDE_PATH and GEOS_LIBRARY_PATH environment variables (see below
-  for notes on GEOS discovery)
-- Run ``pip install shapely --no-binary``
-- Make sure the GEOS .dll files are available on the PATH
+Or using pkg-config::
 
+    $ pip install shapely --no-binary shapely -Csetup-args="-Dpkg_config_path=$GEOS_INSTALL/lib/pkgconfig"
 
 Installation for local development
 -----------------------------------
 
 This is similar to installing with a custom GEOS binary, but then instead of
-installing Shapely with pip from PyPI, you clone the package from Github::
+installing Shapely with pip from PyPI, you clone the package from GitHub:
+
+.. code-block:: console
 
     $ git clone git@github.com:shapely/shapely.git
     $ cd shapely/
 
-Install it in development mode using ``pip``::
+Local development with ``pip`` is enabled with an "editable" mode, where
+edits to the source code become effective without the need of a new
+installation step. As of Shapely 2.2, the build backend was changed to
+meson-python, which requires `a few other instructions
+<https://mesonbuild.com/meson-python/how-to-guides/editable-installs.html>`__,
+such as ``--no-build-isolation``.
 
-    $ pip install -e . --group dev
+Virtual environments
+^^^^^^^^^^^^^^^^^^^^
 
-For development, use of a virtual environment is strongly recommended. For
-example using ``venv``:
+:external+python:doc:`Virtual environments <library/venv>` are recommended for
+development. They can be created using Python or tools like
+`uv <https://docs.astral.sh/uv/>`__.
+For example, create and activate a virtual environment, then install the required
+development packages:
 
 .. code-block:: console
 
     $ python3 -m venv .
     $ source bin/activate
-    (env) $ pip install -e . --group dev
+    (env) $ pip install --group dev
 
-Or using ``conda``:
+Install shapely in editable mode using ``pip``:
 
 .. code-block:: console
 
-    $ conda create -n env python=3 geos numpy cython pytest
-    $ conda activate env
-    (env) $ pip install -e .
+    (env) $ pip install --no-build-isolation -e .
+
+This approach relies on a local or system installation of GEOS, since it is
+not available as a package on the PyPI ecosystem (unlike conda).
+
+To see compilation details, add ``-v`` (or ``--verbose``) to ``pip install``.
+To also see compilation details when an automatic rebuild of the extension
+modules happens in editable mode, add ``-Ceditable-verbose=true`` to the command.
+
+Conda environments
+^^^^^^^^^^^^^^^^^^
+
+Development within conda environments requires additional packages installed
+with the ``conda`` command, including pre-built distributions of GEOS.
+For example:
+
+.. code-block:: console
+
+    $ conda create -n shapely-dev cython meson meson-python pkg-config ninja numpy geos pip pytest
+
+Activate the environment and install shapely in editable mode using ``pip``:
+.. code-block:: console
+
+    $ conda activate shapely-dev
+    (shapely-dev) $ pip install --no-build-isolation -e . -v -Ceditable-verbose=true
 
 Testing Shapely
 ---------------
 
 Shapely can be tested using ``pytest``::
 
-    $ pip install pytest  # or shapely --group dev
     $ pytest --pyargs shapely.tests
 
 
 GEOS discovery (compile time)
 -----------------------------
 
-If GEOS is installed on Linux or macOS, the ``geos-config`` command line
-utility should be available and ``pip`` will find GEOS automatically.
-If the correct ``geos-config`` is not on the PATH, you can add it as follows
-(on Linux/macOS)::
+GEOS is a core dependency built and installed with CMake. For example, build
+and install it to ``$HOME/opt/geos`` as follows:
 
-    $ export PATH=/path/to/geos/bin:$PATH
+.. code-block:: console
 
-Alternatively, you can specify where Shapely should look for GEOS library and
-header files using environment variables (on Linux/macOS)::
+    $ git clone git@github.com:libgeos/geos.git --depth 1
+    $ cd geos
+    $ cmake -GNinja -S . -B _build -DCMAKE_INSTALL_PREFIX=$HOME/opt/geos
+    $ cmake --build _build
+    $ cmake --install _build
 
-    $ export GEOS_INCLUDE_PATH=/path/to/geos/include
-    $ export GEOS_LIBRARY_PATH=/path/to/geos/lib
+If it is installed to a custom path, then it can be discovered by setting the
+``cmake_prefix_path`` built-in meson setup option:
 
-On Windows, there is no ``geos-config`` and the include and lib folders need to
-be specified manually in any case::
+.. code-block:: console
 
-    $ set GEOS_INCLUDE_PATH=C:\path\to\geos\include
-    $ set GEOS_LIBRARY_PATH=C:\path\to\geos\lib
+    $ pip install --no-build-isolation -e . -Csetup-args="-Dcmake_prefix_path=$HOME/opt/geos"
 
-Common locations of GEOS (to be suffixed by ``lib``, ``include`` or ``bin``):
+Alternatively, ``pkg-config`` can be used to declare a GEOS dependency in
+a custom path using the ``pkg_config_path`` built-in meson setup option:
 
-* Anaconda (Linux/macOS): ``$CONDA_PREFIX/Library``
-* Anaconda (Windows): ``%CONDA_PREFIX%\Library``
-* OSGeo4W (Windows): ``C:\OSGeo4W64``
+.. code-block:: console
 
+    $ pip install --no-build-isolation -e . -Csetup-args="-Dpkg_config_path=$HOME/opt/geos/lib/pkgconfig"
+
+For Linux, if the GEOS library is not on the dynamic linker run-time path (i.e.
+it was installed to a custom path), then the ``LD_LIBRARY_PATH`` environment
+variable needs to be set before running, for example:
+
+.. code-block:: console
+
+    $ export LD_LIBRARY_PATH=$HOME/opt/geos/lib
+
+Windows users need to set an environment variable to the folder with GEOS' DLLs
+that will be used at runtime, e.g.:
+
+.. code-block:: bat
+
+    > set GEOS_LIBDIR=C:\OSGeo4W\bin
+
+Read more about GEOS runtime discovery in the next section.
+
+.. note::
+
+    Previous versions of shapely used several methods to discover GEOS,
+    including ``geos-config``, ``GEOS_LIBRARY_PATH`` and ``GEOS_INCLUDE_PATH``.
+    These methods are no longer supported since Shapely 2.2, to simplify
+    the GEOS discovery process.
 
 GEOS discovery (runtime)
 ------------------------

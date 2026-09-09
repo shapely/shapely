@@ -1,0 +1,33 @@
+# C source files for the "shapely.lib" Python module
+
+py.extension_module(
+  'lib', # i.e. shapely.lib
+  'c_api.c',
+  'coords.c',
+  'geom_arr.c',
+  'geos.c',
+  'geos_funcs_O_b.c',
+  'geos_funcs_YY_Y.c',
+  'geos_funcs_YY_b.c',
+  'geos_funcs_YY_d.c',
+  'geos_funcs_YYd_Y.c',
+  'geos_funcs_YYd_d.c',
+  'geos_funcs_Y_Y.c',
+  'geos_funcs_Y_b.c',
+  'geos_funcs_Y_d.c',
+  'geos_funcs_Y_i.c',
+  'geos_funcs_Yd_Y.c',
+  'geos_funcs_Ydb_Y.c',
+  'geos_funcs_Ydd_b.c',
+  'geos_funcs_Yi_Y.c',
+  'lib.c',
+  'pygeom.c',
+  'pygeos.c',
+  'signal_checks.c',
+  'strtree.c',
+  'ufuncs.c',
+  'vector.c',
+  install: true,
+  subdir: 'shapely',
+  dependencies: [numpy_dep, geos_dep],
+)

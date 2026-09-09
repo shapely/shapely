@@ -6,20 +6,19 @@ on:
       - main  # just build the sdist & wheel, skip release
     tags:
       - "*"
-  pull_request:  # also build on PRs touching this file
+  pull_request:  # also build on PRs touching these files
     paths:
       - ".github/workflows/release.yml"
       - "ci/*"
-      - "MANIFEST.in"
+      - "**meson.build"
       - "pyproject.toml"
-      - "setup.py"
   schedule:
     # in addition run weekly for nightly upload in case no other commits happened
     - cron: '34 2 * * 0'
   workflow_dispatch:
 
 env:
-  GEOS_VERSION: "3.13.1"
+  GEOS_VERSION: "3.14.1"
 
 jobs:
   build_sdist:
@@ -35,10 +34,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.x"
+          python-version-file: "pyproject.toml"
 
       - name: Build a source tarball
         run: |
+          sudo -E apt-get update
+          sudo -E apt-get autopurge -y needrestart
+          sudo -E apt-get -yq --no-install-suggests --no-install-recommends install libgeos-dev
           python -m pip install --upgrade pip
           python -m pip install build twine
           python -m build --sdist
@@ -75,7 +77,7 @@ jobs:
             cibw_build: "*musllinux_aarch64"
             arch: aarch64
     env:
-      basetag: 2026.08.08-1
+      basetag: 2026.09.05-1
 
     steps:
       - name: Checkout source
@@ -188,16 +190,17 @@ jobs:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_ENVIRONMENT_MACOS:
             GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
-            GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
             MACOSX_DEPLOYMENT_TARGET=10.9
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
             CFLAGS='-Wno-error=incompatible-function-pointer-types'
           CIBW_ENVIRONMENT_WINDOWS:
             GEOS_INSTALL='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}'
-            GEOS_LIBRARY_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\lib'
-            GEOS_INCLUDE_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\include'
           CIBW_BEFORE_ALL_MACOS: ./ci/install_geos.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
+          CIBW_CONFIG_SETTINGS:
+            setup-args="-Dcmake_prefix_path=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}"
+          CIBW_CONFIG_SETTINGS_WINDOWS:
+            setup-args="-Dcmake_prefix_path=${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}"
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} -v {wheel}
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
@@ -219,7 +222,7 @@ jobs:
           merge-multiple: true
           path: dist
       - name: Upload wheels to Anaconda Cloud
-        uses: scientific-python/upload-nightly-action@e76cfec8a4611fd02808a801b0ff5a7d7c1b2d99 # 0.6.4
+        uses: scientific-python/upload-nightly-action@16fa02eacee1655195143de09f03676e60ef2bf5 # 0.6.5
         with:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{secrets.ANACONDA_ORG_UPLOAD_TOKEN}}
@@ -230,6 +233,13 @@ jobs:
     runs-on: ubuntu-latest
     # release on every tag
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
+    environment:
+      name: pypi
+      url: https://pypi.org/p/shapely
+    permissions:
+      id-token: write # IMPORTANT: this permission is mandatory for trusted publishing to PyPI
+      contents: write # this permission is required for the Github release action
+
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -238,37 +248,12 @@ jobs:
           path: dist
 
       - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
+          tag_name: ${{ github.ref_name }}
           draft: false
           prerelease: false
-
-      - name: Get Asset name
-        run: |
-          export PKG=$(ls dist/ | grep tar)
-          set -- $PKG
-          echo "name=$1" >> $GITHUB_ENV
-
-      - name: Upload Release Asset (sdist) to GitHub
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/${{ env.name }}
-          asset_name: ${{ env.name }}
-          asset_content_type: application/zip
+          files: dist/*.tar.gz
 
       - name: Upload Release Assets to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_password }}
-          skip-existing: true
-          # To test: repository_url: https://test.pypi.org/legacy/

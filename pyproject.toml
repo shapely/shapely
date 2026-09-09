@@ -1,14 +1,11 @@
 [build-system]
-# NOTE: when updating this table, also update `dependency-groups.build`
 requires = [
+    # keep in sync with a subset of [dependency-groups.build]
     "Cython",
-    # Starting with NumPy 1.25, NumPy is (by default) as far back compatible
-    # as oldest-support-numpy was (customizable with a NPY_TARGET_VERSION
-    # define).
-    "numpy>=1.25,<3",
-    "setuptools>=77.0.3",
+    "meson-python>=0.15.0",
+    "numpy>=1.26,<3",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "mesonpy"
 
 [project]
 name = "shapely"
@@ -38,18 +35,19 @@ classifiers = [
     "Programming Language :: Python :: 3.15",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.11"  # keep in sync with `min_python_version` in meson.build
 dependencies = [
-    "numpy>=1.23",
+    "numpy>=1.26",  # keep in sync with `min_numpy_runtime_version` in meson.build
 ]
 
 [dependency-groups]
 build = [
-    "cmake",
+    # keep in sync with a superset of [build-system.requires]
     "Cython",
+    "meson>=1.2.1",
+    "meson-python>=0.15.0",
     "ninja",
-    "numpy>=1.25,<3",
-    "setuptools>=77.0.3",
+    "numpy>=1.26,<3",
 ]
 tests = [
     "pytest",
@@ -73,15 +71,6 @@ dev = [
 Documentation = "https://shapely.readthedocs.io/"
 Repository = "https://github.com/shapely/shapely"
 
-[tool.setuptools]
-include-package-data = false
-
-[tool.setuptools.packages.find]
-include = ["shapely", "shapely.*"]
-
-[tool.setuptools.package-data]
-"shapely" = ["*.pxd"]
-
 [tool.cibuildwheel]
 skip = ["*_i686", "*_ppc64le", "*_s390x"]
 build-verbosity = 1
@@ -97,6 +86,9 @@ include = ["docs"]
 ignore = ["D000", "D004"]
 allow-long-titles = true
 max-line-length = 79
+
+[tool.meson-python.args]
+# setup = ["--clearcache"]  # uncomment to clear build cache with local builds
 
 [tool.pytest.ini_options]
 doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
