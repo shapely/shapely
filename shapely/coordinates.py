@@ -194,6 +194,8 @@ def transform_coordseq(
     The `transform` function is the more performant option, so we recommend using this
     function when changing the number of coordinate pairs.
 
+    .. versionadded:: 2.2.0
+
     Parameters
     ----------
     geom : Geometry or None
