@@ -70,5 +70,4 @@ endforeach
 # Filter-out a few files from "tests" for binary wheel distribution
 install_subdir('tests', install_dir: py.get_install_dir() / 'shapely',
   exclude_directories: 'legacy/data',  # keep until <2 geometry pickle support is removed
-  exclude_files: ['legacy/rungrind.dist', 'legacy/valgrind-python.supp'],
 )
