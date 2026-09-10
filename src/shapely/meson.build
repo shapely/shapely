@@ -61,13 +61,9 @@ py.install_sources([
 subdirs_list = [
   'algorithms',
   'geometry',
+  'tests',
   'vectorized',
 ]
 foreach subdir : subdirs_list
   install_subdir(subdir, install_dir: py.get_install_dir() / 'shapely')
 endforeach
-
-# Filter-out a few files from "tests" for binary wheel distribution
-install_subdir('tests', install_dir: py.get_install_dir() / 'shapely',
-  exclude_directories: 'legacy/data',  # keep until <2 geometry pickle support is removed
-)
