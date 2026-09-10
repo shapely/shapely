@@ -166,15 +166,6 @@ jobs:
           path: ${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/*') }}
 
-      - name: Add GEOS LICENSE
-        run: cp ci/wheelbuilder/LICENSE_GEOS .
-        shell: bash
-
-      - name: Add MSVC LICENSE
-        run: cp ci/wheelbuilder/LICENSE_win32 .
-        shell: bash
-        if: ${{ startsWith(matrix.os, 'windows') }}
-
       - name: Activate MSVC
         uses: TheMrMilchmann/setup-msvc-dev@v4
         with:

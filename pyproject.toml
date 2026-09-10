@@ -9,7 +9,7 @@ build-backend = "mesonpy"
 
 [project]
 name = "shapely"
-dynamic = ["version"]
+dynamic = ["version", "license-files"]
 authors = [
     {name = "Sean Gillies"},
 ]
@@ -44,8 +44,8 @@ dependencies = [
 build = [
     # keep in sync with a superset of [build-system.requires]
     "Cython",
-    "meson>=1.2.1",
-    "meson-python>=0.15.0",
+    "meson>=1.6.0",
+    "meson-python>=0.21.0",
     "ninja",
     "numpy>=1.26,<3",
 ]

@@ -5,7 +5,8 @@ project(
   'c', 'cython',
   version: run_command('python3', 'src/shapely/_version.py', check: true).stdout().strip(),
   license: 'BSD-3-Clause',
-  meson_version: '>=1.2.1',  # keep in sync with [dependency-groups.build] in pyproject.toml
+  license_files: run_command('python3', 'ci/print_license_files.py', check: true).stdout().strip().split(),
+  meson_version: '>=1.6.0',  # keep in sync with [dependency-groups.build] in pyproject.toml
   default_options: [
     'buildtype=release',
     'c_std=c11',
