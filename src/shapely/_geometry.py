@@ -1008,6 +1008,8 @@ def get_segments(
     Here 'segments' is defined as the individual pairwise coordinates
     comprising a LineString or LinearRing. Multi* geometry objects are not supported.
 
+    .. versionadded:: 2.2.0
+
     Parameters
     ----------
     geometry : Geometry or array_like
