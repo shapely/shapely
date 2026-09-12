@@ -109,6 +109,10 @@ jobs:
         env:
           BUILDKIT_PROGRESS: plain
 
+      - name: Add GEOS LICENSE
+        run: cp ci/wheelbuilder/LICENSE_GEOS .
+        shell: bash
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.2.0
         env:
