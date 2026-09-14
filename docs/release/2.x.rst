@@ -15,7 +15,7 @@ Performance improvements for scalar function calls
 
 While the shapely 2.0 release provided significant performance improvements for
 vectorized operations on arrays of geometries (through the new top-level
-universal functions), the performance of the the scalar geometry objects and
+universal functions), the performance of the scalar geometry objects and
 their attributes and methods did not see improvements, or even slight
 regressions because of additional overhead (#2035, #2339).
 
