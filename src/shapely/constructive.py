@@ -1255,6 +1255,8 @@ def split(geometry, splitter, **kwargs):
     geometry. For example in the case of splitting a line by a point, the
     point must be exactly on the line, for the line to be correctly split.
 
+    .. versionadded:: 2.2.0
+
     Parameters
     ----------
     geometry : Geometry or array_like
