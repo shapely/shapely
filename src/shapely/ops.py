@@ -314,8 +314,12 @@ class SplitOp:
         """Split a Polygon with a LineString."""
         if not isinstance(poly, Polygon):
             raise GeometryTypeError("First argument must be a Polygon")
+        if splitter.geom_type in {"Polygon", "MultiPolygon"}:
+            splitter = splitter.boundary
         if not isinstance(splitter, (LineString, MultiLineString)):
-            raise GeometryTypeError("Second argument must be a (Multi)LineString")
+            raise GeometryTypeError(
+                "Second argument must be a (Multi)LineString or (Multi)Polygon"
+            )
 
         union = poly.boundary.union(splitter)
 
@@ -437,14 +441,14 @@ class SplitOp:
         The function supports:
           - Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString
             or (Multi)Polygon
-          - Splitting a (Multi)Polygon by a LineString
+          - Splitting a (Multi)Polygon by a (Multi)LineString or (Multi)Polygon
 
         It may be convenient to snap the splitter with low tolerance to the
         geometry. For example in the case of splitting a line by a point, the
         point must be exactly on the line, for the line to be correctly split.
-        When splitting a line by a polygon, the boundary of the polygon is used
-        for the operation. When splitting a line by another line, a ValueError
-        is raised if the two overlap at some segment.
+        When splitting a line or polygon by a polygon, the boundary of the
+        polygon is used for the operation. When splitting a line by another
+        line, a ValueError is raised if the two overlap at some segment.
 
         Parameters
         ----------
@@ -488,7 +492,12 @@ class SplitOp:
                 )
 
         elif geom.geom_type == "Polygon":
-            if splitter.geom_type in {"LineString", "MultiLineString"}:
+            if splitter.geom_type in {
+                "LineString",
+                "MultiLineString",
+                "Polygon",
+                "MultiPolygon",
+            }:
                 split_func = SplitOp._split_polygon_with_line
             else:
                 raise GeometryTypeError(
