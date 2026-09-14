@@ -15,21 +15,21 @@ Performance improvements for scalar function calls
 
 While the shapely 2.0 release provided significant performance improvements for
 vectorized operations on arrays of geometries (through the new top-level
-universal functions), this came at the cost of the performance of scalar
-function calls (#2035, #2339).
+universal functions), the performance of the the scalar geometry objects and
+their attributes and methods did not see improvements, or even slight
+regressions because of additional overhead (#2035, #2339).
 
-TODO add benchmarks example of creating point and calling some attribute
+With shapely 2.2, we also improved the performance of scalar function calls
+significantly. For example, considering a single ``Point`` geometry (``p =
+shapely.Point(1.0, 2.0)``), accessing a cheap attribute such as its
+x-coordinate (``p.x``) now takes around 50-100 nanoseconds instead of 2-3
+microseconds.
 
-Improved performance of the following geometry methods: `area`, `length`,
-`minimum_clearance`, `x`, `y`, `z`, `m`, `has_z`, `has_m`, `is_empty`,
-`is_ring`, `is_closed`, `is_simple`, `geom_type`, `__len__`, `_ndim`.
-Benchmarks showed a change of call duration from 2.6 microseconds to 0.2
-microseconds (on the `Point.x` attribute).
-
-Improved performance by changing the GEOS context handling. Instead of
-initializing/finalizing on every call, GEOS contexts are reused through a
-threadlocal variable. It should give a performance increase of about
-75 nanoseconds per call.
+Many of the other attributes and methods have also received performance
+improvements. This is achieved by a combination of specialized scalar versions
+(avoiding the overhead of the NumPy ufunc machinery) and improved GEOS context
+handling (instead of initializing/finalizing on every call, GEOS contexts are
+reused through a thread-local variable).
 
 New functions
 ~~~~~~~~~~~~~
