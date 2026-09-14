@@ -11,7 +11,7 @@ build:
     python: "miniforge3-25.11"
   jobs:
     post_checkout:
-      # we need the tags for versioneer to work
+      # we need the tags for git-based versioning to work
       - git fetch origin --depth 150
       - git fetch --tags
     pre_install:
