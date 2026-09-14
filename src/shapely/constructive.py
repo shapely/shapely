@@ -1266,6 +1266,13 @@ def split(geometry, splitter, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+    If using shapely with a version of GEOS 3.15.0 or newer, the split operation
+    is performed by the GEOS library directly. When running with older GEOS
+    versions (see ``shapely.geos_version_string``), a custom python implementation
+    is used.
+
     Examples
     --------
     >>> import shapely
