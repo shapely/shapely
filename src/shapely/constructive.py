@@ -1468,6 +1468,8 @@ def minimum_width(geometry, **kwargs):
     LineStrings or Points. (In these cases, the minimum width is a
     zero-length LineString).
 
+    .. versionadded:: 2.2.0
+
     Parameters
     ----------
     geometry : Geometry or array_like

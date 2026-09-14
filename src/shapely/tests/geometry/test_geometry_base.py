@@ -193,6 +193,20 @@ def test_array_argument_binary_predicates(op):
     assert type(result) is bool
 
 
+def test_array_argument_relate():
+    polygon = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
+    points = shapely.points([(0, 0), (0.5, 0.5), (1, 1)])
+
+    result = polygon.relate(points)
+    assert isinstance(result, np.ndarray)
+    expected = np.array([polygon.relate(p) for p in points])
+    np.testing.assert_array_equal(result, expected)
+
+    # check scalar
+    result = polygon.relate(points[0])
+    assert isinstance(result, str)
+
+
 @pytest.mark.parametrize(
     "op, kwargs",
     [

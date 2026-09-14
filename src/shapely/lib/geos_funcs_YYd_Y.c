@@ -177,9 +177,8 @@ static void YYd_Y_func(char** args, const npy_intp* dimensions, const npy_intp* 
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    double double_param = *(double*)ip3;
     errstate = core_YYd_Y_operation(ctx, func, *(PyObject**)ip1, *(PyObject**)ip2,
-                                    double_param, &geom_arr[i]);
+                                    *(double*)ip3, &geom_arr[i]);
     if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
@@ -223,6 +222,7 @@ DEFINE_YYd_Y(GEOSIntersectionPrec_r);
 DEFINE_YYd_Y(GEOSDifferencePrec_r);
 DEFINE_YYd_Y(GEOSSymDifferencePrec_r);
 DEFINE_YYd_Y(GEOSUnionPrec_r);
+DEFINE_YYd_Y(GEOSSnap_r);
 
 
 /* ========================================================================
@@ -263,6 +263,7 @@ int init_geos_funcs_YYd_Y(PyObject* m, PyObject* d) {
   INIT_YYd_Y(GEOSDifferencePrec_r, difference_prec);
   INIT_YYd_Y(GEOSSymDifferencePrec_r, symmetric_difference_prec);
   INIT_YYd_Y(GEOSUnionPrec_r, union_prec);
+  INIT_YYd_Y(GEOSSnap_r, snap);
 
   return 0;
 }

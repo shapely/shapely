@@ -925,6 +925,8 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
         mode = SetPrecisionMode.get_value(mode)
     elif not np.isscalar(mode):
         raise TypeError("mode only accepts scalar values")
+    elif mode not in SetPrecisionMode.values:
+        raise ValueError("set_precision function called with illegal mode")
     return lib.set_precision(geometry, grid_size, np.intc(mode), **kwargs)
 
 
@@ -1005,6 +1007,8 @@ def get_segments(
 
     Here 'segments' is defined as the individual pairwise coordinates
     comprising a LineString or LinearRing. Multi* geometry objects are not supported.
+
+    .. versionadded:: 2.2.0
 
     Parameters
     ----------

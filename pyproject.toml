@@ -20,6 +20,7 @@ description = "Manipulation and analysis of geometric objects"
 readme = "README.rst"
 keywords = ["geometry", "topology", "gis"]
 license = "BSD-3-Clause"
+license-files = ["LICENSE*"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",

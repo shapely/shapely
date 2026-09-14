@@ -57,7 +57,7 @@ py.install_sources([
   subdir: 'shapely',
 )
 
-# Gather Python source files from these subdirectories
+# Gather Python source files from these subdirectories for the submodules
 subdirs_list = [
   'algorithms',
   'geometry',
