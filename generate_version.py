@@ -1,34 +1,16 @@
 #!/usr/bin/env python3
-"""Generate git-based version."""
+"""Generate git-based version.
+
+Note: This file is located next to meson.build or versioneer will not work.
+"""
 
 import os
 import sys
 from textwrap import dedent
 
+import versioneer
+
 sys.path.insert(0, "")
-here = os.path.abspath(os.path.dirname(__file__))
-
-
-def _get_version_info():
-    """Get the source code management version info using vcs-versioning."""
-    from vcs_versioning import Configuration
-
-    config = Configuration.from_file(os.path.join(here, "pyproject.toml"))
-    workdir = config.discover_workdir()
-    version_info = workdir.get_scm_version()
-    return version_info
-
-
-def get_version():
-    """Get the version string."""
-    version_info = _get_version_info()
-    return version_info.format()
-
-
-def get_git_revision():
-    """Get the git revision (or node)."""
-    version_info = _get_version_info()
-    return version_info.node
 
 
 def write_version_info(path) -> None:
@@ -42,8 +24,8 @@ def write_version_info(path) -> None:
         version = _version.__version__
         git_version = _version.__git_version__
     except ImportError:
-        version = get_version()
-        git_version = get_git_revision()
+        version = versioneer.get_version()
+        git_version = versioneer.get_versions()["full-revisionid"]
     content = dedent(
         f'''\
         """Module to show version information for the installed package."""
@@ -89,7 +71,7 @@ def main() -> None:
 
             version = _version.__version__
         except ImportError:
-            version = get_version()
+            version = versioneer.get_version()
         print(version)
 
 

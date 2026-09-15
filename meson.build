@@ -5,7 +5,7 @@ project(
   'c', 'cython',
   version: run_command(
     find_program('python3', 'python'),
-    '-m', 'vcs_versioning', check: true).stdout().strip(),
+    'generate_version.py', '--print', check: true).stdout().strip(),
   license: 'BSD-3-Clause',
   meson_version: '>=1.2.1',  # keep in sync with [dependency-groups.build] in pyproject.toml
   default_options: [
