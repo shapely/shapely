@@ -98,7 +98,7 @@ xfail_strict = true
 
 [tool.ruff]
 line-length = 88
-extend-exclude = ["docs/*", "benchmarks/*", "src/shapely/_version.py", "versioneer.py"]
+extend-exclude = ["docs/*", "benchmarks/*", "versioneer.py"]
 
 [tool.ruff.lint]
 select = [

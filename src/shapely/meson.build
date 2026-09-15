@@ -48,7 +48,6 @@ py.install_sources([
     'strtree.py',
     'testing.py',
     'validation.py',
-    '_version.py',
     'wkb.py',
     'wkt.py',
     '_geos.pxd',

@@ -124,6 +124,7 @@ For example:
     $ conda create -n shapely-dev cython meson meson-python pkg-config ninja numpy geos pip pytest
 
 Activate the environment and install shapely in editable mode using ``pip``:
+
 .. code-block:: console
 
     $ conda activate shapely-dev
