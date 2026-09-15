@@ -4,7 +4,6 @@ requires = [
     "Cython",
     "meson-python>=0.15.0",
     "numpy>=1.26,<3",
-    "versioneer[toml]",
 ]
 build-backend = "mesonpy"
 
@@ -50,7 +49,6 @@ build = [
     "meson-python>=0.15.0",
     "ninja",
     "numpy>=1.26,<3",
-    "versioneer[toml]",
 ]
 tests = [
     "pytest",
@@ -100,7 +98,7 @@ xfail_strict = true
 
 [tool.ruff]
 line-length = 88
-extend-exclude = ["docs/*", "benchmarks/*"]
+extend-exclude = ["docs/*", "benchmarks/*", "versioneer.py"]
 
 [tool.ruff.lint]
 select = [
@@ -199,11 +197,3 @@ allow-dunder-method-names = [
     "_repr_svg_",
 ]
 max-positional-args = 8  # TODO: revise with deprecate_positional changes
-
-[tool.versioneer]
-VCS = "git"
-style = "pep440"
-versionfile_source = "src/shapely/_version.py"
-versionfile_build = "shapely/_version.py"
-tag_prefix = ""
-parentdir_prefix = "shapely-"
