@@ -14,4 +14,4 @@ dependencies:
   - pkg-config
   - meson
   - meson-python
-  - versioneer
+  - vcs_versioning
