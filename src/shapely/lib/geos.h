@@ -110,7 +110,12 @@ enum ShapelyErrorCode {
                       "Geometry objects.");                                              \
       break;                                                                             \
     case PGERR_GEOS_EXCEPTION:                                                           \
-      PyErr_SetString(geos_exception[0], last_error);                                    \
+      if (strncmp("IllegalArgumentException: ", last_error, 26) == 0) {                  \
+        PyErr_SetString(PyExc_ValueError, last_error + 26);                              \
+      }                                                                                  \
+      else {                                                                             \
+        PyErr_SetString(geos_exception[0], last_error);                                  \
+      }                                                                                  \
       break;                                                                             \
     case PGERR_NO_MALLOC:                                                                \
       PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");                   \
