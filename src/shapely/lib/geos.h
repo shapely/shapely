@@ -110,7 +110,7 @@ enum ShapelyErrorCode {
                       "Geometry objects.");                                              \
       break;                                                                             \
     case PGERR_GEOS_EXCEPTION:                                                           \
-      if (strncmp("IllegalArgumentException: ", last_error, 26) == 0) {                  \
+      if (last_error != NULL && strlen(last_error) > 26 && strncmp("IllegalArgumentException: ", last_error, 26) == 0) { \
         PyErr_SetString(PyExc_ValueError, last_error + 26);                              \
       }                                                                                  \
       else {                                                                             \
