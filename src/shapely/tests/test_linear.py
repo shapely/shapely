@@ -129,13 +129,19 @@ def test_line_locate_point_empty(normalized):
     )
 
 
+@pytest.mark.parametrize(
+    "args, exception",
+    [
+        # C API throws its own GEOSException here, not IllegalArgumentException.
+        # See https://github.com/libgeos/geos/issues/1534.
+        ((line_string, line_string), shapely.errors.GEOSException),
+        ((polygon, point), ValueError),
+    ],
+)
 @pytest.mark.parametrize("normalized", [False, True])
-def test_line_locate_point_invalid_geometry(normalized):
-    with pytest.raises(shapely.GEOSException):
-        shapely.line_locate_point(line_string, line_string, normalized=normalized)
-
-    with pytest.raises(shapely.GEOSException):
-        shapely.line_locate_point(polygon, point, normalized=normalized)
+def test_line_locate_point_invalid_geometry(args, exception, normalized):
+    with pytest.raises(exception):
+        shapely.line_locate_point(*args, normalized=normalized)
 
 
 def test_line_locate_point_deprecate_positional():
@@ -189,7 +195,7 @@ def test_shared_paths_none():
 def test_shared_paths_non_linestring():
     g1 = shapely.linestrings([(0, 0), (1, 0), (1, 1)])
     g2 = shapely.points(0, 1)
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError):
         shapely.shared_paths(g1, g2)
 
 

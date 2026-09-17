@@ -154,12 +154,12 @@ def test_from_wkt_none():
         ("", "raise", GEOSException, "Expected word but encountered end of stream"),
         ("", "unsupported_option", ValueError, "not a valid option"),
         ("LINESTRING (0 0)", "ignore", None, None),
-        ("LINESTRING (0 0)", "raise", GEOSException, "must contain 0 or >1 elements"),
+        ("LINESTRING (0 0)", "raise", ValueError, "must contain 0 or >1 elements"),
         ("LINESTRING (0 0)", "warn", Warning, "must contain 0 or >1 elements"),
         ("NOT A WKT STRING", "ignore", None, None),
         ("NOT A WKT STRING", "warn", Warning, "Unknown type: 'NOT'"),
         ("POLYGON ((0 0, 0 0))", "ignore", None, None),
-        ("POLYGON ((0 0, 0 0))", "raise", GEOSException, "Invalid number of points"),
+        ("POLYGON ((0 0, 0 0))", "raise", ValueError, "Invalid number of points"),
         ("POLYGON ((0 0, 0 0))", "warn", Warning, "Invalid number of points"),
     ],
 )
@@ -308,7 +308,7 @@ def test_from_wkb_none():
         (
             INVALID_WKB,
             "raise",
-            GEOSException,
+            ValueError,
             "Points of LinearRing do not form a closed linestring",
         ),
         (
@@ -533,12 +533,13 @@ def test_to_wkt_array_with_empty_z():
     assert list(shapely.to_wkt(empty_geoms)) == empty_wkt
 
 
-def test_to_wkt_exceptions():
-    with pytest.raises(TypeError):
-        shapely.to_wkt(1)
-
-    with pytest.raises(shapely.GEOSException):
-        shapely.to_wkt(point, output_dimension=5)
+@pytest.mark.parametrize(
+    "arg, kwargs, exception",
+    [(1, {}, TypeError), (point, {"output_dimension": 5}, ValueError)],
+)
+def test_to_wkt_exceptions(arg, kwargs, exception):
+    with pytest.raises(exception):
+        shapely.to_wkt(arg, **kwargs)
 
 
 def test_to_wkt_point_empty():
@@ -752,15 +753,18 @@ def test_to_wkb_none():
     assert shapely.to_wkb(None) is None
 
 
-def test_to_wkb_exceptions():
-    with pytest.raises(TypeError):
-        shapely.to_wkb(1)
-
-    with pytest.raises(shapely.GEOSException):
-        shapely.to_wkb(point, output_dimension=5)
-
-    with pytest.raises(ValueError):
-        shapely.to_wkb(point, flavor="other")
+@pytest.mark.parametrize(
+    "arg, kwargs, exception",
+    [
+        # Should this be ValueError, too?
+        (1, {}, TypeError),
+        (point, {"output_dimension": 5}, ValueError),
+        (point, {"flavor": "other"}, ValueError),
+    ],
+)
+def test_to_wkb_exceptions(arg, kwargs, exception):
+    with pytest.raises(exception):
+        shapely.to_wkb(arg, **kwargs)
 
 
 def test_to_wkb_byte_order():
