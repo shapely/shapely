@@ -87,7 +87,7 @@ def test_float_arg_array(geometry, func):
         and shapely.get_type_id(geometry) not in {1, 2}
         and shapely.geos_version < (3, 11, 0)
     ):
-        with pytest.raises(GEOSException, match="only accept linestrings"):
+        with pytest.raises(ValueError, match="only accept linestrings"):
             func([geometry, geometry], 0.0)
         return
     # voronoi_polygons emits an "invalid" warning when supplied with an empty
@@ -460,7 +460,7 @@ def test_remove_repeated_points_invalid_result(geom, tolerance):
         result = shapely.remove_repeated_points(geom, tolerance)
         assert result.wkt == "POLYGON EMPTY"
     else:
-        with pytest.raises(shapely.GEOSException, match="Invalid number of points"):
+        with pytest.raises(ValueError, match="Invalid number of points"):
             shapely.remove_repeated_points(geom, tolerance)
 
 
