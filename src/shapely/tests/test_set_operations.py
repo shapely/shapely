@@ -333,7 +333,7 @@ def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
     else:
         # Non polygon geometries raise an error
         with pytest.raises(
-            shapely.GEOSException, match="Unhandled geometry type in CoverageUnion"
+            ValueError, match="Unhandled geometry type in CoverageUnion"
         ):
             shapely.coverage_union(geom_1, geom_2)
 
