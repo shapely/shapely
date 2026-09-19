@@ -3,7 +3,9 @@
 project(
   'shapely',
   'c', 'cython',
-  version: run_command('python3', 'src/shapely/_version.py', check: true).stdout().strip(),
+  version: run_command(
+    find_program('python3', 'python'),
+    'generate_version.py', '--print', check: true).stdout().strip(),
   license: 'BSD-3-Clause',
   meson_version: '>=1.2.1',  # keep in sync with [dependency-groups.build] in pyproject.toml
   default_options: [
@@ -36,6 +38,27 @@ py = import('python').find_installation(pure: false)
 python_version = py.language_version()
 if python_version.version_compare(f'<@min_python_version@')
   error(f'Minimum supported Python version is @min_python_version@, found @python_version@')
+endif
+
+###############################################################
+# Dynamic version
+###############################################################
+
+gen_version = files('generate_version.py')
+fs = import('fs')
+if fs.exists('_version.py')
+    py.install_sources('_version.py', subdir: 'shapely')
+else
+    custom_target(
+        'write_version_file',
+        output: '_version.py',
+        command: [py, gen_version, '--outfile', '@OUTPUT@'],
+        build_by_default: true,
+        build_always_stale: true,
+        install: true,
+        install_dir: py.get_install_dir() / 'shapely',
+    )
+    meson.add_dist_script(py, gen_version, '--outfile', '_version.py')
 endif
 
 ###############################################################

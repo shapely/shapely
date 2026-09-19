@@ -105,6 +105,16 @@ class TestSplitPolygon(TestSplitGeometry):
         self.helper(self.poly_simple, splitter, 2)
         self.helper(self.poly_hole, splitter, 2)
 
+    def test_split_poly_with_poly(self):
+        # splitting with a polygon should use the polygon's boundary
+        splitter = Polygon([(0.2, 3), (0.2, -3), (1.7, -3), (1.7, 3)])
+        self.helper(self.poly_simple, splitter, 3)
+        self.helper(self.poly_hole, splitter, 3)
+
+        splitter = MultiPolygon([Polygon([(0.2, 3), (0.2, -3), (1.7, -3), (1.7, 3)])])
+        self.helper(self.poly_simple, splitter, 3)
+        self.helper(self.poly_hole, splitter, 3)
+
     def test_split_poly_with_other(self):
         error = GeometryTypeError if geos_version < (3, 15, 0) else GEOSException
 
@@ -112,13 +122,6 @@ class TestSplitPolygon(TestSplitGeometry):
             split(self.poly_simple, Point(1, 1))
         with pytest.raises(error):
             split(self.poly_simple, MultiPoint([(1, 1), (3, 4)]))
-
-        if geos_version < (3, 15, 0):
-            with pytest.raises(GeometryTypeError):
-                split(self.poly_simple, self.poly_hole)
-        else:
-            # GEOS >= 3.15 allows splitting a polygon with another polygon
-            self.helper(self.poly_simple, self.poly_hole, 2)
 
 
 class TestSplitLine(TestSplitGeometry):

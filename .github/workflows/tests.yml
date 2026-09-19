@@ -156,7 +156,6 @@ jobs:
           pip install --verbose --no-build-isolation
           -Csetup-args="-Dcmake_prefix_path=${{ env.GEOS_INSTALL }}"
           -Ccompile-args="--verbose"
-          -Ceditable-verbose=true
           --editable .
 
       - name: Overview of the Python environment (pip list)
