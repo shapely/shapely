@@ -1733,24 +1733,8 @@ poly_hole = Polygon(
         ),
         ## Polygon with Polygon
         # crossing twice with a polygon boundary --> return 3 polygons
-        pytest.param(
-            poly_simple,
-            Polygon([(0.2, 3), (0.2, -3), (1.7, -3), (1.7, 3)]),
-            3,
-            marks=pytest.mark.xfail(
-                shapely.geos_version < (3, 15, 0),
-                reason="GEOS 3.15 required for splitting overlapping input",
-            ),
-        ),
-        pytest.param(
-            poly_hole,
-            Polygon([(0.2, 3), (0.2, -3), (1.7, -3), (1.7, 3)]),
-            3,
-            marks=pytest.mark.xfail(
-                shapely.geos_version < (3, 15, 0),
-                reason="GEOS 3.15 required for splitting overlapping input",
-            ),
-        ),
+        (poly_simple, Polygon([(0.2, 3), (0.2, -3), (1.7, -3), (1.7, 3)]), 3),
+        (poly_hole, Polygon([(0.2, 3), (0.2, -3), (1.7, -3), (1.7, 3)]), 3),
     ],
 )
 def test_split_roundtrip(geometry, splitter, expected_num_parts):
