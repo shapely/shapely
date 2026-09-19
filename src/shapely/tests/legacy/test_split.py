@@ -14,6 +14,10 @@ from shapely.geometry import (
 )
 from shapely.ops import linemerge, split, unary_union
 
+# Note: when the shapely.ops.split implementation is removed (in favor of the upstream
+# GEOS>=3.15 implementation), this test file can be removed entirely. All test cases
+# are also included in test_constructive.py test_split et al
+
 
 class TestSplitGeometry(unittest.TestCase):
     # helper class for testing below
