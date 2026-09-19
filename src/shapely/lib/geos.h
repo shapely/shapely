@@ -191,6 +191,7 @@ enum ShapelyErrorCode {
 #define GEOS_SINCE_3_12_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 12))
 #define GEOS_SINCE_3_13_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 13))
 #define GEOS_SINCE_3_14_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 14))
+#define GEOS_SINCE_3_15_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 15))
 
 extern PyObject* geos_exception[1];
 

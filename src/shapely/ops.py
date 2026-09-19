@@ -439,16 +439,17 @@ class SplitOp:
         returned.
 
         The function supports:
-          - Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString
-            or (Multi)Polygon
-          - Splitting a (Multi)Polygon by a (Multi)LineString or (Multi)Polygon
+
+        - Splitting a (Multi)LineString by a (Multi)Point, (Multi)LineString
+          or (Multi)Polygon boundary.
+        - Splitting a (Multi)Polygon by a (Multi)LineString or (Multi)Polygon
+          boundary.
 
         It may be convenient to snap the splitter with low tolerance to the
         geometry. For example in the case of splitting a line by a point, the
         point must be exactly on the line, for the line to be correctly split.
         When splitting a line or polygon by a polygon, the boundary of the
-        polygon is used for the operation. When splitting a line by another
-        line, a ValueError is raised if the two overlap at some segment.
+        polygon is used for the operation.
 
         Parameters
         ----------
@@ -467,7 +468,23 @@ class SplitOp:
         >>> result.wkt
         'GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))'
 
+        Notes
+        -----
+        If using shapely with a version of GEOS 3.15.0 or newer, the split
+        operation is performed by the GEOS library directly. When running with
+        older GEOS versions (see ``shapely.geos_version_string``), a custom python
+        implementation is used. In this case, splitting a line by another
+        line is not supported if the two overlap at some segment.
+
         """
+        # starting with GEOS 3.15, the split function is available through GEOS
+        # and moreover our custom implementation no longer works correctly for
+        # some cases (GEOS' difference now returns a merged LineString instead
+        # of separate parts as a MultiLineString)
+        # -> so for GEOS >= 3.15, we have to use the GEOS implementation
+        if shapely.geos_version >= (3, 15, 0):
+            return shapely.lib.split_scalar(geom, splitter)
+
         if geom.geom_type in {"MultiLineString", "MultiPolygon"}:
             return GeometryCollection(
                 [i for part in geom.geoms for i in SplitOp.split(part, splitter).geoms]

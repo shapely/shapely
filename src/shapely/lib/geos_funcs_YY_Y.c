@@ -269,6 +269,9 @@ DEFINE_YY_Y(GEOSUnion_r);
 DEFINE_YY_Y(GEOSSharedPaths_r);
 DEFINE_YY_Y(ShapelyShortestLineDummy);
 
+#if GEOS_SINCE_3_15_0
+DEFINE_YY_Y(GEOSSplit_r);
+#endif
 
 /* ========================================================================
  * MODULE INITIALIZATION
@@ -322,6 +325,10 @@ int init_geos_funcs_YY_Y(PyObject* m, PyObject* d) {
   INIT_YY_Y(GEOSUnion_r, union);
   INIT_YY_Y(GEOSSharedPaths_r, shared_paths);
   INIT_YY_Y(ShapelyShortestLineDummy, shortest_line);
+
+#if GEOS_SINCE_3_15_0
+  INIT_YY_Y(GEOSSplit_r, split);
+#endif
 
   return 0;
 }

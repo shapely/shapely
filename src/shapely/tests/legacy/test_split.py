@@ -3,7 +3,7 @@ import unittest
 import pytest
 
 from shapely import geos_version
-from shapely.errors import GeometryTypeError
+from shapely.errors import GeometryTypeError, GEOSException
 from shapely.geometry import (
     LineString,
     MultiLineString,
@@ -13,6 +13,10 @@ from shapely.geometry import (
     Polygon,
 )
 from shapely.ops import linemerge, split, unary_union
+
+# Note: when the shapely.ops.split implementation is removed (in favor of the upstream
+# GEOS>=3.15 implementation), this test file can be removed entirely. All test cases
+# are also included in test_constructive.py test_split et al
 
 
 class TestSplitGeometry(unittest.TestCase):
@@ -116,9 +120,11 @@ class TestSplitPolygon(TestSplitGeometry):
         self.helper(self.poly_hole, splitter, 3)
 
     def test_split_poly_with_other(self):
-        with pytest.raises(GeometryTypeError):
+        error = GeometryTypeError if geos_version < (3, 15, 0) else GEOSException
+
+        with pytest.raises(error):
             split(self.poly_simple, Point(1, 1))
-        with pytest.raises(GeometryTypeError):
+        with pytest.raises(error):
             split(self.poly_simple, MultiPoint([(1, 1), (3, 4)]))
 
 
@@ -155,9 +161,6 @@ class TestSplitLine(TestSplitGeometry):
         splitter = MultiPoint([(1, 1), (1.5, 1.5), (1, 1)])
         self.helper(self.ls, splitter, 3)
 
-    @pytest.mark.xfail(
-        geos_version >= (3, 15, 0), reason="TODO split with line broken in GEOS 3.15"
-    )
     def test_split_line_with_line(self):
         # crosses at one point --> return 2 segments
         splitter = LineString([(0, 1), (1, 0)])
@@ -167,10 +170,13 @@ class TestSplitLine(TestSplitGeometry):
         splitter = LineString([(0, 1), (1, 0), (1, 2)])
         self.helper(self.ls, splitter, 3)
 
-        # overlaps --> raise
+        # overlaps --> raise (with GEOS >= 3.15, this will return 2 segments)
         splitter = LineString([(0, 0), (15, 15)])
-        with pytest.raises(ValueError):
-            self.helper(self.ls, splitter, 1)
+        if geos_version < (3, 15, 0):
+            with pytest.raises(ValueError):
+                self.helper(self.ls, splitter, 1)
+        else:
+            self.helper(self.ls, splitter, 2)
 
         # does not cross --> return equal
         splitter = LineString([(0, 1), (0, 2)])
@@ -186,9 +192,6 @@ class TestSplitLine(TestSplitGeometry):
         assert splitter.touches(self.ls)
         self.helper(self.ls, splitter, 2)
 
-    @pytest.mark.xfail(
-        geos_version >= (3, 15, 0), reason="TODO split with line broken in GEOS 3.15"
-    )
     def test_split_line_with_multiline(self):
         # crosses at one point --> return 2 segments
         splitter = MultiLineString([[(0, 1), (1, 0)], [(0, 0), (2, -2)]])
@@ -202,18 +205,18 @@ class TestSplitLine(TestSplitGeometry):
         splitter = MultiLineString([[(0, 1), (1, 0)], [(0, 2), (2, 0), (2.2, 3.2)]])
         self.helper(self.ls, splitter, 4)
 
-        # overlaps --> raise
+        # overlaps --> raise (with GEOS >= 3.15, this will return 2 segments)
         splitter = MultiLineString([[(0, 0), (1.5, 1.5)], [(1.5, 1.5), (3, 4)]])
-        with pytest.raises(ValueError):
-            self.helper(self.ls, splitter, 1)
+        if geos_version < (3, 15, 0):
+            with pytest.raises(ValueError):
+                self.helper(self.ls, splitter, 1)
+        else:
+            self.helper(self.ls, splitter, 2)
 
         # does not cross --> return equal
         splitter = MultiLineString([[(0, 1), (0, 2)], [(1, 0), (2, 0)]])
         self.helper(self.ls, splitter, 1)
 
-    @pytest.mark.xfail(
-        geos_version >= (3, 15, 0), reason="TODO split with line broken in GEOS 3.15"
-    )
     def test_split_line_with_polygon(self):
         # crosses at two points --> return 3 segments
         splitter = Polygon([(1, 0), (1, 2), (2, 2), (2, 0), (1, 0)])
@@ -231,9 +234,6 @@ class TestSplitLine(TestSplitGeometry):
         )
         self.helper(self.ls, splitter, 4)
 
-    @pytest.mark.xfail(
-        geos_version >= (3, 15, 0), reason="TODO split with line broken in GEOS 3.15"
-    )
     def test_split_line_with_multipolygon(self):
         poly1 = Polygon(
             [(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)]

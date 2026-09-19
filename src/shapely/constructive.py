@@ -45,6 +45,7 @@ __all__ = [
     "segmentize",
     "simplify",
     "snap",
+    "split",
     "voronoi_polygons",
 ]
 
@@ -1229,6 +1230,68 @@ def snap(geometry, reference, tolerance, **kwargs):
 
     """
     return lib.snap(geometry, reference, tolerance, **kwargs)
+
+
+def split(geometry, splitter, **kwargs):
+    """Split a geometry by another geometry.
+
+    The input geometry is split by the splitter geometry. The result is a
+    GeometryCollection of geometries that are formed by splitting the input
+    geometry.
+
+    The function supports:
+
+    - Splitting a (Multi)LineString by a (Multi)Point, (Multi)LineString or
+      (Multi)Polygon boundary.
+    - Splitting a (Multi)Polygon by a (Multi)LineString or (Multi)Polygon
+      boundary.
+
+    When a (Multi)Polygon is used as as the splitter, only the boundary is used
+    for the operation.
+
+    This function is the theoretical opposite of the union of the split
+    geometry parts.
+
+    It may be convenient to snap the splitter with low tolerance to the
+    geometry. For example in the case of splitting a line by a point, the
+    point must be exactly on the line, for the line to be correctly split.
+
+    .. versionadded:: 2.2.0
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        Geometry or geometries to split.
+    splitter : Geometry or array_like
+        Geometry or geometries to split with.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+    If using shapely with a version of GEOS 3.15.0 or newer, the split
+    operation is performed by the GEOS library directly. When running with
+    older GEOS versions (see ``shapely.geos_version_string``), a custom python
+    implementation is used. In this case, splitting a line by another
+    line is not supported if the two overlap at some segment.
+
+    Examples
+    --------
+    >>> import shapely
+    >>> from shapely import LineString, Point, Polygon
+    >>> line = LineString([(0, 0), (10, 10)])
+    >>> splitter = LineString([(0, 10), (10, 0)])
+    >>> shapely.split(line, splitter)  # doctest: +SKIP
+    <GEOMETRYCOLLECTION (LINESTRING (0 0, 5 5), LINESTRING (5 5, 10 10))>
+
+    """
+    if lib.geos_version < (3, 15, 0):
+        from shapely.ops import split
+
+        split_py_vectorized = np.frompyfunc(split, nin=2, nout=1)
+        return split_py_vectorized(geometry, splitter, **kwargs)
+    else:
+        return lib.split(geometry, splitter, **kwargs)
 
 
 # Note: future plan is to change this signature over a few releases:

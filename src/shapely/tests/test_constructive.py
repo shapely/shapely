@@ -17,7 +17,7 @@ from shapely import (
     Polygon,
     geos_version,
 )
-from shapely.errors import UnsupportedGEOSVersionError
+from shapely.errors import GeometryTypeError, UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     ArrayLike,
@@ -26,11 +26,13 @@ from shapely.tests.common import (
     empty_line_string,
     empty_point,
     empty_polygon,
+    geometry_collection,
     ignore_invalid,
     line_string,
     multi_point,
     point,
     point_z,
+    polygon,
 )
 
 CONSTRUCTIVE_NO_ARGS = (
@@ -1321,6 +1323,488 @@ def test_orient_polygons_array_like():
     assert isinstance(actual, ArrayLike)
     expected = shapely.orient_polygons(geometries)
     assert_geometries_equal(np.asarray(actual), expected)
+
+
+@pytest.mark.parametrize(
+    "geometry,splitter, expected",
+    [
+        ## LineString with Point
+        # point on line interior --> return 2 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            Point(1, 1),
+            [
+                LineString([(0, 0), (1, 1)]),
+                LineString([(1, 1), (1.5, 1.5), (3.0, 4.0)]),
+            ],
+        ),
+        # point on line point --> return 2 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            Point(1.5, 1.5),
+            [LineString([(0, 0), (1.5, 1.5)]), LineString([(1.5, 1.5), (3.0, 4.0)])],
+        ),
+        # point on boundary --> return equal
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            Point(3, 4),
+            [LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)])],
+        ),
+        # point on exterior of line --> return equal
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            Point(4, 5),
+            [LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)])],
+        ),
+        ## Closed LineString with Point
+        # point at start/end of closed ring -> return equal
+        # see GH #524
+        (
+            LineString([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
+            Point(0, 0),
+            [LineString([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])],
+        ),
+        # point on line of closed ring -> return 2 segments
+        (
+            LineString([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
+            Point(0, 0.5),
+            [
+                LineString([(0, 0), (0, 0.5)]),
+                LineString([(0, 0.5), (0, 1), (1, 1), (1, 0), (0, 0)]),
+            ],
+        ),
+        # similar, previously failed, see GH#585
+        (
+            LineString([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
+            Point(0.5, 0),
+            [
+                LineString([(0, 0), (0, 1), (1, 1), (1, 0), (0.5, 0)]),
+                LineString([(0.5, 0), (0, 0)]),
+            ],
+        ),
+        # point on exterior of closed ring -> return equal
+        (
+            LineString([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
+            Point(2.0, 2.0),
+            [LineString([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])],
+        ),
+        ## LineString with MultiPoint
+        # points on line interior --> return 4 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            MultiPoint([(1, 1), (1.5, 1.5), (0.5, 0.5)]),
+            [
+                LineString([(0, 0), (0.5, 0.5)]),
+                LineString([(0.5, 0.5), (1, 1)]),
+                LineString([(1, 1), (1.5, 1.5)]),
+                LineString([(1.5, 1.5), (3.0, 4.0)]),
+            ],
+        ),
+        # points on line interior and boundary -> return 2 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            MultiPoint([(1, 1), (3, 4)]),
+            [
+                LineString([(0, 0), (1, 1)]),
+                LineString([(1, 1), (1.5, 1.5), (3.0, 4.0)]),
+            ],
+        ),
+        # point on linear interior but twice --> return 3 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            MultiPoint([(1, 1), (1.5, 1.5), (1, 1)]),
+            [
+                LineString([(0, 0), (1, 1)]),
+                LineString([(1, 1), (1.5, 1.5)]),
+                LineString([(1.5, 1.5), (3.0, 4.0)]),
+            ],
+        ),
+        ## LineString with LineString
+        # crosses at one point --> return 2 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            LineString([(0, 1), (1, 0)]),
+            [
+                LineString([(0, 0), (0.5, 0.5)]),
+                LineString([(0.5, 0.5), (1.5, 1.5), (3.0, 4.0)]),
+            ],
+        ),
+        # crosses at two points --> return 3 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            LineString([(0, 1), (1, 0), (1, 2)]),
+            [
+                LineString([(0, 0), (0.5, 0.5)]),
+                LineString([(0.5, 0.5), (1, 1)]),
+                LineString([(1, 1), (1.5, 1.5), (3.0, 4.0)]),
+            ],
+        ),
+        # overlaps --> splits overlapping segment
+        pytest.param(
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            LineString([(0, 0), (15, 15)]),
+            [
+                LineString([(0, 0), (1.5, 1.5)]),
+                LineString([(1.5, 1.5), (3.0, 4.0)]),
+            ],
+            marks=pytest.mark.xfail(
+                shapely.geos_version < (3, 15, 0),
+                reason="GEOS 3.15 required for splitting overlapping input",
+            ),
+        ),
+        # does not cross --> return equal
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            LineString([(0, 1), (0, 2)]),
+            [
+                LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            ],
+        ),
+        # is touching the boundary --> return equal
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            LineString([(-1, 1), (1, -1)]),
+            [
+                LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            ],
+        ),
+        # splitter boundary touches interior of line --> return 2 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            LineString([(0, 1), (1, 1)]),  # touches at (1, 1)
+            [
+                LineString([(0, 0), (1, 1)]),
+                LineString([(1, 1), (1.5, 1.5), (3.0, 4.0)]),
+            ],
+        ),
+        # line ends both on splitter
+        (
+            LineString([(1, 0), (0, 1), (2, 1), (2, 0)]),
+            LineString([(0, 0), (3, 0)]),
+            [LineString([(1, 0), (0, 1), (2, 1), (2, 0)])],
+        ),
+        # closed line ends on splitter
+        (
+            LineString([(1, 0), (0, 1), (2, 1), (1, 0)]),
+            LineString([(0, 0), (3, 0)]),
+            [LineString([(1, 0), (0, 1), (2, 1), (1, 0)])],
+        ),
+        ## LineString with MultiLineString
+        # crosses at one point --> return 2 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            MultiLineString([[(0, 1), (1, 0)], [(0, 0), (2, -2)]]),
+            [
+                LineString([(0, 0), (0.5, 0.5)]),
+                LineString([(0.5, 0.5), (1.5, 1.5), (3.0, 4.0)]),
+            ],
+        ),
+        # crosses at two points --> return 3 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            MultiLineString([[(0, 1), (1, 0)], [(0, 2), (2, 0)]]),
+            [
+                LineString([(0, 0), (0.5, 0.5)]),
+                LineString([(0.5, 0.5), (1, 1)]),
+                LineString([(1, 1), (1.5, 1.5), (3.0, 4.0)]),
+            ],
+        ),
+        # crosses/touches at three points --> return 4 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.5)]),
+            MultiLineString([[(0, 1), (1, 0)], [(0, 2), (2, 0), (2.25, 3)]]),
+            [
+                LineString([(0, 0), (0.5, 0.5)]),
+                LineString([(0.5, 0.5), (1, 1)]),
+                LineString([(1, 1), (1.5, 1.5), (2.25, 3.0)]),
+                LineString([(2.25, 3.0), (3.0, 4.5)]),
+            ],
+        ),
+        # overlaps --> splits overlapping segment
+        pytest.param(
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            MultiLineString([[(0, 0), (1.5, 1.5)], [(1.5, 1.5), (3, 4)]]),
+            [
+                LineString([(0, 0), (1.5, 1.5)]),
+                LineString([(1.5, 1.5), (3.0, 4.0)]),
+            ],
+            marks=pytest.mark.xfail(
+                shapely.geos_version < (3, 15, 0),
+                reason="GEOS 3.15 required for splitting overlapping input",
+            ),
+        ),
+        # does not cross --> return equal
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            MultiLineString([[(0, 1), (0, 2)], [(1, 0), (2, 0)]]),
+            [
+                LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            ],
+        ),
+        ## LineString with Polygon
+        # crosses at two points --> return 3 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            Polygon([(1, 0), (1, 2), (2, 2), (2, 0), (1, 0)]),
+            [
+                LineString([(0, 0), (1, 1)]),
+                LineString([(1, 1), (1.5, 1.5), (1.8, 2)]),
+                LineString([(1.8, 2), (3, 4)]),
+            ],
+        ),
+        # crosses at one point and touches boundary --> return 2 segments
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            Polygon([(0, 0), (1, 2), (2, 2), (1, 0), (0, 0)]),
+            GeometryCollection(
+                [
+                    LineString([(0, 0), (1.5, 1.5), (1.8, 2)]),
+                    LineString([(1.8, 2), (3, 4)]),
+                ]
+            ),
+        ),
+        # exterior crosses at one point and touches at (0, 0)
+        # interior crosses at two points
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            Polygon(
+                [(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)],
+                [[(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5), (0.5, 0.5)]],
+            ),
+            [
+                LineString([(0, 0), (0.5, 0.5)]),
+                LineString([(0.5, 0.5), (1.5, 1.5)]),
+                LineString([(1.5, 1.5), (1.8, 2)]),
+                LineString([(1.8, 2), (3, 4)]),
+            ],
+        ),
+        ## LineString with MultiPolygon
+        (
+            LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
+            MultiPolygon(
+                [
+                    # crosses at one point and touches at (0, 0)
+                    Polygon([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)]),
+                    # crosses at two points
+                    Polygon(
+                        [(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5), (0.5, 0.5)]
+                    ),
+                    # not crossing
+                    Polygon([(0, 0), (0, -2), (-2, -2), (-2, 0), (0, 0)]),
+                ]
+            ),
+            [
+                LineString([(0, 0), (0.5, 0.5)]),
+                LineString([(0.5, 0.5), (1.5, 1.5)]),
+                LineString([(1.5, 1.5), (1.8, 2)]),
+                LineString([(1.8, 2), (3, 4)]),
+            ],
+        ),
+        ## MultiLineString with Point
+        # a cross-like multilinestring with a point in the middle --> return 4 line
+        # segments
+        (
+            MultiLineString([[(0, 1), (2, 1)], [(1, 0), (1, 2)]]),
+            Point(1, 1),
+            [
+                LineString([(0, 1), (1, 1)]),
+                LineString([(1, 1), (2, 1)]),
+                LineString([(1, 0), (1, 1)]),
+                LineString([(1, 1), (1, 2)]),
+            ],
+        ),
+        ## MultiLineString with MultiPoint
+        # a cross-like multilinestring with a point in middle, a point on one of the
+        # lines and a point in the exterior
+        # --> return 4+1 line segments
+        (
+            MultiLineString([[(0, 1), (3, 1)], [(1, 0), (1, 2)]]),
+            MultiPoint([(1, 1), (2, 1), (4, 2)]),
+            [
+                LineString([(0, 1), (1, 1)]),
+                LineString([(1, 1), (2, 1)]),
+                LineString([(2, 1), (3, 1)]),
+                LineString([(1, 0), (1, 1)]),
+                LineString([(1, 1), (1, 2)]),
+            ],
+        ),
+        ## MultiPolygon with LineString
+        # two polygons with a crossing line --> return 4 triangles
+        (
+            MultiPolygon(
+                [
+                    Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]),
+                    Polygon([(1, 1), (1, 2), (2, 2), (2, 1), (1, 1)]),
+                ]
+            ),
+            LineString([(-1, -1), (3, 3)]),
+            [
+                Polygon([(1, 1), (1, 0), (0, 0), (1, 1)]),
+                Polygon([(0, 0), (0, 1), (1, 1), (0, 0)]),
+                Polygon([(1, 1), (1, 2), (2, 2), (1, 1)]),
+                Polygon([(2, 2), (2, 1), (1, 1), (2, 2)]),
+            ],
+        ),
+        # two polygons away from the crossing line --> return identity
+        (
+            MultiPolygon(
+                [
+                    Polygon([(10, 10), (10, 11), (11, 11), (11, 10), (10, 10)]),
+                    Polygon(
+                        [(-10, -10), (-10, -11), (-11, -11), (-11, -10), (-10, -10)]
+                    ),
+                ]
+            ),
+            LineString([(-1, -1), (3, 3)]),
+            [
+                Polygon([(10, 10), (10, 11), (11, 11), (11, 10), (10, 10)]),
+                Polygon([(-10, -10), (-10, -11), (-11, -11), (-11, -10), (-10, -10)]),
+            ],
+        ),
+    ],
+)
+def test_split(geometry, splitter, expected):
+    actual = shapely.split(geometry, splitter)
+    expected = GeometryCollection(expected)
+    assert_geometries_equal(actual, expected)
+
+
+poly_simple = Polygon([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)])
+poly_hole = Polygon(
+    [(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)],
+    [[(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5), (0.5, 0.5)]],
+)
+
+
+@pytest.mark.parametrize(
+    "geometry, splitter, expected_num_parts",
+    [
+        ## Polygon with LineString
+        # crossing at 2 points --> return 2 polygons
+        (poly_simple, LineString([(1, 3), (1, -3)]), 2),
+        (poly_hole, LineString([(1, 3), (1, -3)]), 2),
+        # crossing twice with one linestring --> return 3 polygons
+        (poly_simple, LineString([(1, 3), (1, -3), (1.7, -3), (1.7, 3)]), 3),
+        (poly_hole, LineString([(1, 3), (1, -3), (1.7, -3), (1.7, 3)]), 3),
+        # touching the boundary --> return equal
+        (poly_simple, LineString([(0, 2), (5, 2)]), 1),
+        (poly_hole, LineString([(0, 2), (5, 2)]), 1),
+        # inside the polygon --> return equal
+        (poly_simple, LineString([(0.2, 0.2), (1.7, 1.7), (3, 2)]), 1),
+        (poly_hole, LineString([(0.2, 0.2), (1.7, 1.7), (3, 2)]), 1),
+        # outside the polygon --> return equal
+        (poly_simple, LineString([(0, 3), (3, 3), (3, 0)]), 1),
+        (poly_hole, LineString([(0, 3), (3, 3), (3, 0)]), 1),
+        ## Polygon with MultiLineString
+        # crossing twice with a multilinestring --> return 3 polygons
+        (
+            poly_simple,
+            MultiLineString([[(0.2, 3), (0.2, -3)], [(1.7, -3), (1.7, 3)]]),
+            3,
+        ),
+        (poly_hole, MultiLineString([[(0.2, 3), (0.2, -3)], [(1.7, -3), (1.7, 3)]]), 3),
+        # crossing twice with a cross multilinestring --> return 4 polygons
+        (poly_simple, MultiLineString([[(0.2, 3), (0.2, -3)], [(-3, 1), (3, 1)]]), 4),
+        (poly_hole, MultiLineString([[(0.2, 3), (0.2, -3)], [(-3, 1), (3, 1)]]), 4),
+        # cross once, touch the boundary once --> return 2 polygons
+        (poly_simple, MultiLineString([[(0.2, 3), (0.2, -3)], [(0, 2), (5, 2)]]), 2),
+        (poly_hole, MultiLineString([[(0.2, 3), (0.2, -3)], [(0, 2), (5, 2)]]), 2),
+        # cross once, inside the polygon once --> return 2 polygons
+        (
+            poly_simple,
+            MultiLineString([[(0.2, 3), (0.2, -3)], [(1.2, 1.2), (1.7, 1.7), (3, 2)]]),
+            2,
+        ),
+        (
+            poly_hole,
+            MultiLineString([[(0.2, 3), (0.2, -3)], [(1.2, 1.2), (1.7, 1.7), (3, 2)]]),
+            2,
+        ),
+        # cross once, outside the polygon once --> return 2 polygons
+        (
+            poly_simple,
+            MultiLineString([[(0.2, 3), (0.2, -3)], [(0, 3), (3, 3), (3, 0)]]),
+            2,
+        ),
+        (
+            poly_hole,
+            MultiLineString([[(0.2, 3), (0.2, -3)], [(0, 3), (3, 3), (3, 0)]]),
+            2,
+        ),
+        ## Polygon with Polygon
+        # crossing twice with a polygon boundary --> return 3 polygons
+        (poly_simple, Polygon([(0.2, 3), (0.2, -3), (1.7, -3), (1.7, 3)]), 3),
+        (poly_hole, Polygon([(0.2, 3), (0.2, -3), (1.7, -3), (1.7, 3)]), 3),
+    ],
+)
+def test_split_roundtrip(geometry, splitter, expected_num_parts):
+    actual = shapely.split(geometry, splitter)
+    assert actual.geom_type == "GeometryCollection"
+    assert len(actual.geoms) == expected_num_parts
+    # split --> expected collection that when merged is again equal to original
+    # geometry
+    if expected_num_parts > 1:
+        union = shapely.union_all(actual.geoms)
+        assert union.equals(geometry)
+    else:
+        assert actual.geoms[0].equals(geometry)
+
+
+def test_split_unsupported_geometry_type():
+    error = GeometryTypeError if geos_version < (3, 15, 0) else GEOSException
+    msg = "Splitting a Polygon with a (point|Point|MultiPoint) is not supported"
+    with pytest.raises(error, match=msg):
+        shapely.split(polygon, point)
+
+    with pytest.raises(error, match=msg):
+        shapely.split(polygon, multi_point)
+
+    msg = (
+        "Splitting (Point|MultiPoint|GeometryCollection) geometry is not supported"
+        if geos_version < (3, 15, 0)
+        else "Input geometry must be linear or polygonal"
+    )
+    with pytest.raises(error, match=msg):
+        shapely.split(point, point)
+
+    with pytest.raises(error, match=msg):
+        shapely.split(point, line_string)
+
+    with pytest.raises(error, match=msg):
+        shapely.split(multi_point, point)
+
+    with pytest.raises(error, match=msg):
+        shapely.split(geometry_collection, point)
+
+
+def test_split_array():
+    # because we have a custom python implementation for older GEOS, need to
+    # ensure this has the same capabilities as numpy ufuncs to work with array-likes
+    line = LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)])
+    point1 = Point(1, 1)
+    point2 = Point(1.5, 1.5)
+
+    geometries = np.array([[line] * 2] * 3)
+    actual = shapely.split(geometries, point1)
+    assert isinstance(actual, np.ndarray)
+    assert actual.shape == (3, 2)
+    expected = shapely.split(line, point1)
+    assert (actual == expected).all()
+
+    # with array-like
+    actual = shapely.split(ArrayLike([line, line]), point1)
+    assert isinstance(actual, ArrayLike)
+    assert np.asarray(actual).shape == (2,)
+    assert_geometries_equal(np.asarray(actual), expected)
+
+    # with broadcasting of second argument
+    actual = shapely.split(geometries, [point1, point2])
+    assert isinstance(actual, np.ndarray)
+    assert actual.shape == (3, 2)
+    expected1 = shapely.split(line, point1)
+    expected2 = shapely.split(line, point2)
+    assert (actual[:, 0] == expected1).all()
+    assert (actual[:, 1] == expected2).all()
 
 
 def test_buffer_deprecate_positional():
