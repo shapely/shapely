@@ -1241,9 +1241,10 @@ def split(geometry, splitter, **kwargs):
 
     The function supports:
 
-    - Splitting a (Multi)LineString by a (Multi)Point, (Multi)LineString
-      or (Multi)Polygon boundary.
-    - Splitting a (Multi)Polygon by a (Multi)LineString or (Multi)Polygon boundary.
+    - Splitting a (Multi)LineString by a (Multi)Point, (Multi)LineString or
+      (Multi)Polygon boundary.
+    - Splitting a (Multi)Polygon by a (Multi)LineString or (Multi)Polygon
+      boundary.
 
     When a (Multi)Polygon is used as as the splitter, only the boundary is used
     for the operation.
@@ -1268,10 +1269,11 @@ def split(geometry, splitter, **kwargs):
 
     Notes
     -----
-    If using shapely with a version of GEOS 3.15.0 or newer, the split operation
-    is performed by the GEOS library directly. When running with older GEOS
-    versions (see ``shapely.geos_version_string``), a custom python implementation
-    is used.
+    If using shapely with a version of GEOS 3.15.0 or newer, the split
+    operation is performed by the GEOS library directly. When running with
+    older GEOS versions (see ``shapely.geos_version_string``), a custom python
+    implementation is used. In this case, splitting a line by another
+    line is not supported if the two overlap at some segment.
 
     Examples
     --------
