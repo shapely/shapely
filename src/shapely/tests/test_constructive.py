@@ -1328,7 +1328,7 @@ def test_orient_polygons_array_like():
 @pytest.mark.parametrize(
     "geometry,splitter, expected",
     [
-        ## LineString with Point
+        # LineString with Point
         # point on line interior --> return 2 segments
         (
             LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
@@ -1356,7 +1356,7 @@ def test_orient_polygons_array_like():
             Point(4, 5),
             [LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)])],
         ),
-        ## Closed LineString with Point
+        # Closed LineString with Point
         # point at start/end of closed ring -> return equal
         # see GH #524
         (
@@ -1388,7 +1388,7 @@ def test_orient_polygons_array_like():
             Point(2.0, 2.0),
             [LineString([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])],
         ),
-        ## LineString with MultiPoint
+        # LineString with MultiPoint
         # points on line interior --> return 4 segments
         (
             LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
@@ -1419,7 +1419,7 @@ def test_orient_polygons_array_like():
                 LineString([(1.5, 1.5), (3.0, 4.0)]),
             ],
         ),
-        ## LineString with LineString
+        # LineString with LineString
         # crosses at one point --> return 2 segments
         (
             LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
@@ -1489,7 +1489,7 @@ def test_orient_polygons_array_like():
             LineString([(0, 0), (3, 0)]),
             [LineString([(1, 0), (0, 1), (2, 1), (1, 0)])],
         ),
-        ## LineString with MultiLineString
+        # LineString with MultiLineString
         # crosses at one point --> return 2 segments
         (
             LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
@@ -1541,7 +1541,7 @@ def test_orient_polygons_array_like():
                 LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
             ],
         ),
-        ## LineString with Polygon
+        # LineString with Polygon
         # crosses at two points --> return 3 segments
         (
             LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
@@ -1578,7 +1578,7 @@ def test_orient_polygons_array_like():
                 LineString([(1.8, 2), (3, 4)]),
             ],
         ),
-        ## LineString with MultiPolygon
+        # LineString with MultiPolygon
         (
             LineString([(0, 0), (1.5, 1.5), (3.0, 4.0)]),
             MultiPolygon(
@@ -1600,7 +1600,7 @@ def test_orient_polygons_array_like():
                 LineString([(1.8, 2), (3, 4)]),
             ],
         ),
-        ## MultiLineString with Point
+        # MultiLineString with Point
         # a cross-like multilinestring with a point in the middle --> return 4 line
         # segments
         (
@@ -1613,7 +1613,7 @@ def test_orient_polygons_array_like():
                 LineString([(1, 1), (1, 2)]),
             ],
         ),
-        ## MultiLineString with MultiPoint
+        # MultiLineString with MultiPoint
         # a cross-like multilinestring with a point in middle, a point on one of the
         # lines and a point in the exterior
         # --> return 4+1 line segments
@@ -1628,7 +1628,7 @@ def test_orient_polygons_array_like():
                 LineString([(1, 1), (1, 2)]),
             ],
         ),
-        ## MultiPolygon with LineString
+        # MultiPolygon with LineString
         # two polygons with a crossing line --> return 4 triangles
         (
             MultiPolygon(
@@ -1679,7 +1679,7 @@ poly_hole = Polygon(
 @pytest.mark.parametrize(
     "geometry, splitter, expected_num_parts",
     [
-        ## Polygon with LineString
+        # Polygon with LineString
         # crossing at 2 points --> return 2 polygons
         (poly_simple, LineString([(1, 3), (1, -3)]), 2),
         (poly_hole, LineString([(1, 3), (1, -3)]), 2),
@@ -1695,7 +1695,7 @@ poly_hole = Polygon(
         # outside the polygon --> return equal
         (poly_simple, LineString([(0, 3), (3, 3), (3, 0)]), 1),
         (poly_hole, LineString([(0, 3), (3, 3), (3, 0)]), 1),
-        ## Polygon with MultiLineString
+        # Polygon with MultiLineString
         # crossing twice with a multilinestring --> return 3 polygons
         (
             poly_simple,
@@ -1731,7 +1731,7 @@ poly_hole = Polygon(
             MultiLineString([[(0.2, 3), (0.2, -3)], [(0, 3), (3, 3), (3, 0)]]),
             2,
         ),
-        ## Polygon with Polygon
+        # Polygon with Polygon
         # crossing twice with a polygon boundary --> return 3 polygons
         (poly_simple, Polygon([(0.2, 3), (0.2, -3), (1.7, -3), (1.7, 3)]), 3),
         (poly_hole, Polygon([(0.2, 3), (0.2, -3), (1.7, -3), (1.7, 3)]), 3),

@@ -310,8 +310,10 @@ def test_coverage_clean_gap():
     expected_1 = shapely.from_wkt(
         [
             "POLYGON ((0 -1, 0 11, 10 11, 10 10, 10 0, 10 -1, 0 -1))",
-            "POLYGON ((10 -2, 10 -1, 10 0, 10.5 1, 10.5 8.5, 10 10, "
-            "10 11, 10 13, 20 13, 20 -2, 10 -2))",
+            (
+                "POLYGON ((10 -2, 10 -1, 10 0, 10.5 1, 10.5 8.5, 10 10, "
+                "10 11, 10 13, 20 13, 20 -2, 10 -2))"
+            ),
         ]
     )
     result_1 = shapely.normalize(
@@ -342,8 +344,10 @@ def test_coverage_clean_snapping():
     expected_1 = shapely.from_wkt(
         [
             "POLYGON ((0 -1, 0 11, 10 11, 10 10, 10 0, 10 -1, 0 -1))",
-            "POLYGON ((10 -2, 10 -1, 10 0, 10.5 1, 10.5 8.5, 10 10, 10 "
-            "11, 10 13, 20 13, 20 -2, 10 -2))",
+            (
+                "POLYGON ((10 -2, 10 -1, 10 0, 10.5 1, 10.5 8.5, 10 10, 10 "
+                "11, 10 13, 20 13, 20 -2, 10 -2))"
+            ),
         ]
     )
     result_1 = shapely.normalize(
@@ -488,10 +492,14 @@ def test_coverage_clean_overlap_multipolygons():
 
     expected = shapely.from_wkt(
         [
-            "MULTIPOLYGON (((0 0, 0 0.9, 0 1, 0.5 1, 1 1, 1.5 1, 1.5 0, 1 0, 0.5 0, "
-            "0 0)), ((5 5, 5 6, 5.5 6, 6 6, 6 5, 5.5 5, 5 5)))",
-            "MULTIPOLYGON (((0 1, 0 2, 1 2, 1 1, 0.5 1, 0 1)), "
-            "((6 5, 6 6, 7 6, 7 5, 6 5)))",
+            (
+                "MULTIPOLYGON (((0 0, 0 0.9, 0 1, 0.5 1, 1 1, 1.5 1, 1.5 0, 1 0, "
+                "0.5 0, 0 0)), ((5 5, 5 6, 5.5 6, 6 6, 6 5, 5.5 5, 5 5)))"
+            ),
+            (
+                "MULTIPOLYGON (((0 1, 0 2, 1 2, 1 1, 0.5 1, 0 1)), "
+                "((6 5, 6 6, 7 6, 7 5, 6 5)))"
+            ),
         ],
     )
     result = shapely.normalize(shapely.coverage_clean([multipoly1, multipoly2]))
