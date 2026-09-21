@@ -6,20 +6,19 @@ on:
       - main  # just build the sdist & wheel, skip release
     tags:
       - "*"
-  pull_request:  # also build on PRs touching this file
+  pull_request:  # also build on PRs touching these files
     paths:
       - ".github/workflows/release.yml"
       - "ci/*"
-      - "MANIFEST.in"
+      - "**meson.build"
       - "pyproject.toml"
-      - "setup.py"
   schedule:
     # in addition run weekly for nightly upload in case no other commits happened
     - cron: '34 2 * * 0'
   workflow_dispatch:
 
 env:
-  GEOS_VERSION: "3.13.1"
+  GEOS_VERSION: "3.14.1"
 
 jobs:
   build_sdist:
@@ -35,10 +34,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.x"
+          python-version-file: "pyproject.toml"
 
       - name: Build a source tarball
         run: |
+          sudo -E apt-get update
+          sudo -E apt-get autopurge -y needrestart
+          sudo -E apt-get -yq --no-install-suggests --no-install-recommends install libgeos-dev
           python -m pip install --upgrade pip
           python -m pip install build twine
           python -m build --sdist
@@ -75,7 +77,7 @@ jobs:
             cibw_build: "*musllinux_aarch64"
             arch: aarch64
     env:
-      basetag: 2026.08.08-1
+      basetag: 2026.09.05-1
 
     steps:
       - name: Checkout source
@@ -112,7 +114,7 @@ jobs:
         shell: bash
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v4.2.0
+        uses: pypa/cibuildwheel@v4.2.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.cibw_build }}
@@ -183,21 +185,22 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v4.2.0
+        uses: pypa/cibuildwheel@v4.2.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_ENVIRONMENT_MACOS:
             GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
-            GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
             MACOSX_DEPLOYMENT_TARGET=10.9
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
             CFLAGS='-Wno-error=incompatible-function-pointer-types'
           CIBW_ENVIRONMENT_WINDOWS:
             GEOS_INSTALL='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}'
-            GEOS_LIBRARY_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\lib'
-            GEOS_INCLUDE_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\include'
           CIBW_BEFORE_ALL_MACOS: ./ci/install_geos.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
+          CIBW_CONFIG_SETTINGS:
+            setup-args="-Dcmake_prefix_path=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}"
+          CIBW_CONFIG_SETTINGS_WINDOWS:
+            setup-args="-Dcmake_prefix_path=${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}"
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} -v {wheel}
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
