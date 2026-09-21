@@ -82,8 +82,10 @@ Other improvements
 API changes
 ^^^^^^^^^^^
 
-- shapely.ops.transform is deprecated TODO expand
-
+- The :func:`shapely.ops.transform`` is deprecated. Use the more specific
+  :meth:`shapely.transform` (when your function works independently on all
+  coordinates) or :meth:`shapely.transform_coordseq` (when your function works
+  on the coordinate sequence directly) instead (#1902).
 
 Bug fixes
 ^^^^^^^^^
@@ -108,7 +110,21 @@ Packaging
 Acknowledgments
 ^^^^^^^^^^^^^^^
 
-TODO add acknowledgments before final release
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Adrian Wilkins-Caruana +
+* Casper van der Wel
+* Gleb Khmyznikov +
+* James Gaboardi
+* Joris Van den Bossche
+* Juho Ervasti +
+* Karl Hill +
+* Madhav-C +
+* Mike Taves
+* Pieter Roggemans
+* Sai Asish Y +
+* Sean Gillies
 
 .. _version-2-1-2:
 
