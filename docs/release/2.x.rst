@@ -67,7 +67,7 @@ Other improvements
   reused through a thread-local GEOS context (#2343).
 
 - :func:`.Polygon.from_bounds` now builds the ring in counterclockwise order,
-  consistent with :function:`shapely.box`, so the result satisfies the GeoJSON
+  consistent with :func:`shapely.box`, so the result satisfies the GeoJSON
   right-hand rule (#2396).
 
 - Added return values to :func:`.prepare` and :func:`.destroy_prepared`. They
@@ -82,7 +82,7 @@ Other improvements
 API changes
 ^^^^^^^^^^^
 
-- The :func:`shapely.ops.transform`` is deprecated. Use the more specific
+- The :func:`shapely.ops.transform` is deprecated. Use the more specific
   :meth:`shapely.transform` (when your function works independently on all
   coordinates) or :meth:`shapely.transform_coordseq` (when your function works
   on the coordinate sequence directly) instead (#1902).
