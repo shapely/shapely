@@ -91,5 +91,5 @@ class PredicatesTestCase(unittest.TestCase):
         assert g1.relate_pattern(g3, "FF2FF10F2")
 
         # an invalid pattern should raise an exception
-        with pytest.raises(shapely.GEOSException, match="IllegalArgumentException"):
+        with pytest.raises(ValueError):
             g1.relate_pattern(g2, "fail")

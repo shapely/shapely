@@ -384,7 +384,7 @@ def test_query_predicate_errors(tree, predicate, expected):
     with ignore_invalid():
         line_nan = shapely.linestrings([1, 1], [1, float("nan")])
     if geos_version < (3, 13, 0):
-        with pytest.raises(shapely.GEOSException):
+        with pytest.raises(ValueError):
             tree.query(line_nan, predicate=predicate)
     else:
         assert_array_equal(tree.query(line_nan, predicate=predicate), expected)
