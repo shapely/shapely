@@ -4,33 +4,18 @@ Changes
 2.2.0 (unreleased)
 ------------------
 
-Improved performance of the following geometry methods: `area`, `length`,
-`minimum_clearance`, `x`, `y`, `z`, `m`, `has_z`, `has_m`, `is_empty`, `is_ring`,
-`is_closed`, `is_simple`, `geom_type`, `__len__`, `_ndim`.
-Benchmarks showed a change of call duration
-from 2.6 microseconds to 0.2 microseconds (on the `Point.x` attribute).
+Shapely 2.2.0 is a feature release with various new functions,
+improvements and bug fixes. Highlights include performance improvements for
+scalar attribute and method calls, and the new ``minimum_width``,
+``coverage_clean``, ``split``, ``transform_coordseq``, and ``get_segments``
+top-level functions.
 
-Improved performance by changing the GEOS context handling. Instead of initializing/finalizing
-on every call, GEOS contexts are reused through a threadlocal. It should give a performance
-increase of about 75 nanoseconds per call.
-
-Improved performance by removing the multithreading protection, which was not complete protection
-anyway. Now it is up to the user to avoid race conditions when mutating arrays of geometries
-from multiple threads (#2338).
-
-Added `transform_coordseq`, which applies a transformation function per coordinate sequence
-in a more performant way than `shapely.ops.transform` does. `shapely.ops.transform` is now deprecated.
-
-Added return values to `prepare` and `destroy_prepared`. They now return whether something was done;
-calling `prepare` twice on a geometry will first return `True`, and then `False`.
-
-Added `get_segments`, which returns individual linear features from all pairwise
-coordinates in each input LineString or LinearRing (#2306).
-
-`Polygon.from_bounds` now builds the ring in counterclockwise order, consistent
-with `shapely.box`, so the result satisfies the GeoJSON right-hand rule (#2396).
-
+Shapely 2.2 supports Python >= 3.11, and binary wheels on PyPI include GEOS 3.14
+and are now also provided for the Windows ARM64 platform.
 Wheels are available for Python 3.15.
+
+For a full changelog, see
+https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-2-0
 
 
 2.1.2 (2025-09-24)
