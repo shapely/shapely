@@ -260,22 +260,22 @@ def transform_coordseq(
             return zip(*transformation(*coords.T), strict=False)
 
     geom_type = shapely.get_type_id(geom)
-    if geom_type in (
+    if geom_type in {
         GeometryType.POINT,
         GeometryType.LINESTRING,
         GeometryType.LINEARRING,
-    ):
+    }:
         return type(geom)(_transform_internal(geom))
     elif geom_type == GeometryType.POLYGON:
         shell = type(geom.exterior)(_transform_internal(geom.exterior))
         holes = [type(ring)(_transform_internal(ring)) for ring in geom.interiors]
         return type(geom)(shell, holes)
-    elif geom_type in (
+    elif geom_type in {
         GeometryType.MULTIPOINT,
         GeometryType.MULTILINESTRING,
         GeometryType.MULTIPOLYGON,
         GeometryType.GEOMETRYCOLLECTION,
-    ):
+    }:
         return type(geom)(
             [
                 transform_coordseq(

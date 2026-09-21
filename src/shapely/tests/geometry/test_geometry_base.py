@@ -135,7 +135,7 @@ def test_contains_properly():
 def test_constructive_properties(op):
     geom = LineString([(0, 0), (0, 10), (10, 10)])
     with ignore_invalid(
-        op in ["oriented_envelope", "minimum_rotated_rectangle"]
+        op in {"oriented_envelope", "minimum_rotated_rectangle"}
         and sys.platform == "darwin"
         and shapely.geos_version > (3, 12, 0),
         divide=True,
