@@ -3,7 +3,7 @@ import unittest
 import pytest
 
 from shapely import geos_version
-from shapely.errors import GeometryTypeError, GEOSException
+from shapely.errors import GeometryTypeError
 from shapely.geometry import (
     LineString,
     MultiLineString,
