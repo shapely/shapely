@@ -1752,7 +1752,7 @@ def test_split_roundtrip(geometry, splitter, expected_num_parts):
 
 
 def test_split_unsupported_geometry_type():
-    error = GeometryTypeError if geos_version < (3, 15, 0) else GEOSException
+    error = GeometryTypeError if geos_version < (3, 15, 0) else ValueError
     msg = "Splitting a Polygon with a (point|Point|MultiPoint) is not supported"
     with pytest.raises(error, match=msg):
         shapely.split(polygon, point)

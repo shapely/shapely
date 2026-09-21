@@ -120,7 +120,7 @@ class TestSplitPolygon(TestSplitGeometry):
         self.helper(self.poly_hole, splitter, 3)
 
     def test_split_poly_with_other(self):
-        error = GeometryTypeError if geos_version < (3, 15, 0) else GEOSException
+        error = GeometryTypeError if geos_version < (3, 15, 0) else ValueError
 
         with pytest.raises(error):
             split(self.poly_simple, Point(1, 1))

@@ -4,6 +4,9 @@ Changes
 2.2.0 (unreleased)
 ------------------
 
+All GEOS IllegalArgumentException errors are converted to Python ValueError
+exceptions (#2510).
+
 Improved performance of the following geometry methods: `area`, `length`,
 `minimum_clearance`, `x`, `y`, `z`, `m`, `has_z`, `has_m`, `is_empty`, `is_ring`,
 `is_closed`, `is_simple`, `geom_type`, `__len__`, `_ndim`.

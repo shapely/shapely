@@ -756,7 +756,6 @@ def test_to_wkb_none():
 @pytest.mark.parametrize(
     "arg, kwargs, exception",
     [
-        # Should this be ValueError, too?
         (1, {}, TypeError),
         (point, {"output_dimension": 5}, ValueError),
         (point, {"flavor": "other"}, ValueError),
