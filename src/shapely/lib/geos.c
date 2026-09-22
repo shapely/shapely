@@ -14,8 +14,8 @@ typedef struct {
   char last_error[1024];
 } ThreadLocalGEOS;
 
-/* This initializes a globally accessible GEOSException object */
-PyObject* geos_exception[1] = {NULL};
+/* This initializes globally accessible GEOSException objects */
+PyObject* geos_exception[2] = {NULL, NULL};
 
 /* Threadlocal GEOS context support */
 PyObject* geos_threadlocal_key = NULL;
@@ -34,9 +34,17 @@ static void threadlocal_geos_destructor(PyObject* capsule) {
 int init_shapely(PyObject* m) {
   PyObject* base_class = PyErr_NewException("shapely.errors.ShapelyError", NULL, NULL);
   PyModule_AddObject(m, "ShapelyError", base_class);
+
   geos_exception[0] =
       PyErr_NewException("shapely.errors.GEOSException", base_class, NULL);
   PyModule_AddObject(m, "GEOSException", geos_exception[0]);
+
+  PyObject* base_class_tuple = PyTuple_New(2);
+  PyTuple_SetItem(base_class_tuple, 0, PyExc_ValueError);
+  PyTuple_SetItem(base_class_tuple, 1, geos_exception[0]);
+
+  geos_exception[1] = PyErr_NewException("shapely.errors._ShapelyValueError", base_class_tuple, NULL);
+  PyModule_AddObject(m, "_ShapelyValueError", geos_exception[1]);
 
   // Create unique key for threadlocal storage (only needs to be done once globally)
   geos_threadlocal_key = PyUnicode_FromString("__shapely_geos_threadlocal__");
