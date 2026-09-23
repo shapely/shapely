@@ -31,6 +31,10 @@ def test_version():
     assert isinstance(shapely.__version__, str)
 
 
+def test_git_version():
+    assert isinstance(shapely.__git_version__, str)
+
+
 def test_geos_version():
     expected = "{}.{}.{}".format(*shapely.geos_version)
     actual = shapely.geos_version_string
