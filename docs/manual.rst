@@ -318,7 +318,7 @@ Coordinate values are accessed via `coords`, `x`, `y`, `z`, and `m` properties.
   >>> point.y
   0.0
 
-Coordinates may also be sliced. `New in version 1.2.14`.
+Coordinates may also be sliced.
 
 .. code-block:: pycon
 
@@ -386,7 +386,7 @@ The defining coordinate values are accessed via the `coords` property.
   >>> list(line.coords)
   [(0.0, 0.0), (1.0, 1.0)]
 
-Coordinates may also be sliced. `New in version 1.2.14`.
+Coordinates may also be sliced.
 
 .. code-block:: pycon
 
@@ -566,8 +566,6 @@ the :func:`shapely.geometry.box()` function.
   Makes a rectangular polygon from the provided bounding box values, with
   counter-clockwise order by default.
 
-  `New in version 1.2.9`.
-
 For example:
 
 .. code-block:: pycon
@@ -591,8 +589,6 @@ To obtain a polygon with a known orientation, use
   sign of 1.0 means that the coordinates of the product's exterior ring will be
   oriented counter-clockwise and the interior rings (holes) will be oriented
   clockwise.
-
-  `New in version 1.2.10`.
 
 .. _collections:
 
@@ -978,8 +974,6 @@ example will be shown for each.
   Returns ``True`` if coordinates are in counter-clockwise order (bounding a
   region with positive signed area). This method applies to `LinearRing`
   objects only.
-
-  `New in version 1.2.10`.
 
 .. code-block:: pycon
 
@@ -1854,8 +1848,6 @@ transform (`rotate`, `scale`, etc.). The functions can be used with all
 geometry types (except `GeometryCollection`), and 3D types are either
 preserved or supported by 3D affine transformations.
 
-`New in version 1.2.17`.
-
 .. function:: shapely.affinity.affine_transform(geom, matrix)
 
   Returns a transformed geometry using an affine transformation matrix.
@@ -2077,8 +2069,6 @@ geometric objects.
   then it will instead call `func` on each individual coordinate
   in the geometry.
 
-  `New in version 1.2.18`.
-
 For example, here is an identity function applicable to both types of input
 (scalar or array).
 
@@ -2183,8 +2173,6 @@ Sequences of touching lines can be merged into `MultiLineStrings` or
   form part of polygon. Invalid ring lines form rings which are invalid
   (bowties, etc).
 
-  `New in version 1.2.18.`
-
   .. code-block:: pycon
 
     >>> from shapely import polygonize_full
@@ -2232,8 +2220,6 @@ within a rectangle.
     The geometry is clipped in a fast but possibly dirty way. The output is
     not guaranteed to be valid. No exceptions will be raised for topological
     errors.
-
-    `New in version 1.7.`
 
 .. code-block:: python
 
@@ -2404,8 +2390,6 @@ a second geometry with a given tolerance.
    The `tolerance` argument specifies the minimum distance between vertices for
    them to be snapped.
 
-   `New in version 1.5.0`
-
 .. code-block:: pycon
 
   >>> from shapely import snap
@@ -2430,8 +2414,6 @@ linear geometries.
    `MultiLineString` containing shared paths with the same direction for both
    inputs. The second element is a MultiLineString containing shared paths with
    the opposite direction for the two inputs.
-
-   `New in version 1.6.0`
 
 .. code-block:: pycon
 
@@ -2564,8 +2546,6 @@ Diagnostics
 
   Returns a string explaining the validity or invalidity of the object.
 
-  `New in version 1.2.1`.
-
 The messages may or may not have a representation of a problem point that can
 be parsed out.
 
@@ -2640,13 +2620,6 @@ Polylabel
   Finds the approximate location of the pole of inaccessibility for a given
   polygon. Based on Vladimir Agafonkin's polylabel_.
 
-  `New in version 1.6.0`
-
-.. note::
-
-  Prior to 1.7 `polylabel` must be imported from `shapely.algorithms.polylabel`
-  instead of `shapely.ops`.
-
 .. code-block:: pycon
 
   >>> from shapely.ops import polylabel
@@ -2671,8 +2644,6 @@ cannot add or remove geometries.
   The `STRtree` constructor takes a sequence of geometric objects.
 
   References to these geometric objects are kept and stored in the R-tree.
-
-  `New in version 1.4.0`.
 
   .. method:: strtree.query(geom)
     :noindex:
@@ -2863,8 +2834,6 @@ The GeoJSON-like mapping of a geometric object can be obtained using
   specification. If you want this, you can first order exterior rings
   counterclockwise, and interior rings (holes) clockwise with
   :func:`shapely.orient_polygons`.
-
-  `New in version 1.2.3`.
 
   For example, using the same `GeoThing` class:
 
