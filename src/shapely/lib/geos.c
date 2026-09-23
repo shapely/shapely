@@ -39,10 +39,7 @@ int init_shapely(PyObject* m) {
       PyErr_NewException("shapely.errors.GEOSException", base_class, NULL);
   PyModule_AddObject(m, "GEOSException", geos_exception[0]);
 
-  PyObject* base_class_tuple = PyTuple_New(2);
-  PyTuple_SetItem(base_class_tuple, 0, PyExc_ValueError);
-  PyTuple_SetItem(base_class_tuple, 1, geos_exception[0]);
-
+  PyObject* base_class_tuple = Py_BuildValue("(NN)", PyExc_ValueError, geos_exception[0]);
   geos_exception[1] = PyErr_NewException("shapely.errors._ShapelyValueError", base_class_tuple, NULL);
   PyModule_AddObject(m, "_ShapelyValueError", geos_exception[1]);
 
