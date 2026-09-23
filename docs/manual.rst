@@ -2131,6 +2131,7 @@ For example, reducing a linestring to only its first 2 points:
 
 .. code-block:: pycon
 
+  >>> import shapely
   >>> line = LineString([(2, 2), (4, 4), (6, 6)])
   >>> shapely.transform_coordseq(line, lambda coords: coords[:2])
   <LINESTRING (2 2, 4 4)>
