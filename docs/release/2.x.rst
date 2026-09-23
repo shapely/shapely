@@ -41,9 +41,9 @@ vectorized functions:
   of a geometry (#2313).
 - :func:`.coverage_clean`, which returns a cleaned version of geometries
   forming a polygonal coverage (#2454)  (requires GEOS >= 3.14).
-- :func:`.split` to split a geometry by another geometry (uses GEOS>=3.15,
-  falls back to the existing :func:`shapely.ops.split` implementation
-  otherwise) (#2477).
+- :func:`~shapely.split` to split a geometry by another geometry (uses
+  GEOS>=3.15, falls back to the existing :func:`shapely.ops.split`
+  implementation otherwise) (#2477).
 
 In addition, two other functions have been added to the top-level namespace:
 
@@ -67,22 +67,22 @@ Other improvements
   reused through a thread-local GEOS context (#2343).
 
 - :func:`.Polygon.from_bounds` now builds the ring in counterclockwise order,
-  consistent with :function:`shapely.box`, so the result satisfies the GeoJSON
+  consistent with :func:`shapely.box`, so the result satisfies the GeoJSON
   right-hand rule (#2396).
 
 - Added return values to :func:`.prepare` and :func:`.destroy_prepared`. They
   now return whether something was done; calling `prepare` twice on a geometry
   will first return `True`, and then `False` (#2359).
 
-- The :func:`.split` and :func:`shapely.ops.split` functions now support
-  splitting a (Multi)Polygon by another (Multi)Polygon, by using the boundary
-  to split to with (similarly as was already done for splitting a
+- The :func:`~shapely.split` and :func:`shapely.ops.split` functions now
+  support splitting a (Multi)Polygon by another (Multi)Polygon, by using the
+  boundary to split to with (similarly as was already done for splitting a
   (Multi)LineString with a polygon) (#2505).
 
 API changes
 ^^^^^^^^^^^
 
-- The :func:`shapely.ops.transform`` is deprecated. Use the more specific
+- The :func:`shapely.ops.transform` is deprecated. Use the more specific
   :meth:`shapely.transform` (when your function works independently on all
   coordinates) or :meth:`shapely.transform_coordseq` (when your function works
   on the coordinate sequence directly) instead (#1902).
