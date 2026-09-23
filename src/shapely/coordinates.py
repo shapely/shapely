@@ -67,7 +67,6 @@ def transform(
         one-dimensional coordinate arrays as arguments (x, y and optional z) instead
         of a single one. The return value must be a tuple of (x, y and optional z).
 
-
         .. versionadded:: 2.1.0
 
     Notes
@@ -192,7 +191,7 @@ def transform_coordseq(
     - The number of coordinate pairs per coordinate sequence is allowed to change.
 
     The `transform` function is the more performant option, so we recommend using this
-    function when changing the number of coordinate pairs.
+    function when not changing the number of coordinate pairs.
 
     .. versionadded:: 2.2.0
 

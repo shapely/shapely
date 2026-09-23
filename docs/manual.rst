@@ -2060,6 +2060,89 @@ Other Transformations
 Shapely supports map projections and other arbitrary transformations of
 geometric objects.
 
+.. function:: shapely.transform(geom, func, include_z=False, interleaved=True)
+  :no-index:
+
+  Apply a transformation `func` to all the coordinates of `geom`, and return
+  a new geometry of the same type from the transformed coordinates.
+
+  By default, `func` maps a single 2D array of coordinates to a new 2D array
+  of transformed coordinates (``func([[x1, y1], [x2, y2], ...])``).
+
+  If your function works on separate arrays of x, y, and optionally z
+  coordinates, set `interleaved=False` (``func([x1, x2, ...], [y1, y2, ...])``).
+
+  Full reference: :func:`shapely.transform`
+
+For example, here is a simple function that returns shifted coordinates:
+
+.. code-block:: python
+
+  def func_shift(coords):
+      # NumPy applies this addition element-wise to all coordinates
+      return coords + 2
+
+  g2 = shapely.transform(g1, func_shift)
+
+To reproject geometries using ``pyproj``:
+
+.. code-block:: python
+
+    import pyproj
+
+    from shapely import Point, transform
+
+    wgs84_pt = Point(-72.2495, 43.886)
+
+    wgs84 = pyproj.CRS('EPSG:4326')
+    utm = pyproj.CRS('EPSG:32618')
+
+    project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
+    # specify interleaved=False because the pyproj transform function expects
+    # separate x, y arrays as input
+    utm_point = transform(wgs84_pt, project, interleaved=False)
+
+It is important to note that in the example above, the `always_xy` kwarg is
+required as Shapely only supports coordinates in X,Y order, and in PROJ 6 the
+WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the
+expected Lon/Lat.
+
+.. function:: shapely.transform_coordseq(geom, func, include_z=False, interleaved=True)
+   :no-index:
+
+   Apply a transformation `func` to the coordinate sequences of a geometry.
+
+   Similarly as :func:`shapely.transform`, the transformation function can
+   accept a single 2D array of coordinates or separate x, y, and optionally
+   z arrays (depending on the ``interleaved`` keyword).
+
+   But the difference is that in case of :func:`~shapely.transform_coordseq`,
+   the transformation function is called separately for each coordinate
+   sequence (and thus only receiving the coordinates of one sequence at a
+   time), instead of being called once for all coordinates. For polygons, this
+   means per ring.
+
+   As a result, the number of coordinate pairs per coordinate sequence is
+   allowed to change.
+
+   Full reference: :func:`shapely.transform_coordseq`
+
+For example, reducing a linestring to only its first 2 points:
+
+.. code-block:: pycon
+
+  >>> line = LineString([(2, 2), (4, 4), (6, 6)])
+  >>> shapely.transform_coordseq(line, lambda coords: coords[:2])
+  <LINESTRING (2 2, 4 4)>
+
+The :func:`~shapely.transform` function is the more performant option, so
+whenever your transformation function can be applied to all coordinates
+element-wise at once and does not change the number of coordinate pairs, we
+recommend using this.
+
+Finally, there is a third `transform` function, which existed before the
+options described above, and is kept for backwards compatibility:
+
 .. function:: shapely.ops.transform(func, geom)
 
   Applies `func` to all coordinates of `geom` and returns a new
@@ -2077,68 +2160,45 @@ geometric objects.
   then it will instead call `func` on each individual coordinate
   in the geometry.
 
-  `New in version 1.2.18`.
+  **Updating to use** :func:`shapely.transform` **or** :func:`shapely.transform_coordseq`
 
-For example, here is an identity function applicable to both types of input
-(scalar or array).
+  If you are currently using ``shapely.ops.transform``, consider whether your
+  transformation function can be applied to all coordinates at once
+  independently. If that is the case, replace:
 
-.. code-block:: python
+  .. code-block:: python
 
-    def id_func(x, y, z=None):
-        return tuple(filter(None, [x, y, z]))
+    geom2 = shapely.ops.transform(func, geom1)
 
-    g2 = transform(id_func, g1)
+  with :func:`shapely.transform`:
 
+  .. code-block:: python
 
-If using `pyproj>=2.1.0`, the preferred method to project geometries is:
+    geom2 = shapely.transform(geom1, func, interleaved=False)
 
-.. code-block:: python
+  If your function has custom logic per coordinate sequence or changes the
+  number of coordinate pairs, use :func:`shapely.transform_coordseq`.
 
-    import pyproj
+  If your function only works on scalar coordinate values, you can define
+  a small wrapper function that accepts an array of coordinates, and
+  applies your scalar function to each coordinate pair individually:
 
-    from shapely import Point
-    from shapely.ops import transform
+  .. code-block:: python
 
-    wgs84_pt = Point(-72.2495, 43.886)
+    import numpy as np
 
-    wgs84 = pyproj.CRS('EPSG:4326')
-    utm = pyproj.CRS('EPSG:32618')
+    def func_scalar(x, y, z=None):
+        if x < 0:
+            x += 360
+        return x, y
 
-    project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
-    utm_point = transform(project, wgs84_pt)
+    def func_wrapped(coords):
+        return np.array([func_scalar(x, y) for x, y in coords])
 
-It is important to note that in the example above, the `always_xy` kwarg is
-required as Shapely only supports coordinates in X,Y order, and in PROJ 6 the
-WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the
-expected Lon/Lat.
+    geom2 = shapely.transform(geom1, func_wrapped)
 
-If using `pyproj < 2.1`, then the canonical example is:
-
-.. code-block:: python
-
-    from functools import partial
-    import pyproj
-
-    from shapely.ops import transform
-
-    wgs84 = pyproj.Proj(init='epsg:4326')
-    utm = pyproj.Proj(init='epsg:32618')
-
-    project = partial(
-        pyproj.transform,
-        wgs84,
-        utm)
-
-    utm_point = transform(project, wgs84_pt)
-
-Lambda expressions such as the one in
-
-.. code-block:: python
-
-    g2 = transform(lambda x, y, z=None: (x+1.0, y+1.0), g1)
-
-also satisfy the requirements for `func`.
-
+  Note: this scalar function is only for illustration purposes, and this
+  specific operation can also be re-written to use vectorized array operations.
 
 Other Operations
 ================
