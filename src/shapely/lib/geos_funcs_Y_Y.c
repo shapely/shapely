@@ -283,9 +283,7 @@ DEFINE_Y_Y(GEOSCoverageUnion_r);
 DEFINE_Y_Y(GEOSMinimumBoundingCircleWithReturn);
 DEFINE_Y_Y(GEOSMinimumWidth_r);
 DEFINE_Y_Y(GEOSConstrainedDelaunayTriangulation_r);
-#if GEOS_SINCE_3_11_0
 DEFINE_Y_Y(GEOSLineMergeDirected_r);
-#endif
 #if GEOS_SINCE_3_12_0
 DEFINE_Y_Y(GEOSDisjointSubsetUnion_r);
 #endif
@@ -357,10 +355,7 @@ int init_geos_funcs_Y_Y(PyObject* m, PyObject* d) {
   INIT_Y_Y(GEOSMinimumBoundingCircleWithReturn, minimum_bounding_circle);
   INIT_Y_Y(GEOSMinimumWidth_r, minimum_width);
   INIT_Y_Y(GEOSConstrainedDelaunayTriangulation_r, constrained_delaunay_triangles);
-
-#if GEOS_SINCE_3_11_0
   INIT_Y_Y(GEOSLineMergeDirected_r, line_merge_directed);
-#endif
 
 #if GEOS_SINCE_3_12_0
   INIT_Y_Y(GEOSDisjointSubsetUnion_r, disjoint_subset_union);

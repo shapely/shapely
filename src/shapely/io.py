@@ -289,7 +289,7 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
           warning.
         - fix: an effort is made to fix invalid input geometries (currently just
           unclosed rings). If this is not possible, they are returned as
-          ``None`` without a warning. Requires GEOS >= 3.11.
+          ``None`` without a warning.
 
           .. versionadded:: 2.1.0
     **kwargs
@@ -333,7 +333,7 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
           warning.
         - fix: an effort is made to fix invalid input geometries (currently just
           unclosed rings). If this is not possible, they are returned as
-          ``None`` without a warning. Requires GEOS >= 3.11.
+          ``None`` without a warning.
 
           .. versionadded:: 2.1.0
     **kwargs
