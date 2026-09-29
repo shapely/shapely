@@ -10,3 +10,4 @@ dependencies:
   - numpydoc=1.1
   - matplotlib
   - pip
+  - pkg-config
