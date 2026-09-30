@@ -1,4 +1,4 @@
-This binary distribution of pygeos also bundles the following software:
+This binary distribution of shapely also bundles the following software:
 
 Name: Geometry Engine Open Source (GEOS)
 Files: libgeos-*.so.*, libgeos_c-*.so.*, libgeos.dylib, libgeos_c.dylib, geos-*.dll, geos_c-*.dll

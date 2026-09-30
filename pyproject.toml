@@ -1,13 +1,11 @@
 [build-system]
 requires = [
+    # keep in sync with a subset of [dependency-groups.build]
     "Cython",
-    # Starting with NumPy 1.25, NumPy is (by default) as far back compatible
-    # as oldest-support-numpy was (customizable with a NPY_TARGET_VERSION
-    # define).
-    "numpy>=1.25,<3",
-    "setuptools>=77.0.3",
+    "meson-python>=0.15.0",
+    "numpy>=1.26,<3",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "mesonpy"
 
 [project]
 name = "shapely"
@@ -22,6 +20,7 @@ description = "Manipulation and analysis of geometric objects"
 readme = "README.rst"
 keywords = ["geometry", "topology", "gis"]
 license = "BSD-3-Clause"
+license-files = ["LICENSE*"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -34,17 +33,22 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.11"  # keep in sync with `min_python_version` in meson.build
 dependencies = [
-    "numpy>=1.23",
+    "numpy>=1.26",  # keep in sync with `min_numpy_runtime_version` in meson.build
 ]
 
 [dependency-groups]
-dev = [
-    "pre-commit",
-    {include-group = "tests"},
+build = [
+    # keep in sync with a superset of [build-system.requires]
+    "Cython",
+    "meson>=1.2.1",
+    "meson-python>=0.15.0",
+    "ninja",
+    "numpy>=1.26,<3",
 ]
 tests = [
     "pytest",
@@ -58,19 +62,15 @@ docs = [
     "sphinx-book-theme",
     "sphinx-remove-toctrees",
 ]
+dev = [
+    "pre-commit",
+    {include-group = "build"},
+    {include-group = "tests"},
+]
 
 [project.urls]
 Documentation = "https://shapely.readthedocs.io/"
 Repository = "https://github.com/shapely/shapely"
-
-[tool.setuptools]
-include-package-data = false
-
-[tool.setuptools.packages.find]
-include = ["shapely", "shapely.*"]
-
-[tool.setuptools.package-data]
-"shapely" = ["*.pxd"]
 
 [tool.cibuildwheel]
 skip = ["*_i686", "*_ppc64le", "*_s390x"]
@@ -79,8 +79,8 @@ test-requires = "pytest"
 test-command = "pytest --pyargs shapely.tests"
 
 [tool.coverage.run]
-source = ["shapely"]
-omit = ["shapely/tests/*"]
+source = ["src/shapely"]
+omit = ["src/shapely/tests/*"]
 
 [tool.doc8]
 include = ["docs"]
@@ -88,9 +88,17 @@ ignore = ["D000", "D004"]
 allow-long-titles = true
 max-line-length = 79
 
+[tool.meson-python.args]
+# setup = ["--clearcache"]  # uncomment to clear build cache with local builds
+
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib"]
+doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
+xfail_strict = true
+
 [tool.ruff]
 line-length = 88
-extend-exclude = ["docs/*", "benchmarks/*", "shapely/_version.py", "versioneer.py"]
+extend-exclude = ["docs/*", "benchmarks/*", "versioneer.py"]
 
 [tool.ruff.lint]
 select = [
@@ -170,13 +178,12 @@ ignore = [
 # ignore pydocstyle errors in tests
 "**/tests/*" = ["D", "PLC2801", "PLR6301"]
 # the order of imports in __init__ is a bit tricky, so keep manual
-"shapely/__init__.py" = ["F401", "F403", "I"]
-"shapely/ops.py" = ["PLR6301"]
-"shapely/geometry/base.py" = ["PLR0904"]
+"src/shapely/__init__.py" = ["F401", "F403", "I"]
+"src/shapely/ops.py" = ["PLR6301"]
+"src/shapely/geometry/base.py" = ["PLR0904"]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
-extra-standard-library = ["packaging"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
@@ -189,3 +196,11 @@ allow-dunder-method-names = [
     "_repr_svg_",
 ]
 max-positional-args = 8  # TODO: revise with deprecate_positional changes
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "src/shapely/_version.py"
+versionfile_build = "shapely/_version.py"
+tag_prefix = ""
+parentdir_prefix = "shapely-"

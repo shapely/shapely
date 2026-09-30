@@ -1,4 +1,4 @@
-This binary distribution of pygeos also bundles the following software:
+This binary distribution of shapely also bundles the following software:
 
 Name: Microsoft Visual C++ Runtime Files
 Files: msvcp140.dll
