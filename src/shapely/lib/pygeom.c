@@ -4,6 +4,7 @@
 
 #include <Python.h>
 #include <structmember.h>
+#include <numpy/npy_math.h>
 
 #include "geos.h"
 #include "pygeos.h"
@@ -235,33 +236,128 @@ static PyObject* GeometryObject_str(GeometryObject* self) {
   return GeometryObject_ToWKT(self);
 }
 
-/* For lookups in sets / dicts.
- * Python should be told how to generate a hash from the Geometry object. */
-static Py_hash_t GeometryObject_hash(GeometryObject* self) {
-  PyObject* wkb = NULL;
-  Py_hash_t x;
-
-  if (self->ptr == NULL) {
+/* Hash a private buffer using Python's randomized byte hash. */
+static Py_hash_t hash_buffer(const void* data, Py_ssize_t size) {
+  PyObject* bytes = PyBytes_FromStringAndSize(data, size);
+  if (bytes == NULL) {
     return -1;
   }
+  Py_hash_t result = PyObject_Hash(bytes);
+  Py_DECREF(bytes);
+  return result;
+}
 
-  // Transform to a WKB (PyBytes object)
-  wkb = GeometryObject_ToWKB(self);
-  if (wkb == NULL) {
+/* Match PyGEOSEqualsIdentical: preserve structure and coordinate order, ignore
+ * SRID, and treat signed zero and all NaN representations as equal. */
+static Py_hash_t hash_geometry(GEOSContextHandle_t ctx, const GEOSGeometry* geom) {
+  Py_hash_t result = -1;
+  void* buffer = NULL;
+  int type = GEOSGeomTypeId_r(ctx, geom);
+  if (type == -1 || Py_EnterRecursiveCall(" while hashing a geometry")) {
     return -1;
   }
+  if (type >= 8) {
+    PyErr_SetString(PyExc_NotImplementedError,
+                    "Nonlinear geometry types are not currently supported");
+    goto finish;
+  }
 
-  // Use the python built-in method to hash the PyBytes object
-  x = wkb->ob_type->tp_hash(wkb);
-  if (x == -1) {
-    x = -2;
+  if (type == GEOS_POINT || type == GEOS_LINESTRING || type == GEOS_LINEARRING) {
+    const GEOSCoordSequence* seq = GEOSGeom_getCoordSeq_r(ctx, geom);
+    unsigned int size, dims;
+    char has_z = GEOSHasZ_r(ctx, geom);
+    if (seq == NULL || has_z == 2 || !GEOSCoordSeq_getSize_r(ctx, seq, &size) ||
+        !GEOSCoordSeq_getDimensions_r(ctx, seq, &dims)) {
+      goto finish;
+    }
+    if (dims < 2 || dims > 4) {
+      PyErr_SetString(PyExc_ValueError, "Unexpected coordinate dimension");
+      goto finish;
+    }
+    if (size > (PY_SSIZE_T_MAX / sizeof(double) - 3) / dims) {
+      PyErr_NoMemory();
+      goto finish;
+    }
+    Py_ssize_t count = (Py_ssize_t)size * dims + 3;
+    buffer = PyMem_Malloc(count * sizeof(double));
+    if (buffer == NULL) {
+      PyErr_NoMemory();
+      goto finish;
+    }
+    double* values = buffer;
+    values[0] = type;
+    values[1] = dims;
+    values[2] = has_z;
+    int has_m = dims == 4 || (dims == 3 && !has_z);
+    if (!coordseq_to_buffer(ctx, seq, values + 3, size, has_z, has_m)) {
+      goto finish;
+    }
+    for (Py_ssize_t i = 3; i < count; i++) {
+      if (values[i] == 0.0) {
+        values[i] = 0.0;
+      } else if (npy_isnan(values[i])) {
+        values[i] = NPY_NAN;
+      }
+    }
+    result = hash_buffer(buffer, count * sizeof(double));
   } else {
-    x ^= 374761393UL;  // to make the result distinct from the actual WKB hash //
+    int n = type == GEOS_POLYGON ? GEOSGetNumInteriorRings_r(ctx, geom)
+                                 : GEOSGetNumGeometries_r(ctx, geom);
+    if (n == -1) {
+      goto finish;
+    }
+    // Reserve space for the type and (for polygons) the exterior ring before
+    // adding them, including when Py_ssize_t is only 32 bits.
+    if (n > PY_SSIZE_T_MAX / sizeof(Py_hash_t) - 2) {
+      PyErr_NoMemory();
+      goto finish;
+    }
+    Py_ssize_t count = (Py_ssize_t)n + (type == GEOS_POLYGON);
+    buffer = PyMem_Malloc((count + 1) * sizeof(Py_hash_t));
+    if (buffer == NULL) {
+      PyErr_NoMemory();
+      goto finish;
+    }
+    Py_hash_t* hashes = buffer;
+    hashes[0] = type;
+    for (Py_ssize_t i = 0; i < count; i++) {
+      const GEOSGeometry* child;
+      if (type == GEOS_POLYGON) {
+        child = i == 0 ? GEOSGetExteriorRing_r(ctx, geom)
+                       : GEOSGetInteriorRingN_r(ctx, geom, (int)i - 1);
+      } else {
+        child = GEOSGetGeometryN_r(ctx, geom, (int)i);
+      }
+      if (child == NULL) {
+        goto finish;
+      }
+      hashes[i + 1] = hash_geometry(ctx, child);
+      if (hashes[i + 1] == -1) {
+        goto finish;
+      }
+    }
+    result = hash_buffer(buffer, (count + 1) * sizeof(Py_hash_t));
   }
 
-  Py_DECREF(wkb);
+finish:
+  PyMem_Free(buffer);
+  Py_LeaveRecursiveCall();
+  return result;
+}
 
-  return x;
+/* For lookups in sets / dicts. */
+static Py_hash_t GeometryObject_hash(GeometryObject* self) {
+  if (self->ptr == NULL) {
+    PyErr_SetString(PyExc_TypeError, "Cannot hash an uninitialized geometry");
+    return -1;
+  }
+  GEOS_INIT;
+  Py_hash_t result = hash_geometry(ctx, self->ptr);
+  if (result == -1 && !PyErr_Occurred()) {
+    errstate = PGERR_GEOS_EXCEPTION;
+  }
+  GEOS_FINISH;
+  return result;
 }
 
 static PyObject* GeometryObject_richcompare(GeometryObject* self, PyObject* other,

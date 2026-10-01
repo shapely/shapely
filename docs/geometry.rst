@@ -3,10 +3,10 @@ Geometry
 
 Shapely geometry classes, such as ``shapely.Point``, are the central data types
 in Shapely.  Each geometry class extends the ``shapely.Geometry`` base class,
-which is a container of the underlying GEOS geometry object, to provide geometry
-type-specific attributes and behavior.  The ``Geometry`` object keeps track of
-the underlying GEOS geometry and lets the python garbage collector free its
-memory when it is not used anymore.
+which is a container of the underlying GEOS geometry object, to provide
+geometry type-specific attributes and behavior.  The ``Geometry`` object keeps
+track of the underlying GEOS geometry and lets the python garbage collector
+free its memory when it is not used anymore.
 
 Geometry objects are immutable. This means that after constructed, they cannot
 be changed in place. Every Shapely operation will result in a new object being
@@ -75,8 +75,11 @@ Hashing
 
 Geometries can be used as elements in sets or as keys in dictionaries.
 Python uses a technique called *hashing* for lookups in these datastructures.
-Shapely generates this hash from the WKB representation.
-Therefore, geometries are equal if and only if their WKB representations are equal.
+Shapely generates this hash from the geometry type, structure, and coordinate
+values.
+Equal geometries have equal hashes, including when coordinates differ only in
+the sign of zero or the binary representation of NaN. SRID does not affect
+equality or hashing.
 
 .. code:: python
 
@@ -87,11 +90,11 @@ Therefore, geometries are equal if and only if their WKB representations are equ
   >>> {point_1, point_2, point_3}  # doctest: +SKIP
   {<POINT (1 1)>, <POINT (5.2 52.1)>}
 
-.. warning:: Due to limitations of WKB, linearrings will equal linestrings if they contain the exact same points.
-             See :func:`shapely.to_wkb`.
+Linearrings and linestrings are different geometry types and are not equal,
+even when they contain the exact same points.
 
 Comparing two geometries directly is also supported.
-This is the same as using :func:`shapely.equals_exact` with a ``tolerance`` value of zero.
+This is the same as using :func:`shapely.equals_identical`.
 
   >>> point_1 == point_2
   False
