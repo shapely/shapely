@@ -17,6 +17,12 @@ Wheels are available for Python 3.15.
 For a full changelog, see
 https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-2-0
 
+Bug fixes:
+
+- `line_interpolate_point` and `line_locate_point` now forward keyword arguments
+  (such as `out`) to the underlying ufunc instead of silently ignoring them
+  (#2480).
+
 
 2.1.2 (2025-09-24)
 ------------------
