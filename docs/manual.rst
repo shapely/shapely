@@ -2070,11 +2070,21 @@ For example, here is a simple function that returns shifted coordinates:
 
 .. code-block:: python
 
-  def func_shift(coords):
+  def shift_xy(coords):
       # NumPy applies this addition element-wise to all coordinates
       return coords + 2
 
-  g2 = shapely.transform(g1, func_shift)
+  g2 = shapely.transform(g1, shift_xy)
+
+or that swaps the x and y coordinates:
+
+.. code-block:: python
+
+  def swap_xy(x, y):
+      return y, x
+
+  # specify interleaved=False to pass separate x and y arrays to the function
+  g3 = shapely.transform(g1, swap_xy, interleaved=False)
 
 To reproject geometries using ``pyproj``:
 
