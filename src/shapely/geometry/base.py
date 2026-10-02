@@ -196,18 +196,34 @@ class BaseGeometry(shapely.Geometry):
 
     def __and__(self, other):
         """Return the intersection of the geometries."""
+        if not shapely.lib.is_valid_input_scalar(other):
+            valid = shapely.is_valid_input(other)
+            if np.ndim(valid) == 0 and not bool(valid):
+                return NotImplemented
         return self.intersection(other)
 
     def __or__(self, other):
         """Return the union of the geometries."""
+        if not shapely.lib.is_valid_input_scalar(other):
+            valid = shapely.is_valid_input(other)
+            if np.ndim(valid) == 0 and not bool(valid):
+                return NotImplemented
         return self.union(other)
 
     def __sub__(self, other):
         """Return the difference of the geometries."""
+        if not shapely.lib.is_valid_input_scalar(other):
+            valid = shapely.is_valid_input(other)
+            if np.ndim(valid) == 0 and not bool(valid):
+                return NotImplemented
         return self.difference(other)
 
     def __xor__(self, other):
         """Return the symmetric difference of the geometries."""
+        if not shapely.lib.is_valid_input_scalar(other):
+            valid = shapely.is_valid_input(other)
+            if np.ndim(valid) == 0 and not bool(valid):
+                return NotImplemented
         return self.symmetric_difference(other)
 
     # Coordinate access
