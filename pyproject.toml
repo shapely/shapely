@@ -2,7 +2,7 @@
 requires = [
     # keep in sync with a subset of [dependency-groups.build]
     "Cython",
-    "meson-python>=0.15.0",
+    "meson-python>=0.15.0,!=0.22.0",
     "numpy>=1.26,<3",
 ]
 build-backend = "mesonpy"
@@ -46,7 +46,7 @@ build = [
     # keep in sync with a superset of [build-system.requires]
     "Cython",
     "meson>=1.2.1",
-    "meson-python>=0.15.0",
+    "meson-python>=0.15.0,!=0.22.0",
     "ninja",
     "numpy>=1.26,<3",
 ]
