@@ -5,7 +5,6 @@ dependencies:
   - python=3.12
   - geos=3.13
   - numpy
-  - c-compiler
   - cython
   - sphinx-book-theme
   - sphinx-remove-toctrees
