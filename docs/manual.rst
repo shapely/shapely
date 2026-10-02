@@ -2089,7 +2089,7 @@ To reproject geometries using ``pyproj``:
     wgs84 = pyproj.CRS('EPSG:4326')
     utm = pyproj.CRS('EPSG:32618')
 
-    project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
+    transformer = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True)
     # specify interleaved=False because the pyproj transform function expects
     # separate x, y arrays as input
     utm_point = transform(wgs84_pt, project, interleaved=False)
@@ -2104,11 +2104,11 @@ expected Lon/Lat.
 
    Apply a transformation `func` to the coordinate sequences of a geometry.
 
-   Similarly as :func:`shapely.transform`, the transformation function can
+   Similar to :func:`shapely.transform`, the transformation function can
    accept a single 2D array of coordinates or separate x, y, and optionally
    z arrays (depending on the ``interleaved`` keyword).
 
-   But the difference is that in case of :func:`~shapely.transform_coordseq`,
+   The difference is that in case of :func:`~shapely.transform_coordseq`,
    the transformation function is called separately for each coordinate
    sequence (and thus only receiving the coordinates of one sequence at a
    time), instead of being called once for all coordinates. For polygons, this
@@ -2131,7 +2131,7 @@ For example, reducing a linestring to only its first 2 points:
 The :func:`~shapely.transform` function is the more performant option, so
 whenever your transformation function can be applied to all coordinates
 element-wise at once and does not change the number of coordinate pairs, we
-recommend using this.
+recommend using that.
 
 Finally, there is a third `transform` function, which existed before the
 options described above, and is kept for backwards compatibility:
