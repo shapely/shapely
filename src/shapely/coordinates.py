@@ -147,22 +147,20 @@ interleaved=False, include_z=True)
         include_m = False
         coordinates = lib.get_coordinates(geometry_arr, include_z, include_m, False)
         if interleaved:
-            new_coordinates = transformation(coordinates)
+            new_coordinates = np.asarray(transformation(coordinates), dtype=np.float64)
         else:
             new_coordinates = np.asarray(
                 transformation(*coordinates.T), dtype=np.float64
             ).T
         # check the array to yield understandable error messages
-        if not isinstance(new_coordinates, np.ndarray) or new_coordinates.ndim != 2:
-            raise ValueError(
-                "The provided transformation did not return a two-dimensional numpy "
-                "array"
-            )
-        if new_coordinates.dtype != np.float64:
-            raise ValueError(
-                "The provided transformation returned an array with an unexpected "
-                f"dtype ({new_coordinates.dtype})"
-            )
+        if new_coordinates.ndim != 2:
+            if new_coordinates.size == 0:
+                # for empty input or emtpy geometry, ensure proper shape
+                new_coordinates = np.empty((0, coordinates.shape[1]), dtype=np.float64)
+            else:
+                raise ValueError(
+                    "The provided transformation did not return a two-dimensional array"
+                )
         if new_coordinates.shape != coordinates.shape:
             # if the shape is too small we will get a segfault
             raise ValueError(
