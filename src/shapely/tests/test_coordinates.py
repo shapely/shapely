@@ -353,6 +353,33 @@ def test_transform_coordseq_3d(geom, include_z, interleaved, transformation):
     assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
 
 
+@pytest.mark.parametrize(
+    "geoms",
+    [[], [empty], [None, point, None], [nested_3], [point, point_z], [line_string_z]],
+)
+@pytest.mark.parametrize(
+    "interleaved,transformation",
+    [
+        (True, lambda coords: np.array([c + 1 for c in coords])),
+        (True, lambda coords: [c + 1 for c in coords]),
+        (
+            False,
+            lambda x, y: (np.array([c + 1 for c in x]), np.array([c + 1 for c in y])),
+        ),
+        (False, lambda x, y: ([c + 1 for c in x], [c + 1 for c in y])),
+    ],
+)
+@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
+def test_transform_wrapped_scalar_function(
+    transform_func, geoms, interleaved, transformation
+):
+    actual = transform_func(geoms, transformation, interleaved=interleaved)
+
+    coordinates_before = get_coordinates(geoms)
+    coordinates_after = get_coordinates(actual)
+    assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
+
+
 @pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
 def test_transform_missing(transform_func):
     actual = transform_func(None, lambda x: x + 1)
