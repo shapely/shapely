@@ -2092,7 +2092,7 @@ To reproject geometries using ``pyproj``:
     transformer = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True)
     # specify interleaved=False because the pyproj transform function expects
     # separate x, y arrays as input
-    utm_point = transform(wgs84_pt, project, interleaved=False)
+    utm_point = transform(wgs84_pt, transformer.transform, interleaved=False)
 
 It is important to note that in the example above, the `always_xy` kwarg is
 required as Shapely only supports coordinates in X,Y order, and in PROJ 6 the
