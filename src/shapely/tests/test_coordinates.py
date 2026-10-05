@@ -303,12 +303,32 @@ def test_set_coords_mixed_dimension(include_z):
         (True, True, lambda coords: coords + 1),
         (False, False, lambda x, y: (x + 1, y + 1)),
         (False, True, lambda x, y, z: (x + 1, y + 1, z + 1)),
+        # transform functions that mimic wrapping of scalar function
+        (True, False, lambda coords: np.array([c + 1 for c in coords])),
+        (True, False, lambda coords: [c + 1 for c in coords]),
+        (True, True, lambda coords: [c + 1 for c in coords]),
+        (
+            False,
+            False,
+            lambda x, y: (np.array([c + 1 for c in x]), np.array([c + 1 for c in y])),
+        ),
+        (False, False, lambda x, y: ([c + 1 for c in x], [c + 1 for c in y])),
+        (
+            False,
+            True,
+            lambda x, y, z: (
+                [c + 1 for c in x],
+                [c + 1 for c in y],
+                [c + 1 for c in z],
+            ),
+        ),
     ],
 )
-def test_transform(geoms, include_z, interleaved, transformation):
+@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
+def test_transform(geoms, include_z, interleaved, transformation, transform_func):
     geoms = np.array(geoms, np.object_)
     coordinates_before = get_coordinates(geoms, include_z=include_z)
-    new_geoms = transform(
+    new_geoms = transform_func(
         geoms, transformation, include_z=include_z, interleaved=interleaved
     )
     assert new_geoms is not geoms
@@ -320,13 +340,14 @@ def test_transform(geoms, include_z, interleaved, transformation):
 @pytest.mark.parametrize(
     "interleaved,transformation",
     [
-        (True, lambda coords: [c + 1 for c in coords]),
+        (True, lambda coords: coords + 1),
         (False, lambda x, y: (x + 1, y + 1)),
     ],
 )
-def test_transform_coordseq(geom, interleaved, transformation):
+@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
+def test_transform_all_types(geom, interleaved, transformation, transform_func):
     coordinates_before = get_coordinates(geom)
-    new_geom = transform_coordseq(geom, transformation, interleaved=interleaved)
+    new_geom = transform_func(geom, transformation, interleaved=interleaved)
     assert type(geom) is type(new_geom)
     coordinates_after = get_coordinates(new_geom)
     assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
@@ -342,41 +363,17 @@ def test_transform_coordseq(geom, interleaved, transformation):
         (False, True, lambda x, y, z: (x + 1, y + 1, z + 1)),
     ],
 )
-def test_transform_coordseq_3d(geom, include_z, interleaved, transformation):
+@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
+def test_transform_all_types_3d(
+    geom, include_z, interleaved, transformation, transform_func
+):
     coordinates_before = get_coordinates(geom, include_z=include_z)
-    new_geom = transform_coordseq(
+    new_geom = transform_func(
         geom, transformation, include_z=include_z, interleaved=interleaved
     )
     assert type(geom) is type(new_geom)
     assert new_geom.has_z is include_z
     coordinates_after = get_coordinates(new_geom, include_z=include_z)
-    assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
-
-
-@pytest.mark.parametrize(
-    "geoms",
-    [[], [empty], [None, point, None], [nested_3], [point, point_z], [line_string_z]],
-)
-@pytest.mark.parametrize(
-    "interleaved,transformation",
-    [
-        (True, lambda coords: np.array([c + 1 for c in coords])),
-        (True, lambda coords: [c + 1 for c in coords]),
-        (
-            False,
-            lambda x, y: (np.array([c + 1 for c in x]), np.array([c + 1 for c in y])),
-        ),
-        (False, lambda x, y: ([c + 1 for c in x], [c + 1 for c in y])),
-    ],
-)
-@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
-def test_transform_wrapped_scalar_function(
-    transform_func, geoms, interleaved, transformation
-):
-    actual = transform_func(geoms, transformation, interleaved=interleaved)
-
-    coordinates_before = get_coordinates(geoms)
-    coordinates_after = get_coordinates(actual)
     assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
 
 
