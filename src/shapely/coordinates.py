@@ -203,7 +203,7 @@ def transform_coordseq(
         to the transformation function will include the third dimension
         (if a geometry has no third dimension, the z-coordinates
         will be NaN).
-        If None, will infer the dimensionality usingb``has_z``. Note that this
+        If None, will infer the dimensionality using ``has_z``. Note that this
         inference can be unreliable with empty geometries or NaN coordinates: for a
         guaranteed result, it is recommended to specify ``include_z`` explicitly.
     interleaved : bool, default True

@@ -85,7 +85,9 @@ API changes
 - The :func:`shapely.ops.transform` is deprecated. Use the more specific
   :meth:`shapely.transform` (when your function works independently on all
   coordinates) or :meth:`shapely.transform_coordseq` (when your function works
-  on the coordinate sequence directly) instead (#1902).
+  on the coordinate sequence directly) instead. See
+  :func:`the manual with update advice <shapely.ops.transform>` for more
+  details (#1902).
 
 Bug fixes
 ^^^^^^^^^

@@ -2144,7 +2144,8 @@ element-wise at once and does not change the number of coordinate pairs, we
 recommend using that.
 
 Finally, there is a third `transform` function, which existed before the
-options described above, and is kept for backwards compatibility:
+options described above, and is kept for backwards compatibility but is
+deprecated:
 
 .. function:: shapely.ops.transform(func, geom)
 
@@ -2162,6 +2163,8 @@ options described above, and is kept for backwards compatibility:
   a `TypeError` when called with iterables as arguments,
   then it will instead call `func` on each individual coordinate
   in the geometry.
+
+  .. deprecated:: 2.2.0
 
   **Updating to use** :func:`shapely.transform` **or** :func:`shapely.transform_coordseq`
 
