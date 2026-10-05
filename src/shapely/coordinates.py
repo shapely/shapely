@@ -177,7 +177,7 @@ def transform_coordseq(
     geometry,
     transformation,
     *,
-    include_z: bool | None = False,
+    include_z: bool | None = None,
     interleaved: bool = True,
 ):
     """Apply a transformation to the coordinate sequences of a geometry (array).
@@ -201,15 +201,17 @@ def transform_coordseq(
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
         another (N, 2) or (N, 3) ndarray of float64.
         The function may change the value of N.
-    include_z : bool, optional, default False
-        If False, always return 2D geometries.
-        If True, the data being passed to the
-        transformation function will include the third dimension
-        (if a geometry has no third dimension, the z-coordinates
-        will be NaN). If None, will infer the dimensionality using
-        ``has_z``. Note that this inference
-        can be unreliable with empty geometries or NaN coordinates: for a
-        guaranteed result, it is recommended to specify ``include_z`` explicitly.
+    include_z : bool, optional
+        By default, passes 2D or 3D coordinates to the transformation function
+        based on the dimensionality of the input geometry.
+        Set to False to always pass 2D (XY) coordinates, or set to True to
+        always include include the third dimension (XYZ) (if a geometry has no
+        third dimension, the z-coordinates will be NaN).
+
+        Note that the default inference of dimensionality (``has_z``) can can
+        be unreliable with empty geometries or NaN coordinates: for a
+        guaranteed result, it is recommended to specify ``include_z``
+        explicitly.
     interleaved : bool, default True
         If set to False, the transformation function should accept 2 or 3 separate
         one-dimensional coordinate arrays as arguments (x, y and optional z) instead
