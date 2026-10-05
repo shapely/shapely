@@ -95,6 +95,8 @@ Bug fixes
   passing a sequence of non-polygons (#2461).
 - Fix a crash in :func:`.coverage_invalid_edges` on invalid (non-geometry)
   input (#2483).
+- Fix keyword argument forwarding in :func:`shapely.line_interpolate_point`
+  and :func:`shapely.line_locate_point` (#2480).
 
 Packaging
 ^^^^^^^^^

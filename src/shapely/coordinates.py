@@ -79,7 +79,7 @@ def transform(
     See Also
     --------
     has_z : Return True if a geometry has Z coordinates.
-    transform_coordseq : Transform single Geometry objects per coordinate sequence,
+    transform_coordseq : Transform Geometry objects per coordinate sequence,
         optionally resizing them.
 
     Examples
@@ -144,22 +144,20 @@ interleaved=False, include_z=True)
         include_m = False
         coordinates = lib.get_coordinates(geometry_arr, include_z, include_m, False)
         if interleaved:
-            new_coordinates = transformation(coordinates)
+            new_coordinates = np.asarray(transformation(coordinates), dtype=np.float64)
         else:
             new_coordinates = np.asarray(
                 transformation(*coordinates.T), dtype=np.float64
             ).T
         # check the array to yield understandable error messages
-        if not isinstance(new_coordinates, np.ndarray) or new_coordinates.ndim != 2:
-            raise ValueError(
-                "The provided transformation did not return a two-dimensional numpy "
-                "array"
-            )
-        if new_coordinates.dtype != np.float64:
-            raise ValueError(
-                "The provided transformation returned an array with an unexpected "
-                f"dtype ({new_coordinates.dtype})"
-            )
+        if new_coordinates.ndim != 2:
+            if new_coordinates.size == 0:
+                # for empty input or emtpy geometry, ensure proper shape
+                new_coordinates = np.empty((0, coordinates.shape[1]), dtype=np.float64)
+            else:
+                raise ValueError(
+                    "The provided transformation did not return a two-dimensional array"
+                )
         if new_coordinates.shape != coordinates.shape:
             # if the shape is too small we will get a segfault
             raise ValueError(
@@ -173,30 +171,29 @@ interleaved=False, include_z=True)
 
 
 def transform_coordseq(
-    geom: shapely.Geometry | None,
+    geometry,
     transformation,
     *,
     include_z: bool | None = False,
     interleaved: bool = True,
 ):
-    """Apply a transformation to the coordinate sequences of a single geometry.
+    """Apply a transformation to the coordinate sequences of a geometry (array).
 
-    The transformation function is applied per coordinate sequence. For polygons this
-    means: per ring. For collections this means: per element.
+    This function differs from `transform` in the following ways:
 
-    This function differs with `transform` in the following ways:
-
-    - It only accepts scalar Geometry objects, not arrays.
+    - The transformation function is applied once per coordinate sequence. For
+      polygons this means: per ring. For collections this means: per element.
     - The number of coordinate pairs per coordinate sequence is allowed to change.
 
-    The `transform` function is the more performant option, so we recommend using this
-    function when not changing the number of coordinate pairs.
+    The `transform` function is the more performant option, so we recommend using
+    that function when not changing the number of coordinate pairs.
 
     .. versionadded:: 2.2.0
 
     Parameters
     ----------
-    geom : Geometry or None
+    geometry : Geometry or array_like
+        Geometry or geometries to transform.
     transformation : function
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
         another (N, 2) or (N, 3) ndarray of float64.
@@ -236,6 +233,16 @@ def transform_coordseq(
     lambda x, y: (x[:2], y[:2]), interleaved=False)
     <LINESTRING (2 2, 4 4)>
     """
+    if lib.is_valid_input_scalar(geometry):
+        return _transform_coordseq_scalar(
+            geometry, transformation, include_z, interleaved
+        )
+    return _transform_coordseq_vectorized(
+        geometry, transformation, include_z, interleaved
+    )
+
+
+def _transform_coordseq_scalar(geom, transformation, include_z=False, interleaved=True):
     if geom is None:
         return geom
     if geom.is_empty:
@@ -282,6 +289,11 @@ def transform_coordseq(
         )
     else:
         raise TypeError(f"Type {geom_type} not recognized")
+
+
+_transform_coordseq_vectorized = np.vectorize(
+    _transform_coordseq_scalar, otypes="O", excluded=[1, 2, 3]
+)
 
 
 def count_coordinates(geometry):

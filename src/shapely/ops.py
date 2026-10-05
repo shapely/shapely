@@ -8,7 +8,7 @@ import numpy as np
 import shapely
 from shapely.algorithms.polylabel import polylabel  # noqa
 from shapely.coordinates import transform_coordseq
-from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
+from shapely.errors import GeometryTypeError
 from shapely.geometry import (
     GeometryCollection,
     LineString,
@@ -225,7 +225,7 @@ def transform(func, geom):
     warn(
         "The 'ops.transform()' function is deprecated. "
         "Use 'transform()' or 'transform_coordseq()' instead.",
-        ShapelyDeprecationWarning,
+        DeprecationWarning,
         stacklevel=2,
     )
 
