@@ -190,8 +190,8 @@ def transform_coordseq(
       polygons this means: per ring. For collections this means: per element.
     - The number of coordinate pairs per coordinate sequence is allowed to change.
 
-    The `transform` function is the more performant option, so we recommend using this
-    function when not changing the number of coordinate pairs.
+    The `transform` function is the more performant option, so we recommend using
+    that function when not changing the number of coordinate pairs.
 
     .. versionadded:: 2.2.0
 
@@ -240,7 +240,7 @@ def transform_coordseq(
     lambda x, y: (x[:2], y[:2]), interleaved=False)
     <LINESTRING (2 2, 4 4)>
     """
-    if isinstance(geometry, lib.Geometry) or geometry is None:
+    if lib.is_valid_input_scalar(geometry):
         return _transform_coordseq_scalar(
             geometry, transformation, include_z, interleaved
         )
