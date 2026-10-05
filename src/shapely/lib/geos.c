@@ -536,7 +536,7 @@ char wkt_empty_3d_geometry(GEOSContextHandle_t ctx, GEOSGeometry* geom, char** w
  * - PGERR_EXCEPTIONS on GEOS exceptions
  * - PGERR_SUCCESS on a non-empty and linear geometry
  */
-char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
+char geos_interpolate_checker(GEOSContextHandle_t ctx, const GEOSGeometry* geom) {
   char type;
   char is_empty;
   const GEOSGeometry* sub_geom;

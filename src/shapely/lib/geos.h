@@ -210,7 +210,7 @@ extern char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeom
 extern char wkt_empty_3d_geometry(GEOSContextHandle_t ctx, GEOSGeometry* geom,
                                   char** wkt);
 #endif  // !GEOS_SINCE_3_12_0
-extern char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom);
+extern char geos_interpolate_checker(GEOSContextHandle_t ctx, const GEOSGeometry* geom);
 
 extern int init_shapely(PyObject* m);
 
