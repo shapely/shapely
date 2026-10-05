@@ -53,9 +53,8 @@ def transform(
         another (N, 2) or (N, 3) ndarray of float64.
         The function may not change N.
     include_z : bool, optional, default False
-        If False, always return 2D geometries.
-        If True, the data being passed to the
-        transformation function will include the third dimension
+        If False, always return 2D geometries. If True, the data being passed
+        to the transformation function will include the third dimension
         (if a geometry has no third dimension, the z-coordinates
         will be NaN). If None, will infer the dimensionality per
         input geometry using ``has_z``, which may result in 2 calls to
@@ -66,7 +65,6 @@ def transform(
         If set to False, the transformation function should accept 2 or 3 separate
         one-dimensional coordinate arrays as arguments (x, y and optional z) instead
         of a single one. The return value must be a tuple of (x, y and optional z).
-
 
         .. versionadded:: 2.1.0
 
@@ -80,8 +78,7 @@ def transform(
 
     See Also
     --------
-    has_z : Returns a copy of a geometry array with a function applied to its
-        coordinates.
+    has_z : Return True if a geometry has Z coordinates.
     transform_coordseq : Transform Geometry objects per coordinate sequence,
         optionally resizing them.
 
@@ -202,13 +199,12 @@ def transform_coordseq(
         another (N, 2) or (N, 3) ndarray of float64.
         The function may change the value of N.
     include_z : bool, optional, default False
-        If False, always return 2D geometries.
-        If True, the data being passed to the
-        transformation function will include the third dimension
+        If False, always return 2D geometries. If True, the data being passed
+        to the transformation function will include the third dimension
         (if a geometry has no third dimension, the z-coordinates
-        will be NaN). If None, will infer the dimensionality using
-        ``has_z``. Note that this inference
-        can be unreliable with empty geometries or NaN coordinates: for a
+        will be NaN).
+        If None, will infer the dimensionality using ``has_z``. Note that this
+        inference can be unreliable with empty geometries or NaN coordinates: for a
         guaranteed result, it is recommended to specify ``include_z`` explicitly.
     interleaved : bool, default True
         If set to False, the transformation function should accept 2 or 3 separate
@@ -217,8 +213,7 @@ def transform_coordseq(
 
     See Also
     --------
-    has_z : Returns a copy of a geometry array with a function applied to its
-        coordinates.
+    has_z : Return True if a geometry has Z coordinates.
     transform : Transform arrays of Geometry objects.
 
     Examples
