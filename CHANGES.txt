@@ -1,7 +1,7 @@
 Changes
 =======
 
-2.2.0 (unreleased)
+2.2.0 (2026-10-07)
 ------------------
 
 Shapely 2.2.0 is a feature release with various new functions,
