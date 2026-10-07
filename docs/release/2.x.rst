@@ -89,6 +89,15 @@ API changes
   :func:`the manual with update advice <shapely.ops.transform>` for more
   details (#1902).
 
+- The ``multithreading_enabled`` decorator is deprecated, and is also no longer
+  used internally. This decorator added overhead to each function call, while
+  only providing minimal and incomplete safety guarantees around multi-threaded
+  usage of shapely (#2338).
+  When sharing NumPy array of geometries between threads, it is responsibility
+  of the user to ensure those geometries are not modified at the same time.
+  See the `multithreading section <https://github.com/shapely/shapely#multithreading>`__
+  for more details.
+
 Bug fixes
 ^^^^^^^^^
 
