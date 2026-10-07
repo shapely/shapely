@@ -4,11 +4,10 @@
 # Allow files and directories
 !/*.py
 !/*LICENSE*
-!/setup.cfg
+!/README.rst
 !/pyproject.toml
-!/shapely/**
+!/meson.build
 !/src/**
-!/tests/**
 
 # Ignore unnecessary files inside allowed directories
 # This should go after the allowed directories
