@@ -90,7 +90,7 @@ static char PrepareGeometry(GEOSContextHandle_t context, PyObject* obj, char* re
     if (prep == NULL) {
       return PGERR_GEOS_EXCEPTION;
     }
-    ((GeometryObject*)obj)->ptr_prepared = prep;
+    ((GeometryObject*)obj)->ptr_prepared = (GEOSPreparedGeometry*)prep;
     *result = 1;
   }
   return PGERR_SUCCESS;
