@@ -4,7 +4,7 @@ Version 2.x
 
 .. _version-2-2-0:
 
-Version 2.2.0 (2026-09-xx)
+Version 2.2.0 (2026-10-07)
 --------------------------
 
 New features
