@@ -12,6 +12,7 @@ import shapely
 from shapely._geos cimport (
     GEOSContextHandle_t,
     GEOSCoordSeq_clone_r,
+    GEOSCoordSeq_destroy_r,
     GEOSCoordSeq_getSize_r,
     GEOSCoordSequence,
     GEOSGeom_clone_r,
@@ -97,8 +98,10 @@ cdef int _create_simple_geometry(
     elif geometry_type == 2:
         # check the resulting size to prevent invalid rings
         if GEOSCoordSeq_getSize_r(geos_handle, seq, &actual_n_coords) == 0:
+            GEOSCoordSeq_destroy_r(geos_handle, seq)
             return PGERR_GEOS_EXCEPTION
         if 0 < actual_n_coords < 4:
+            GEOSCoordSeq_destroy_r(geos_handle, seq)
             return PGERR_LINEARRING_NCOORDS
         geom[0] = GEOSGeom_createLinearRing_r(geos_handle, seq)
 
