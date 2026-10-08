@@ -351,7 +351,15 @@ static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
       errstate = PGERR_GEOS_EXCEPTION;
       goto finish;
     }
-    geom = GEOSGeom_createLinearRing_r(ctx, (GEOSCoordSequence*)coord_seq);
+    /* `geom` owns the coord_seq, so clone the sequence and destroy the original geometry,
+    so we can create a new LinearRing geometry that properly owns its coordinate sequence */
+    const GEOSCoordSequence* coord_seq_cloned = GEOSCoordSeq_clone_r(ctx, coord_seq);
+    if (coord_seq_cloned == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+    GEOSGeom_destroy_r(ctx, geom);
+    geom = GEOSGeom_createLinearRing_r(ctx, (GEOSCoordSequence*)coord_seq_cloned);
     if (geom == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       goto finish;
