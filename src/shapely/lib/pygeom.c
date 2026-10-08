@@ -28,6 +28,7 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   // MultiSurface are not currently supported
   // TODO: this can be removed once these types are added to the type registry
   if (type_id >= 8) {
+    GEOSGeom_destroy_r(ctx, ptr);
     PyErr_Format(PyExc_NotImplementedError,
                  "Nonlinear geometry types are not currently supported");
     return NULL;
@@ -35,15 +36,18 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
 
   PyObject* type_obj = PyList_GET_ITEM(geom_registry[0], type_id);
   if (type_obj == NULL) {
+    GEOSGeom_destroy_r(ctx, ptr);
     return NULL;
   }
   if (!PyType_Check(type_obj)) {
+    GEOSGeom_destroy_r(ctx, ptr);
     PyErr_Format(PyExc_RuntimeError, "Invalid registry value");
     return NULL;
   }
   PyTypeObject* type = (PyTypeObject*)type_obj;
   GeometryObject* self = (GeometryObject*)type->tp_alloc(type, 0);
   if (self == NULL) {
+    GEOSGeom_destroy_r(ctx, ptr);
     return NULL;
   } else {
     self->ptr = ptr;
