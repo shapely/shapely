@@ -28,6 +28,7 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   // MultiSurface are not currently supported
   // TODO: this can be removed once these types are added to the type registry
   if (type_id >= 8) {
+    GEOSGeom_destroy_r(ctx, ptr);
     PyErr_Format(PyExc_NotImplementedError,
                  "Nonlinear geometry types are not currently supported");
     return NULL;
@@ -35,15 +36,18 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
 
   PyObject* type_obj = PyList_GET_ITEM(geom_registry[0], type_id);
   if (type_obj == NULL) {
+    GEOSGeom_destroy_r(ctx, ptr);
     return NULL;
   }
   if (!PyType_Check(type_obj)) {
+    GEOSGeom_destroy_r(ctx, ptr);
     PyErr_Format(PyExc_RuntimeError, "Invalid registry value");
     return NULL;
   }
   PyTypeObject* type = (PyTypeObject*)type_obj;
   GeometryObject* self = (GeometryObject*)type->tp_alloc(type, 0);
   if (self == NULL) {
+    GEOSGeom_destroy_r(ctx, ptr);
     return NULL;
   } else {
     self->ptr = ptr;
@@ -351,7 +355,15 @@ static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
       errstate = PGERR_GEOS_EXCEPTION;
       goto finish;
     }
-    geom = GEOSGeom_createLinearRing_r(ctx, (GEOSCoordSequence*)coord_seq);
+    /* `geom` owns the coord_seq, so clone the sequence and destroy the original geometry,
+    so we can create a new LinearRing geometry that properly owns its coordinate sequence */
+    const GEOSCoordSequence* coord_seq_cloned = GEOSCoordSeq_clone_r(ctx, coord_seq);
+    if (coord_seq_cloned == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+    GEOSGeom_destroy_r(ctx, geom);
+    geom = GEOSGeom_createLinearRing_r(ctx, (GEOSCoordSequence*)coord_seq_cloned);
     if (geom == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       goto finish;
