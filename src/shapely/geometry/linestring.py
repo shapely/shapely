@@ -4,10 +4,33 @@ import numpy as np
 
 import shapely
 from shapely.decorators import deprecate_positional
+from shapely.errors import InconsistentDimensionsError
 from shapely.geometry.base import JOIN_STYLE, BaseGeometry
 from shapely.geometry.point import Point
 
 __all__ = ["LineString"]
+
+
+def _normalize_coordinates(coordinates, geometry_type):
+    """Normalize points and coordinate iterables, checking their dimensions."""
+    result = []
+    expected = None
+    for index, value in enumerate(coordinates):
+        if isinstance(value, Point):
+            coordinate = value.coords[0]
+        else:
+            coordinate = [float(c) for c in value]
+        dimensions = len(coordinate)
+        if expected is None:
+            expected = dimensions
+        elif dimensions != expected:
+            raise InconsistentDimensionsError(
+                f"Inconsistent coordinate dimensionality in {geometry_type}: "
+                f"expected {expected} dimensions (from index 0), "
+                f"got {dimensions} at index {index}"
+            )
+        result.append(coordinate)
+    return result
 
 
 class LineString(BaseGeometry):
@@ -64,14 +87,7 @@ class LineString(BaseGeometry):
             ):
                 pass
             else:
-                # check coordinates on points
-                def _coords(o):
-                    if isinstance(o, Point):
-                        return o.coords[0]
-                    else:
-                        return [float(c) for c in o]
-
-                coordinates = [_coords(o) for o in coordinates]
+                coordinates = _normalize_coordinates(coordinates, "LineString")
 
         if len(coordinates) == 0:
             # empty geometry

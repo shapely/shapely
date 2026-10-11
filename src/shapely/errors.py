@@ -40,6 +40,13 @@ class DimensionError(ShapelyError):
     """An error in the number of coordinate dimensions."""
 
 
+class InconsistentDimensionsError(ShapelyError, ValueError):
+    """Raised when coordinates in a geometry have inconsistent dimensions.
+
+    Also a ValueError for compatibility with previous coordinate conversion errors.
+    """
+
+
 class TopologicalError(ShapelyError):
     """A geometry is invalid or topologically incorrect."""
 

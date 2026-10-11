@@ -2,6 +2,21 @@ Version 2.x
 ===========
 
 
+Unreleased
+----------
+
+Bug fixes
+^^^^^^^^^
+
+- Constructing a ``LineString`` or ``LinearRing`` from coordinates with mixed
+  dimensionality now raises ``shapely.errors.InconsistentDimensionsError``
+  before NumPy conversion, identifying the expected dimension and offending
+  coordinate index. This also applies to polygon shells and holes and to
+  multipart geometries constructed through these constructors. The exception
+  inherits from both ``ShapelyError`` and ``ValueError``; ``DimensionError`` is
+  unchanged (#2440).
+
+
 .. _version-2-2-0:
 
 Version 2.2.0 (2026-10-07)

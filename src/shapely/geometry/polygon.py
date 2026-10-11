@@ -7,8 +7,7 @@ from shapely import _geometry_helpers
 from shapely.algorithms.cga import _orient_polygon, signed_area  # noqa
 from shapely.errors import TopologicalError
 from shapely.geometry.base import BaseGeometry
-from shapely.geometry.linestring import LineString
-from shapely.geometry.point import Point
+from shapely.geometry.linestring import LineString, _normalize_coordinates
 
 __all__ = ["LinearRing", "Polygon", "orient"]
 
@@ -88,18 +87,9 @@ class LinearRing(LineString):
             ):
                 pass
             else:
-                # check coordinates on points
-                def _coords(o):
-                    if isinstance(o, Point):
-                        return o.coords[0]
-                    else:
-                        return [float(c) for c in o]
-
-                coordinates = np.array([_coords(o) for o in coordinates])
-                if not np.issubdtype(coordinates.dtype, np.number):
-                    # conversion of coords to 2D array failed, this might be due
-                    # to inconsistent coordinate dimensionality
-                    raise ValueError("Inconsistent coordinate dimensionality")
+                coordinates = np.array(
+                    _normalize_coordinates(coordinates, "LinearRing")
+                )
 
         if len(coordinates) == 0:
             # empty geometry
