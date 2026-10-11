@@ -27,6 +27,52 @@ def test_inconsistent_dimensions(constructor, dimensions, input_type, as_points)
     assert f"got {actual} at index 2" in message
 
 
+@pytest.mark.parametrize("constructor", [LineString, LinearRing])
+@pytest.mark.parametrize("dimensions", [(2, 3), (3, 2)])
+@pytest.mark.parametrize("point_index", [0, 1])
+def test_inconsistent_dimensions_mixed_points(constructor, dimensions, point_index):
+    expected, actual = dimensions
+    coords = [(0,) * expected, (1,) * actual, (2,) * expected]
+    coords[point_index] = Point(coords[point_index])
+    with pytest.raises(InconsistentDimensionsError) as exc:
+        constructor(coords)
+    assert f"expected {expected} dimensions" in str(exc.value)
+    assert f"got {actual} at index 1" in str(exc.value)
+
+
+@pytest.mark.parametrize("constructor", [LineString, LinearRing])
+@pytest.mark.parametrize("dimensions", [(2, 3), (3, 2)])
+def test_inconsistent_dimensions_inner_generators(constructor, dimensions):
+    expected, actual = dimensions
+    coords = [(0,) * expected, (1,) * expected, (2,) * actual]
+    generators = [(value for value in coordinate) for coordinate in coords]
+    with pytest.raises(InconsistentDimensionsError) as exc:
+        constructor(generators)
+    assert f"expected {expected} dimensions" in str(exc.value)
+    assert f"got {actual} at index 2" in str(exc.value)
+
+
+@pytest.mark.parametrize("constructor", [LineString, LinearRing])
+@pytest.mark.parametrize("dimensions", [2, 3])
+def test_from_inner_generators(constructor, dimensions):
+    coords = [tuple(range(start, start + dimensions)) for start in range(3)]
+    generators = [(value for value in coordinate) for coordinate in coords]
+    geom = constructor(generators)
+    expected = coords if constructor is LineString else [*coords, coords[0]]
+    assert geom.coords[:] == expected
+
+
+@pytest.mark.parametrize(
+    "coords, expected, actual",
+    [([(1, 2, 3), (4, 5)], 3, 2), ([(1, 2), (3, 4, 5)], 2, 3)],
+)
+def test_inconsistent_dimensions_two_coordinates(coords, expected, actual):
+    with pytest.raises(InconsistentDimensionsError) as exc:
+        LineString(coords)
+    assert f"expected {expected} dimensions" in str(exc.value)
+    assert f"got {actual} at index 1" in str(exc.value)
+
+
 def test_inconsistent_dimensions_polygon_hole():
     shell = [(0, 0), (4, 0), (4, 4), (0, 0)]
     hole = [(1, 1), (2, 1, 1), (2, 2), (1, 1)]
@@ -147,12 +193,14 @@ def test_from_invalid_dim():
     with pytest.raises(shapely.GEOSException):
         LineString([(1, 2)])
 
-    msg = r"The ordinate \(last\) dimension should be 2 or 3, got {}"
-    with pytest.raises(ValueError, match=msg.format(4)):
-        LineString([(1, 2, 3, 4), (4, 5, 6, 7)])
 
-    with pytest.raises(ValueError, match=msg.format(1)):
-        LineString([(1,), (4,)])
+@pytest.mark.parametrize("constructor", [LineString, LinearRing])
+@pytest.mark.parametrize("dimensions", [1, 4])
+def test_uniform_unsupported_dimensions(constructor, dimensions):
+    coords = [tuple(range(start, start + dimensions)) for start in range(3)]
+    with pytest.raises(ValueError) as exc:
+        constructor(coords)
+    assert not isinstance(exc.value, InconsistentDimensionsError)
 
 
 def test_from_single_coordinate():
