@@ -38,7 +38,8 @@ Shapely requires the following:
 
 - Contributions must be attributed to human authors, exclusively.
 - Only submit a PR if you are able to debug and own the changes yourself.
-  Review all generated code to understand every detail.  - Match the style and
+  Review all generated code to understand every detail.
+- Match the style and
   conventions used in the rest of the codebase, including PR titles and
   descriptions.
 - Be upfront about AI usage and summarise what was AI-generated.
