@@ -1078,11 +1078,13 @@ static void linearrings_func(char** args, const npy_intp* dimensions, const npy_
     if (!GEOSCoordSeq_getSize_r(ctx, coord_seq, &size)) {
       errstate = PGERR_GEOS_EXCEPTION;
       destroy_geom_arr(ctx, geom_arr, i - 1);
+      GEOSCoordSeq_destroy_r(ctx, coord_seq);
       goto finish;
     }
     if ((size > 0) && (size < 4)) {
       errstate = PGERR_LINEARRING_NCOORDS;
       destroy_geom_arr(ctx, geom_arr, i - 1);
+      GEOSCoordSeq_destroy_r(ctx, coord_seq);
       goto finish;
     }
     geom_arr[i] = GEOSGeom_createLinearRing_r(ctx, coord_seq);
