@@ -963,7 +963,14 @@ def force_3d(geometry, z=0.0, **kwargs):
     """Force the dimensionality of a geometry to 3D.
 
     2D geometries will get the provided Z coordinate; Z coordinates of 3D geometries
-    are unchanged (unless they are nan).
+    are unchanged.
+
+    NaN is a valid Z coordinate value: with GEOS >= 3.12, a geometry created
+    with NaN Z coordinates is a 3D geometry (``has_z`` is True), so its NaN Z
+    coordinates are left unchanged. To replace them with the provided Z
+    coordinate, first drop the Z dimension with :func:`force_2d`. With older
+    GEOS versions, such a geometry is considered 2D and its NaN Z coordinates
+    are replaced.
 
     Note that for empty geometries, 3D is only supported for simple geometries
     (non-collections).
@@ -987,6 +994,10 @@ def force_3d(geometry, z=0.0, **kwargs):
     <POINT Z (0 0 0)>
     >>> shapely.force_3d(LineString([(0, 0), (0, 1), (1, 1)]))
     <LINESTRING Z (0 0 0, 0 1 0, 1 1 0)>
+    >>> shapely.force_3d(Point(0, 0, float("nan")), z=3)
+    <POINT Z (0 0 NaN)>
+    >>> shapely.force_3d(shapely.force_2d(Point(0, 0, float("nan"))), z=3)
+    <POINT Z (0 0 3)>
     >>> shapely.force_3d(None) is None
     True
 

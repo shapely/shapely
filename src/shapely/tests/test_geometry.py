@@ -697,6 +697,17 @@ def test_force_3d(geom, expected):
     assert_geometries_equal(actual, expected)
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_force_3d_nan_z():
+    # NaN Z coordinates of a 3D geometry are kept (GH-2217)
+    geom = Point(0, 0, np.nan)
+    actual = shapely.force_3d(geom, z=4)
+    assert_geometries_equal(actual, geom)
+    # dropping the Z dimension first allows filling them
+    actual = shapely.force_3d(shapely.force_2d(geom), z=4)
+    assert_geometries_equal(actual, Point(0, 0, 4))
+
+
 # tests for get_segments()
 
 p1 = [0, 0]
