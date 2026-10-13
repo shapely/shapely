@@ -50,11 +50,5 @@ Shapely requires the following:
   where there is consensus on the solution to implement. If no issue exists,
   open a new issue and engage to gather consensus.
 
-When interacting with developers (forums, discussions, issues, pull requests,
-etc.) do not use AI to speak for you, except for translation or grammar
-editing. If the developers want to chat with a chatbot, they can do so
-themselves. Human-to-human communication is essential for an open source
-community to thrive.
-
 This policy is adapted in part from the GeoPandas and Apache Arrow AI-generated
 code Contribution guidelines.
