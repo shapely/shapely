@@ -303,12 +303,32 @@ def test_set_coords_mixed_dimension(include_z):
         (True, True, lambda coords: coords + 1),
         (False, False, lambda x, y: (x + 1, y + 1)),
         (False, True, lambda x, y, z: (x + 1, y + 1, z + 1)),
+        # transform functions that mimic wrapping of scalar function
+        (True, False, lambda coords: np.array([c + 1 for c in coords])),
+        (True, False, lambda coords: [c + 1 for c in coords]),
+        (True, True, lambda coords: [c + 1 for c in coords]),
+        (
+            False,
+            False,
+            lambda x, y: (np.array([c + 1 for c in x]), np.array([c + 1 for c in y])),
+        ),
+        (False, False, lambda x, y: ([c + 1 for c in x], [c + 1 for c in y])),
+        (
+            False,
+            True,
+            lambda x, y, z: (
+                [c + 1 for c in x],
+                [c + 1 for c in y],
+                [c + 1 for c in z],
+            ),
+        ),
     ],
 )
-def test_transform(geoms, include_z, interleaved, transformation):
+@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
+def test_transform(geoms, include_z, interleaved, transformation, transform_func):
     geoms = np.array(geoms, np.object_)
     coordinates_before = get_coordinates(geoms, include_z=include_z)
-    new_geoms = transform(
+    new_geoms = transform_func(
         geoms, transformation, include_z=include_z, interleaved=interleaved
     )
     assert new_geoms is not geoms
@@ -320,13 +340,14 @@ def test_transform(geoms, include_z, interleaved, transformation):
 @pytest.mark.parametrize(
     "interleaved,transformation",
     [
-        (True, lambda coords: [c + 1 for c in coords]),
+        (True, lambda coords: coords + 1),
         (False, lambda x, y: (x + 1, y + 1)),
     ],
 )
-def test_transform_coordseq(geom, interleaved, transformation):
+@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
+def test_transform_all_types(geom, interleaved, transformation, transform_func):
     coordinates_before = get_coordinates(geom)
-    new_geom = transform_coordseq(geom, transformation, interleaved=interleaved)
+    new_geom = transform_func(geom, transformation, interleaved=interleaved)
     assert type(geom) is type(new_geom)
     coordinates_after = get_coordinates(new_geom)
     assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
@@ -342,9 +363,12 @@ def test_transform_coordseq(geom, interleaved, transformation):
         (False, True, lambda x, y, z: (x + 1, y + 1, z + 1)),
     ],
 )
-def test_transform_coordseq_3d(geom, include_z, interleaved, transformation):
+@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
+def test_transform_all_types_3d(
+    geom, include_z, interleaved, transformation, transform_func
+):
     coordinates_before = get_coordinates(geom, include_z=include_z)
-    new_geom = transform_coordseq(
+    new_geom = transform_func(
         geom, transformation, include_z=include_z, interleaved=interleaved
     )
     assert type(geom) is type(new_geom)
@@ -359,20 +383,30 @@ def test_transform_missing(transform_func):
     assert actual is None
 
 
-def test_transform_0dim():
+@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
+def test_transform_0dim(transform_func):
     # a geometry input returns a geometry
-    actual = transform(point, lambda x: x + 1)
+    actual = transform_func(point, lambda x: x + 1)
     assert isinstance(actual, shapely.Geometry)
     # a 0-dim array input returns a 0-dim array
-    actual = transform(np.asarray(point), lambda x: x + 1)
+    actual = transform_func(np.asarray(point), lambda x: x + 1)
     assert isinstance(actual, np.ndarray)
     assert actual.ndim == 0
 
 
-def test_transform_no_geoms():
+@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
+def test_transform_no_geoms(transform_func):
     # a geometry input returns a geometry
-    actual = transform([], lambda x: x + 1)
+    actual = transform_func([], lambda x: x + 1)
     assert actual.shape == (0,)
+
+
+@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
+def test_transform_multidim(transform_func):
+    arr = np.array([[point, point, point], [point, point, point]], dtype=object)
+    actual = transform_func(arr, lambda x: x + 1)
+    assert isinstance(actual, np.ndarray)
+    assert actual.shape == arr.shape
 
 
 def test_transform_adapt_shape_not_allowed():
@@ -443,8 +477,11 @@ def test_transform_auto_coordinate_dimension(geom, expected, transform_func):
     assert (shapely.get_coordinate_dimension(new_geom) == expected).all()
 
 
-def test_transform_auto_coordinate_dimension_mixed():
-    new_geom = transform([line_string, line_string_z], lambda x: x + 1, include_z=None)
+@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
+def test_transform_auto_coordinate_dimension_mixed(transform_func):
+    new_geom = transform_func(
+        [line_string, line_string_z], lambda x: x + 1, include_z=None
+    )
     assert_equal(shapely.get_coordinate_dimension(new_geom), [2, 3])
     assert_equal(
         shapely.get_coordinates(line_string, include_z=False) + 1,
@@ -463,8 +500,9 @@ def transform_non_interleaved(x, y, z=None):
         return [x + 1, y + 2, z + 3]
 
 
-def test_transform_auto_coordinate_dimension_mixed_interleaved():
-    new_geom = transform(
+@pytest.mark.parametrize("transform_func", [transform, transform_coordseq])
+def test_transform_auto_coordinate_dimension_mixed_interleaved(transform_func):
+    new_geom = transform_func(
         [line_string, line_string_z],
         transform_non_interleaved,
         include_z=None,

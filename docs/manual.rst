@@ -318,7 +318,7 @@ Coordinate values are accessed via `coords`, `x`, `y`, `z`, and `m` properties.
   >>> point.y
   0.0
 
-Coordinates may also be sliced. `New in version 1.2.14`.
+Coordinates may also be sliced.
 
 .. code-block:: pycon
 
@@ -386,7 +386,7 @@ The defining coordinate values are accessed via the `coords` property.
   >>> list(line.coords)
   [(0.0, 0.0), (1.0, 1.0)]
 
-Coordinates may also be sliced. `New in version 1.2.14`.
+Coordinates may also be sliced.
 
 .. code-block:: pycon
 
@@ -566,8 +566,6 @@ the :func:`shapely.geometry.box()` function.
   Makes a rectangular polygon from the provided bounding box values, with
   counter-clockwise order by default.
 
-  `New in version 1.2.9`.
-
 For example:
 
 .. code-block:: pycon
@@ -591,8 +589,6 @@ To obtain a polygon with a known orientation, use
   sign of 1.0 means that the coordinates of the product's exterior ring will be
   oriented counter-clockwise and the interior rings (holes) will be oriented
   clockwise.
-
-  `New in version 1.2.10`.
 
 .. _collections:
 
@@ -978,8 +974,6 @@ example will be shown for each.
   Returns ``True`` if coordinates are in counter-clockwise order (bounding a
   region with positive signed area). This method applies to `LinearRing`
   objects only.
-
-  `New in version 1.2.10`.
 
 .. code-block:: pycon
 
@@ -1854,8 +1848,6 @@ transform (`rotate`, `scale`, etc.). The functions can be used with all
 geometry types (except `GeometryCollection`), and 3D types are either
 preserved or supported by 3D affine transformations.
 
-`New in version 1.2.17`.
-
 .. function:: shapely.affinity.affine_transform(geom, matrix)
 
   Returns a transformed geometry using an affine transformation matrix.
@@ -2060,6 +2052,101 @@ Other Transformations
 Shapely supports map projections and other arbitrary transformations of
 geometric objects.
 
+.. function:: shapely.transform(geom, func, include_z=False, interleaved=True)
+  :no-index:
+
+  Apply a transformation `func` to all the coordinates of `geom`, and return
+  a new geometry of the same type from the transformed coordinates.
+
+  By default, `func` maps a single 2D array of coordinates to a new 2D array
+  of transformed coordinates (``func([[x1, y1], [x2, y2], ...])``).
+
+  If your function works on separate arrays of x, y, and optionally z
+  coordinates, set `interleaved=False` (``func([x1, x2, ...], [y1, y2, ...])``).
+
+  Full reference: :func:`shapely.transform`
+
+For example, here is a simple function that returns shifted coordinates:
+
+.. code-block:: python
+
+  def shift_xy(coords):
+      # NumPy applies this addition element-wise to all coordinates
+      return coords + 2
+
+  g2 = shapely.transform(g1, shift_xy)
+
+or that swaps the x and y coordinates:
+
+.. code-block:: python
+
+  def swap_xy(x, y):
+      return y, x
+
+  # specify interleaved=False to pass separate x and y arrays to the function
+  g3 = shapely.transform(g1, swap_xy, interleaved=False)
+
+To reproject geometries using ``pyproj``:
+
+.. code-block:: python
+
+    import pyproj
+
+    from shapely import Point, transform
+
+    wgs84_pt = Point(-72.2495, 43.886)
+
+    wgs84 = pyproj.CRS('EPSG:4326')
+    utm = pyproj.CRS('EPSG:32618')
+
+    transformer = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True)
+    # specify interleaved=False because the pyproj transform function expects
+    # separate x, y arrays as input
+    utm_point = transform(wgs84_pt, transformer.transform, interleaved=False)
+
+It is important to note that in the example above, the `always_xy` kwarg is
+required as Shapely only supports coordinates in X,Y order, and in PROJ 6 the
+WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the
+expected Lon/Lat.
+
+.. function:: shapely.transform_coordseq(geom, func, include_z=False, interleaved=True)
+   :no-index:
+
+   Apply a transformation `func` to the coordinate sequences of a geometry.
+
+   Similar to :func:`shapely.transform`, the transformation function can
+   accept a single 2D array of coordinates or separate x, y, and optionally
+   z arrays (depending on the ``interleaved`` keyword).
+
+   The difference is that in case of :func:`~shapely.transform_coordseq`,
+   the transformation function is called separately for each coordinate
+   sequence (and thus only receiving the coordinates of one sequence at a
+   time), instead of being called once for all coordinates. For polygons, this
+   means per ring.
+
+   As a result, the number of coordinate pairs per coordinate sequence is
+   allowed to change.
+
+   Full reference: :func:`shapely.transform_coordseq`
+
+For example, reducing a linestring to only its first 2 points:
+
+.. code-block:: pycon
+
+  >>> import shapely
+  >>> line = LineString([(2, 2), (4, 4), (6, 6)])
+  >>> shapely.transform_coordseq(line, lambda coords: coords[:2])
+  <LINESTRING (2 2, 4 4)>
+
+The :func:`~shapely.transform` function is the more performant option, so
+whenever your transformation function can be applied to all coordinates
+element-wise at once and does not change the number of coordinate pairs, we
+recommend using that.
+
+Finally, there is a third `transform` function, which existed before the
+options described above, and is kept for backwards compatibility but is
+deprecated:
+
 .. function:: shapely.ops.transform(func, geom)
 
   Applies `func` to all coordinates of `geom` and returns a new
@@ -2077,68 +2164,47 @@ geometric objects.
   then it will instead call `func` on each individual coordinate
   in the geometry.
 
-  `New in version 1.2.18`.
+  .. deprecated:: 2.2.0
 
-For example, here is an identity function applicable to both types of input
-(scalar or array).
+  **Updating to use** :func:`shapely.transform` **or** :func:`shapely.transform_coordseq`
 
-.. code-block:: python
+  If you are currently using ``shapely.ops.transform``, consider whether your
+  transformation function can be applied to all coordinates at once
+  independently. If that is the case, replace:
 
-    def id_func(x, y, z=None):
-        return tuple(filter(None, [x, y, z]))
+  .. code-block:: python
 
-    g2 = transform(id_func, g1)
+    geom2 = shapely.ops.transform(func, geom1)
 
+  with :func:`shapely.transform`:
 
-If using `pyproj>=2.1.0`, the preferred method to project geometries is:
+  .. code-block:: python
 
-.. code-block:: python
+    geom2 = shapely.transform(geom1, func, interleaved=False)
 
-    import pyproj
+  If your function has custom logic per coordinate sequence or changes the
+  number of coordinate pairs, use :func:`shapely.transform_coordseq`.
 
-    from shapely import Point
-    from shapely.ops import transform
+  If your function only works on scalar coordinate values, you can define
+  a small wrapper function that accepts an array of coordinates, and
+  applies your scalar function to each coordinate pair individually:
 
-    wgs84_pt = Point(-72.2495, 43.886)
+  .. code-block:: python
 
-    wgs84 = pyproj.CRS('EPSG:4326')
-    utm = pyproj.CRS('EPSG:32618')
+    import numpy as np
 
-    project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
-    utm_point = transform(project, wgs84_pt)
+    def func_scalar(x, y, z=None):
+        if x < 0:
+            x += 360
+        return x, y
 
-It is important to note that in the example above, the `always_xy` kwarg is
-required as Shapely only supports coordinates in X,Y order, and in PROJ 6 the
-WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the
-expected Lon/Lat.
+    def func_wrapped(coords):
+        return np.array([func_scalar(x, y) for x, y in coords])
 
-If using `pyproj < 2.1`, then the canonical example is:
+    geom2 = shapely.transform(geom1, func_wrapped)
 
-.. code-block:: python
-
-    from functools import partial
-    import pyproj
-
-    from shapely.ops import transform
-
-    wgs84 = pyproj.Proj(init='epsg:4326')
-    utm = pyproj.Proj(init='epsg:32618')
-
-    project = partial(
-        pyproj.transform,
-        wgs84,
-        utm)
-
-    utm_point = transform(project, wgs84_pt)
-
-Lambda expressions such as the one in
-
-.. code-block:: python
-
-    g2 = transform(lambda x, y, z=None: (x+1.0, y+1.0), g1)
-
-also satisfy the requirements for `func`.
-
+  Note: this scalar function is only for illustration purposes, and this
+  specific operation can also be re-written to use vectorized array operations.
 
 Other Operations
 ================
@@ -2182,8 +2248,6 @@ Sequences of touching lines can be merged into `MultiLineStrings` or
   another edge endpoint. Cut edges are connected at both ends but do not
   form part of polygon. Invalid ring lines form rings which are invalid
   (bowties, etc).
-
-  `New in version 1.2.18.`
 
   .. code-block:: pycon
 
@@ -2232,8 +2296,6 @@ within a rectangle.
     The geometry is clipped in a fast but possibly dirty way. The output is
     not guaranteed to be valid. No exceptions will be raised for topological
     errors.
-
-    `New in version 1.7.`
 
 .. code-block:: python
 
@@ -2404,8 +2466,6 @@ a second geometry with a given tolerance.
    The `tolerance` argument specifies the minimum distance between vertices for
    them to be snapped.
 
-   `New in version 1.5.0`
-
 .. code-block:: pycon
 
   >>> from shapely import snap
@@ -2430,8 +2490,6 @@ linear geometries.
    `MultiLineString` containing shared paths with the same direction for both
    inputs. The second element is a MultiLineString containing shared paths with
    the opposite direction for the two inputs.
-
-   `New in version 1.6.0`
 
 .. code-block:: pycon
 
@@ -2564,8 +2622,6 @@ Diagnostics
 
   Returns a string explaining the validity or invalidity of the object.
 
-  `New in version 1.2.1`.
-
 The messages may or may not have a representation of a problem point that can
 be parsed out.
 
@@ -2640,13 +2696,6 @@ Polylabel
   Finds the approximate location of the pole of inaccessibility for a given
   polygon. Based on Vladimir Agafonkin's polylabel_.
 
-  `New in version 1.6.0`
-
-.. note::
-
-  Prior to 1.7 `polylabel` must be imported from `shapely.algorithms.polylabel`
-  instead of `shapely.ops`.
-
 .. code-block:: pycon
 
   >>> from shapely.ops import polylabel
@@ -2671,8 +2720,6 @@ cannot add or remove geometries.
   The `STRtree` constructor takes a sequence of geometric objects.
 
   References to these geometric objects are kept and stored in the R-tree.
-
-  `New in version 1.4.0`.
 
   .. method:: strtree.query(geom)
     :noindex:
@@ -2863,8 +2910,6 @@ The GeoJSON-like mapping of a geometric object can be obtained using
   specification. If you want this, you can first order exterior rings
   counterclockwise, and interior rings (holes) clockwise with
   :func:`shapely.orient_polygons`.
-
-  `New in version 1.2.3`.
 
   For example, using the same `GeoThing` class:
 

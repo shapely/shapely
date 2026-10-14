@@ -8,7 +8,7 @@ import numpy as np
 import shapely
 from shapely.algorithms.polylabel import polylabel  # noqa
 from shapely.coordinates import transform_coordseq
-from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
+from shapely.errors import GeometryTypeError
 from shapely.geometry import (
     GeometryCollection,
     LineString,
@@ -221,11 +221,16 @@ def transform(func, geom):
     .. deprecated:: 2.2.0
       This function was superseded by :meth:`shapely.transform` and
       :meth:`shapely.transform_coordseq`.
+
+      See https://shapely.readthedocs.io/en/latest/manual.html#shapely.ops.transform
+      for more details.
     """
     warn(
-        "The 'ops.transform()' function is deprecated. "
-        "Use 'transform()' or 'transform_coordseq()' instead.",
-        ShapelyDeprecationWarning,
+        "The 'shapely.ops.transform()' function is deprecated. "
+        "Use 'shapely.transform()' or 'shapely.transform_coordseq()' instead. "
+        "See https://shapely.readthedocs.io/en/latest/manual.html#shapely.ops.transform"
+        " for more details.",
+        DeprecationWarning,
         stacklevel=2,
     )
 

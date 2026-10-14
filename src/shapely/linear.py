@@ -58,9 +58,9 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
 
     """
     if normalized:
-        return lib.line_interpolate_point_normalized(line, distance)
+        return lib.line_interpolate_point_normalized(line, distance, **kwargs)
     else:
-        return lib.line_interpolate_point(line, distance)
+        return lib.line_interpolate_point(line, distance, **kwargs)
 
 
 # Note: future plan is to change this signature over a few releases:
@@ -108,9 +108,9 @@ def line_locate_point(line, other, normalized=False, **kwargs):
 
     """
     if normalized:
-        return lib.line_locate_point_normalized(line, other)
+        return lib.line_locate_point_normalized(line, other, **kwargs)
     else:
-        return lib.line_locate_point(line, other)
+        return lib.line_locate_point(line, other, **kwargs)
 
 
 def line_merge(line, directed=False, **kwargs):

@@ -3,7 +3,6 @@ import unittest
 import pytest
 
 from shapely import geometry
-from shapely.errors import ShapelyDeprecationWarning
 from shapely.ops import transform
 
 
@@ -15,41 +14,41 @@ class IdentityTestCase(unittest.TestCase):
 
     def test_empty(self):
         g = geometry.Point()
-        with pytest.warns(ShapelyDeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             h = transform(self.func, g)
         assert h.is_empty
 
     def test_point(self):
         g = geometry.Point(0, 1)
-        with pytest.warns(ShapelyDeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             h = transform(self.func, g)
         assert h.geom_type == "Point"
         assert list(h.coords) == [(0, 1)]
 
     def test_line(self):
         g = geometry.LineString([(0, 1), (2, 3)])
-        with pytest.warns(ShapelyDeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             h = transform(self.func, g)
         assert h.geom_type == "LineString"
         assert list(h.coords) == [(0, 1), (2, 3)]
 
     def test_linearring(self):
         g = geometry.LinearRing([(0, 1), (2, 3), (2, 2), (0, 1)])
-        with pytest.warns(ShapelyDeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             h = transform(self.func, g)
         assert h.geom_type == "LinearRing"
         assert list(h.coords) == [(0, 1), (2, 3), (2, 2), (0, 1)]
 
     def test_polygon(self):
         g = geometry.Point(0, 1).buffer(1.0)
-        with pytest.warns(ShapelyDeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             h = transform(self.func, g)
         assert h.geom_type == "Polygon"
         assert g.area == pytest.approx(h.area)
 
     def test_multipolygon(self):
         g = geometry.MultiPoint([(0, 1), (0, 4)]).buffer(1.0)
-        with pytest.warns(ShapelyDeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             h = transform(self.func, g)
         assert h.geom_type == "MultiPolygon"
         assert g.area == pytest.approx(h.area)
@@ -60,21 +59,21 @@ class LambdaTestCase(unittest.TestCase):
 
     def test_point(self):
         g = geometry.Point(0, 1)
-        with pytest.warns(ShapelyDeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             h = transform(lambda x, y, z=None: (x + 1.0, y + 1.0), g)
         assert h.geom_type == "Point"
         assert list(h.coords) == [(1.0, 2.0)]
 
     def test_line(self):
         g = geometry.LineString([(0, 1), (2, 3)])
-        with pytest.warns(ShapelyDeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             h = transform(lambda x, y, z=None: (x + 1.0, y + 1.0), g)
         assert h.geom_type == "LineString"
         assert list(h.coords) == [(1.0, 2.0), (3.0, 4.0)]
 
     def test_polygon(self):
         g = geometry.Point(0, 1).buffer(1.0)
-        with pytest.warns(ShapelyDeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             h = transform(lambda x, y, z=None: (x + 1.0, y + 1.0), g)
         assert h.geom_type == "Polygon"
         assert g.area == pytest.approx(h.area)
@@ -83,7 +82,7 @@ class LambdaTestCase(unittest.TestCase):
 
     def test_multipolygon(self):
         g = geometry.MultiPoint([(0, 1), (0, 4)]).buffer(1.0)
-        with pytest.warns(ShapelyDeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             h = transform(lambda x, y, z=None: (x + 1.0, y + 1.0), g)
         assert h.geom_type == "MultiPolygon"
         assert g.area == pytest.approx(h.area)
@@ -101,7 +100,7 @@ class TypeTestCase(unittest.TestCase):
                 assert all(type(elem) is float for elem in coord)
             return (x, y)
 
-        with pytest.warns(ShapelyDeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             transform(func, geometry.LineString([(0, 1), (2, 3)]))
 
     def test_func_fallback_gets_floats(self):
@@ -112,5 +111,5 @@ class TypeTestCase(unittest.TestCase):
                 assert type(coord) is float
             return (x, y)
 
-        with pytest.warns(ShapelyDeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             transform(func, geometry.LineString([(0, 1), (2, 3)]))

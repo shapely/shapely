@@ -115,13 +115,13 @@ modules happens in editable mode, add ``-Ceditable-verbose=true`` to the command
 Conda environments
 ^^^^^^^^^^^^^^^^^^
 
-Development within conda environments requires additional packages installed
-with the ``conda`` command, including pre-built distributions of GEOS.
+When developing within a conda environment, it is recommended to install the
+development dependencies using conda, including a pre-built distribution of GEOS.
 For example:
 
 .. code-block:: console
 
-    $ conda create -n shapely-dev cython meson meson-python pkg-config ninja numpy geos pip pytest
+    $ conda create -n shapely-dev c-compiler cython meson meson-python pkg-config ninja numpy geos pip pytest
 
 Activate the environment and install shapely in editable mode using ``pip``:
 
