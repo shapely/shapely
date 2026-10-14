@@ -5,11 +5,45 @@ import numpy as np
 import shapely
 from shapely import _geometry_helpers
 from shapely.algorithms.cga import _orient_polygon, signed_area  # noqa
-from shapely.errors import TopologicalError
+from shapely.errors import InconsistentDimensionsError, TopologicalError
 from shapely.geometry.base import BaseGeometry
-from shapely.geometry.linestring import LineString, _coords_to_array
+from shapely.geometry.linestring import LineString
+from shapely.geometry.point import Point
 
 __all__ = ["LinearRing", "Polygon", "orient"]
+
+
+# These helpers stay local to each module, following the previous duplicated
+# _coords pattern in LineString and LinearRing.
+def _validate_coordinate_dimensions(coordinates, geometry_type, *, cause):
+    """Raise if normalized coordinates have inconsistent dimensions."""
+    expected = None
+    for index, coordinate in enumerate(coordinates):
+        dimensions = len(coordinate)
+        if expected is None:
+            expected = dimensions
+        elif dimensions != expected:
+            raise InconsistentDimensionsError(
+                f"Inconsistent coordinate dimensionality in {geometry_type}: "
+                f"expected {expected} dimensions (from index 0), "
+                f"got {dimensions} at index {index}"
+            ) from cause
+
+
+def _coords_to_array(coordinates, geometry_type):
+    """Convert coordinates to an array, translating inconsistent dimensions."""
+    result = []
+    for value in coordinates:
+        if isinstance(value, Point):
+            coordinate = value.coords[0]
+        else:
+            coordinate = [float(c) for c in value]
+        result.append(coordinate)
+    try:
+        return np.array(result)
+    except ValueError as error:
+        _validate_coordinate_dimensions(result, geometry_type, cause=error)
+        raise
 
 
 def _unpickle_linearring(wkb):

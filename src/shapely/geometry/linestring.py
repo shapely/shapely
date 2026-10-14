@@ -11,6 +11,8 @@ from shapely.geometry.point import Point
 __all__ = ["LineString"]
 
 
+# These helpers stay local to each module, following the previous duplicated
+# _coords pattern in LineString and LinearRing.
 def _validate_coordinate_dimensions(coordinates, geometry_type, *, cause):
     """Raise if normalized coordinates have inconsistent dimensions."""
     expected = None
