@@ -7,7 +7,7 @@ from shapely import _geometry_helpers
 from shapely.algorithms.cga import _orient_polygon, signed_area  # noqa
 from shapely.errors import TopologicalError
 from shapely.geometry.base import BaseGeometry
-from shapely.geometry.linestring import LineString, _normalize_coordinates
+from shapely.geometry.linestring import LineString, _coords_to_array
 
 __all__ = ["LinearRing", "Polygon", "orient"]
 
@@ -87,9 +87,7 @@ class LinearRing(LineString):
             ):
                 pass
             else:
-                coordinates = np.array(
-                    _normalize_coordinates(coordinates, "LinearRing")
-                )
+                coordinates = _coords_to_array(coordinates, "LinearRing")
 
         if len(coordinates) == 0:
             # empty geometry

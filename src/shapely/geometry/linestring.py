@@ -11,26 +11,31 @@ from shapely.geometry.point import Point
 __all__ = ["LineString"]
 
 
-def _normalize_coordinates(coordinates, geometry_type):
-    """Normalize points and coordinate iterables, checking their dimensions."""
+def _coords_to_array(coordinates, geometry_type):
+    """Convert coordinates to an array, translating inconsistent dimensions."""
     result = []
-    expected = None
-    for index, value in enumerate(coordinates):
+    for value in coordinates:
         if isinstance(value, Point):
             coordinate = value.coords[0]
         else:
             coordinate = [float(c) for c in value]
-        dimensions = len(coordinate)
-        if expected is None:
-            expected = dimensions
-        elif dimensions != expected:
-            raise InconsistentDimensionsError(
-                f"Inconsistent coordinate dimensionality in {geometry_type}: "
-                f"expected {expected} dimensions (from index 0), "
-                f"got {dimensions} at index {index}"
-            )
         result.append(coordinate)
-    return result
+    try:
+        return np.array(result)
+    except ValueError as error:
+        # NumPy also raises ValueError for failures unrelated to dimensions.
+        expected = None
+        for index, coordinate in enumerate(result):
+            dimensions = len(coordinate)
+            if expected is None:
+                expected = dimensions
+            elif dimensions != expected:
+                raise InconsistentDimensionsError(
+                    f"Inconsistent coordinate dimensionality in {geometry_type}: "
+                    f"expected {expected} dimensions (from index 0), "
+                    f"got {dimensions} at index {index}"
+                ) from error
+        raise
 
 
 class LineString(BaseGeometry):
@@ -87,7 +92,7 @@ class LineString(BaseGeometry):
             ):
                 pass
             else:
-                coordinates = _normalize_coordinates(coordinates, "LineString")
+                coordinates = _coords_to_array(coordinates, "LineString")
 
         if len(coordinates) == 0:
             # empty geometry
