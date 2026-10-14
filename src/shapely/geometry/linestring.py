@@ -11,6 +11,21 @@ from shapely.geometry.point import Point
 __all__ = ["LineString"]
 
 
+def _validate_coordinate_dimensions(coordinates, geometry_type, *, cause):
+    """Raise if normalized coordinates have inconsistent dimensions."""
+    expected = None
+    for index, coordinate in enumerate(coordinates):
+        dimensions = len(coordinate)
+        if expected is None:
+            expected = dimensions
+        elif dimensions != expected:
+            raise InconsistentDimensionsError(
+                f"Inconsistent coordinate dimensionality in {geometry_type}: "
+                f"expected {expected} dimensions (from index 0), "
+                f"got {dimensions} at index {index}"
+            ) from cause
+
+
 def _coords_to_array(coordinates, geometry_type):
     """Convert coordinates to an array, translating inconsistent dimensions."""
     result = []
@@ -23,18 +38,7 @@ def _coords_to_array(coordinates, geometry_type):
     try:
         return np.array(result)
     except ValueError as error:
-        # NumPy also raises ValueError for failures unrelated to dimensions.
-        expected = None
-        for index, coordinate in enumerate(result):
-            dimensions = len(coordinate)
-            if expected is None:
-                expected = dimensions
-            elif dimensions != expected:
-                raise InconsistentDimensionsError(
-                    f"Inconsistent coordinate dimensionality in {geometry_type}: "
-                    f"expected {expected} dimensions (from index 0), "
-                    f"got {dimensions} at index {index}"
-                ) from error
+        _validate_coordinate_dimensions(result, geometry_type, cause=error)
         raise
 
 
