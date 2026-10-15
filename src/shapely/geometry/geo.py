@@ -43,8 +43,39 @@ def _empty_shape_for_no_coordinates(geom_type):
         raise GeometryTypeError(f"Unknown geometry type: {geom_type!r}")
 
 
-def box(minx, miny, maxx, maxy, ccw=True):
+def box(minx=None, miny=None, maxx=None, maxy=None, ccw=True, *, xmin=None,
+        ymin=None, xmax=None, ymax=None):
     """Return a rectangular polygon with configurable normal vector."""
+    if xmin is not None:
+        if minx is not None:
+            raise TypeError(
+                "box() got multiple values for 'minx'/'xmin'"
+            )
+        minx = xmin
+    if ymin is not None:
+        if miny is not None:
+            raise TypeError(
+                "box() got multiple values for 'miny'/'ymin'"
+            )
+        miny = ymin
+    if xmax is not None:
+        if maxx is not None:
+            raise TypeError(
+                "box() got multiple values for 'maxx'/'xmax'"
+            )
+        maxx = xmax
+    if ymax is not None:
+        if maxy is not None:
+            raise TypeError(
+                "box() got multiple values for 'maxy'/'ymax'"
+            )
+        maxy = ymax
+    if minx is None or miny is None or maxx is None or maxy is None:
+        raise TypeError(
+            "box() missing a required argument: "
+            "'minx' (alias 'xmin'), 'miny' (alias 'ymin'), "
+            "'maxx' (alias 'xmax'), 'maxy' (alias 'ymax')"
+        )
     coords = [(maxx, miny), (maxx, maxy), (minx, maxy), (minx, miny)]
     if not ccw:
         coords = coords[::-1]
