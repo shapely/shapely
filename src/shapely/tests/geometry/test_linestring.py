@@ -4,6 +4,94 @@ import pytest
 import shapely
 from shapely import LinearRing, LineString, Point
 from shapely.coords import CoordinateSequence
+from shapely.errors import InconsistentDimensionsError, ShapelyError
+
+
+@pytest.mark.parametrize("constructor", [LineString, LinearRing, shapely.Polygon])
+@pytest.mark.parametrize("dimensions", [(2, 3), (3, 2)])
+@pytest.mark.parametrize(
+    "input_type", [list, iter, lambda c: np.array(c, dtype=object)]
+)
+@pytest.mark.parametrize("as_points", [False, True])
+def test_inconsistent_dimensions(constructor, dimensions, input_type, as_points):
+    expected, actual = dimensions
+    coords = [(0,) * expected, (1,) * expected, (2,) * actual]
+    if as_points:
+        coords = [Point(c) for c in coords]
+    with pytest.raises(InconsistentDimensionsError) as exc:
+        constructor(input_type(coords))
+    assert isinstance(exc.value, ValueError)
+    assert isinstance(exc.value, ShapelyError)
+    assert type(exc.value.__cause__) is ValueError
+
+
+@pytest.mark.parametrize("constructor", [LineString, LinearRing])
+@pytest.mark.parametrize("dimensions", [(2, 3), (3, 2)])
+@pytest.mark.parametrize("point_index", [0, 1])
+def test_inconsistent_dimensions_mixed_points(constructor, dimensions, point_index):
+    expected, actual = dimensions
+    coords = [(0,) * expected, (1,) * actual, (2,) * expected]
+    coords[point_index] = Point(coords[point_index])
+    with pytest.raises(InconsistentDimensionsError):
+        constructor(coords)
+
+
+@pytest.mark.parametrize("constructor", [LineString, LinearRing])
+@pytest.mark.parametrize("dimensions", [(2, 3), (3, 2)])
+def test_inconsistent_dimensions_inner_generators(constructor, dimensions):
+    expected, actual = dimensions
+    coords = [(0,) * expected, (1,) * expected, (2,) * actual]
+    generators = [(value for value in coordinate) for coordinate in coords]
+    with pytest.raises(InconsistentDimensionsError):
+        constructor(generators)
+
+
+@pytest.mark.parametrize("constructor", [LineString, LinearRing])
+@pytest.mark.parametrize("dimensions", [2, 3])
+def test_from_inner_generators(constructor, dimensions):
+    coords = [tuple(range(start, start + dimensions)) for start in range(3)]
+    generators = [(value for value in coordinate) for coordinate in coords]
+    geom = constructor(generators)
+    expected = coords if constructor is LineString else [*coords, coords[0]]
+    assert geom.coords[:] == expected
+
+
+@pytest.mark.parametrize(
+    "coords",
+    [[(1, 2, 3), (4, 5)], [(1, 2), (3, 4, 5)]],
+)
+def test_inconsistent_dimensions_two_coordinates(coords):
+    with pytest.raises(InconsistentDimensionsError):
+        LineString(coords)
+
+
+def test_inconsistent_dimensions_polygon_hole():
+    shell = [(0, 0), (4, 0), (4, 4), (0, 0)]
+    hole = [(1, 1), (2, 1, 1), (2, 2), (1, 1)]
+    with pytest.raises(InconsistentDimensionsError):
+        shapely.Polygon(shell, [hole])
+
+
+@pytest.mark.parametrize("constructor", [LineString, LinearRing])
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [(0, 0), (1, "invalid"), (2, 2)],
+        [(0, 0), (1, "invalid", 2), (2, 2)],
+    ],
+)
+def test_invalid_numeric_coordinate_not_dimensions_error(constructor, coords):
+    with pytest.raises(ValueError) as exc:
+        constructor(coords)
+    assert type(exc.value) is ValueError
+
+
+@pytest.mark.parametrize("constructor", [shapely.MultiLineString, shapely.MultiPolygon])
+def test_inconsistent_dimensions_multipart(constructor):
+    coords = [(0, 0), (1, 0, 1), (1, 1), (0, 0)]
+    parts = [coords] if constructor is shapely.MultiLineString else [(coords, [])]
+    with pytest.raises(InconsistentDimensionsError):
+        constructor(parts)
 
 
 def test_from_coordinate_sequence():
@@ -100,28 +188,18 @@ def test_numpy_object_array():
     assert ar[0] == geom
 
 
-@pytest.mark.filterwarnings("ignore:Creating an ndarray from ragged nested sequences:")
 def test_from_invalid_dim():
-    # TODO(shapely-2.0) better error message?
-    # pytest.raises(
-    #     ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"
-    # ):
     with pytest.raises(shapely.GEOSException):
         LineString([(1, 2)])
 
-    # exact error depends on numpy version
-    with pytest.raises((ValueError, TypeError)):
-        LineString([(1, 2, 3), (4, 5)])
 
-    with pytest.raises((ValueError, TypeError)):
-        LineString([(1, 2), (3, 4, 5)])
-
-    msg = r"The ordinate \(last\) dimension should be 2 or 3, got {}"
-    with pytest.raises(ValueError, match=msg.format(4)):
-        LineString([(1, 2, 3, 4), (4, 5, 6, 7)])
-
-    with pytest.raises(ValueError, match=msg.format(1)):
-        LineString([(1,), (4,)])
+@pytest.mark.parametrize("constructor", [LineString, LinearRing])
+@pytest.mark.parametrize("dimensions", [1, 4])
+def test_uniform_unsupported_dimensions(constructor, dimensions):
+    coords = [tuple(range(start, start + dimensions)) for start in range(3)]
+    with pytest.raises(ValueError) as exc:
+        constructor(coords)
+    assert not isinstance(exc.value, InconsistentDimensionsError)
 
 
 def test_from_single_coordinate():
