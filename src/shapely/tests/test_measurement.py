@@ -291,7 +291,7 @@ def test_frechet_densify_nan():
 
 @pytest.mark.parametrize("densify", [0, -1, 2])
 def test_frechet_densify_invalid_values(densify):
-    with pytest.raises(shapely.GEOSException, match="Fraction is not in range"):
+    with pytest.raises(ValueError, match="Fraction is not in range"):
         shapely.frechet_distance(line_string, line_string, densify=densify)
 
 

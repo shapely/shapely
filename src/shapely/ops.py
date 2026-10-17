@@ -196,7 +196,7 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
         result = shapely.voronoi_polygons(
             geom, tolerance=tolerance, extend_to=envelope, only_edges=edges
         )
-    except shapely.GEOSException as err:
+    except ValueError as err:
         errstr = "Could not create Voronoi Diagram with the specified inputs "
         errstr += f"({err!s})."
         if tolerance:

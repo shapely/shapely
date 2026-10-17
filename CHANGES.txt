@@ -1,6 +1,13 @@
 Changes
 =======
 
+2.3.0 (TBD)
+-----------
+
+All GEOS IllegalArgumentException errors are converted to Python ValueError
+exceptions (#2510).
+
+
 2.2.0 (2026-10-07)
 ------------------
 
