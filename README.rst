@@ -14,12 +14,6 @@ Shapely
    :alt: Github Actions status
    :target: https://github.com/shapely/shapely/actions?query=branch%3Amain
 
-.. Travis CI status -- https://travis-ci.com
-
-.. image:: https://travis-ci.com/shapely/shapely.svg?branch=main
-   :alt: Travis CI status
-   :target: https://travis-ci.com/github/shapely/shapely
-
 .. PyPI
 
 .. image:: https://img.shields.io/pypi/v/shapely.svg
@@ -74,7 +68,13 @@ Shapely functions generally support multithreading by releasing the Global
 Interpreter Lock (GIL) during execution. Normally in Python, the GIL prevents
 multiple threads from computing at the same time. Shapely functions
 internally release this constraint so that the heavy lifting done by GEOS can
-be done in parallel, from a single Python process.
+be done concurrently from a single Python process.
+
+When sharing NumPy array of geometries between threads, extreme care
+must be taken to avoid creating thread safety issues when mutating arrays. This
+holds for any NumPy array, but even more so for arrays of Shapely geometries.
+When overwriting a geometry in an array, the old geometry is deallocated. If at the
+same time another thread operates on that geometry, interpreter crashes will occur.
 
 Usage
 =====
@@ -109,11 +109,11 @@ See the documentation for more examples and guidance: https://shapely.readthedoc
 Requirements
 ============
 
-Shapely 2.1 requires
+Shapely 2.2 requires
 
-* Python >=3.8
-* GEOS >=3.7
-* NumPy >=1.16
+* Python >=3.11
+* GEOS >=3.10
+* NumPy >=1.26
 
 Installing Shapely
 ==================

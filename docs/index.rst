@@ -2,8 +2,6 @@
 
 .. include:: ../CREDITS.txt
 
-.. include:: ../FAQ.rst
-
 
 .. toctree::
    :caption: User Guide
@@ -11,6 +9,7 @@
 
    installation
    User Manual <manual>
+   Frequently Asked Questions <faq>
    migration
    migration_pygeos
    release
@@ -29,6 +28,7 @@
    set_operations
    constructive
    linear
+   coverage
    coordinates
    strtree
    testing

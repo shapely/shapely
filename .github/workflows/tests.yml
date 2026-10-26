@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   test:
-    name: ${{ matrix.os }}-${{ matrix.architecture }} Py${{ matrix.python }} GEOS ${{ matrix.geos }}
+    name: ${{ matrix.os }} Py${{ matrix.python }} GEOS ${{ matrix.geos }}
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -12,56 +12,54 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-2019]
-        architecture: [x64]
-        geos: [3.8.3, 3.9.4, 3.10.5, 3.11.2, 3.12.0, main]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        geos: [3.10.7, 3.11.5, 3.12.3, 3.13.1, 3.14.1, 3.15.0, main]
         include:
-          # 2019
-          - python: 3.8
-            geos: 3.8.3
-            numpy: 1.17.3
-          # 2020
-          - python: 3.9
-            geos: 3.9.4
-            numpy: 1.19.5
           # 2021
-          - python: "3.10"
-            geos: 3.10.5
-            numpy: 1.21.3
+          - python: "3.11"
+            geos: 3.10.7
+            numpy: 1.26.4
           # 2022
           - python: "3.11"
-            geos: 3.11.2
-            numpy: 1.23.4
+            geos: 3.11.5
+            numpy: 1.26.4
           # 2023
           - python: "3.12"
-            geos: 3.12.0
-            numpy: 1.26.0
+            geos: 3.12.3
+            numpy: 2.0.2
+          # 2024
+          - python: "3.13"
+            geos: 3.13.1
+            numpy: 2.1.3
             matplotlib: true
+          # 2025
+          - python: "3.14"
+            geos: 3.14.1
+            numpy: 2.3.5
             doctest: true
-            # extra ignore for dateutil Python 3.12 warning fixed upstream (waiting on release 2.8.3+)
-            extra_pytest_args: "-W error -W ignore:datetime.datetime.utcfromtimestamp:DeprecationWarning" # error on warnings
+            extra_pytest_args: "-W error"  # error on warnings
+          # 2026
+          - python: "3.15"
+            geos: 3.15.0
+            numpy: 2.5.3
+          # free threaded Python (no numpy version to indicate installing nightly cython and numpy)
+          - os: ubuntu-22.04  # keep distinct from ubuntu-latest
+            python: "3.14t"
+            geos: 3.13.1  # keep distinct from pypy geos version
+          # apple x86_64 (Intel)
+          - os: macos-15-intel
+            python: "3.14"
+            geos: 3.14.1
+            numpy: 2.3.5
           # dev
-          - python: "3.12"
+          - python: "3.14"
             geos: main
-            # extra ignore for dateutil Python 3.12 warning fixed upstream (waiting on release 2.8.3+)
-            extra_pytest_args: "-W error -W ignore:datetime.datetime.utcfromtimestamp:DeprecationWarning" # error on warnings
-          # enable two 32-bit windows builds:
-          - os: windows-2019
-            architecture: x86
-            python: 3.8
-            geos: 3.8.3
-            numpy: 1.16.2
-          - os: windows-2019
-            architecture: x86
-            python: "3.11"
-            geos: 3.12.0
-            numpy: 1.24.4
-          # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
-          - os: ubuntu-22.04
-            python: "pypy3.8"
-            geos: 3.12.0
-            numpy: 1.24.4
-
+            extra_pytest_args: "-W error"  # error on warnings
+          # pypy
+          - os: ubuntu-22.04  # keep distinct from ubuntu-latest
+            python: "pypy3.11"
+            geos: 3.12.3  # keep distinct from free threaded geos version
+            numpy: 2.3.5
     env:
       GEOS_VERSION: ${{ matrix.geos }}
       GEOS_VERSION_SPEC: ${{ matrix.geos }}
@@ -73,13 +71,13 @@ jobs:
         run: |
           echo 'GEOS_INSTALL=${{ github.workspace }}\geosinstall\geos-${{ matrix.geos }}' >> $GITHUB_ENV
           echo 'GEOS_BUILD=${{ github.workspace }}\geosbuild' >> $GITHUB_ENV
-        if: ${{ matrix.os == 'windows-2019' }}
+        if: ${{ startsWith(matrix.os, 'windows') }}
 
       - name: Checkout Shapely
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Checkout GEOS (main)
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: libgeos/geos
           ref: main
@@ -93,72 +91,72 @@ jobs:
         if: ${{ matrix.geos == 'main' }}
 
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
-          architecture: ${{ matrix.architecture }}
           allow-prereleases: true
 
       - name: Cache GEOS and pip packages
-        uses: actions/cache@v3
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          key: ${{ matrix.os }}-${{ matrix.architecture }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}
+          key: ${{ matrix.os }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}
           path: |
             ~/.cache/pip
             ${{ github.workspace }}/geosinstall
 
       - name: Activate MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9 # v4.1.0
+        if: ${{ startsWith(matrix.os, 'windows') }}
         with:
-          arch: ${{ matrix.architecture }}
-        if: ${{ matrix.os == 'windows-2019' }}
+          arch: x64
+          # TODO temporarily pin to older MSVC version to avoid crashes, remove once
+          # there is a new GEOS bug-fix release (https://github.com/libgeos/geos/issues/1449)
+          toolset: "14.44"
 
-      - name: Install GEOS
-        run: |
-          bash ci/install_geos.sh
+      - name: Remove /usr/bin/link (MSVC workaround)
+        # Avoid: meson.build:1:0: ERROR: Found GNU link.exe instead of MSVC link.exe
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        run: rm -rfv /usr/bin/link
 
       - name: Install python dependencies
         run: |
-          python -m pip install --disable-pip-version-check --upgrade pip
-          pip install --upgrade wheel setuptools
+          python -m pip install --upgrade pip
+          pip install --group dev coveralls cmake
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install --upgrade --pre Cython numpy pytest pytest-cov coveralls;
+            pip install --upgrade --pre pytest;
+            pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython numpy
           else
-            pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
+            pip install numpy==${{ matrix.numpy }};
           fi
           if [ -n "${{ matrix.matplotlib }}" ]; then
             pip install matplotlib
           fi
           if [ -n "${{ matrix.doctest }}" ]; then
-            pip install pyproj
+            pip install pyproj scipy-doctest
           fi
           pip list
 
+      - name: Install GEOS
+        run: bash ci/install_geos.sh
+
       - name: Set environment variables (Linux)
-        run: |
-          echo "${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_PATH
-          echo "LD_LIBRARY_PATH=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: echo "LD_LIBRARY_PATH=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
 
-      - name: Set environment variables (OSX)
-        run: |
-          echo "${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_PATH
-          echo "LDFLAGS=-Wl,-rpath,${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
-        if: ${{ matrix.os == 'macos-latest' }}
+      - name: Set environment variables (Windows)
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        run: echo "GEOS_LIBDIR=${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_ENV
 
-      # Windows requires special treatment:
-      # - geos-config does not exist, so we specify include and library paths
-      # - Python >=3.8 ignores the PATH for finding DLLs, so we copy them into the package
-      - name: Set environment variables + copy DLLs (Windows)
-        run: |
-          cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll shapely
-          echo 'GEOS_LIBRARY_PATH=${{ env.GEOS_INSTALL }}\lib' >> $GITHUB_ENV
-          echo 'GEOS_INCLUDE_PATH=${{ env.GEOS_INSTALL }}\include' >> $GITHUB_ENV
-        if: ${{ matrix.os == 'windows-2019' }}
+      - name: Set environment variables (macOS)
+        if: ${{ startsWith(matrix.os, 'macos') }}
+        run: echo "LDFLAGS=-Wl,-rpath,${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
 
       - name: Build and install Shapely
-        run: |
-          pip install -e .
+        run: >
+          pip install --verbose --no-build-isolation
+          -Csetup-args="-Dcmake_prefix_path=${{ env.GEOS_INSTALL }}"
+          -Ccompile-args="--verbose"
+          --editable .
 
       - name: Overview of the Python environment (pip list)
         run: pip list
@@ -168,18 +166,18 @@ jobs:
         # continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
           python -c "import shapely; print(f'GEOS version: {shapely.geos_version_string}')"
-          pytest shapely/tests -r a --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
+          pytest --pyargs shapely.tests -r a --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
-      - name: Run doctests
+      - name: Run doctests on manual docs
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.doctest }}
         run: |
-          python -m pytest --doctest-modules docs/manual.rst
+          python -m pytest --doctest-modules docs/*.rst
 
-      - name: Run doctests (part 2)
+      - name: Run doctests on shapely module
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.doctest }}
         run: |
-          pytest --doctest-modules shapely --ignore=shapely/tests
+          pytest --doctest-modules src/shapely --ignore=src/shapely/tests
 
       - name: Upload coverage
         env:

@@ -27,4 +27,3 @@ In sum, Shapely's stack is 4 layers:
 .. [1] John R. Herring, Ed.,
    “OpenGIS Implementation Specification for Geographic information - Simple
    feature access - Part 1: Common architecture,” Oct. 2006.
-

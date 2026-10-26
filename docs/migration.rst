@@ -5,9 +5,9 @@ Migrating to Shapely 1.8 / 2.0
 ==============================
 
 Shapely 1.8.0 is a transitional version introducing several warnings in
-preparation of the upcoming changes in 2.0.0.
+transition to 2.0.0.
 
-Shapely 2.0.0 will be a major release with a refactor of the internals with
+Shapely 2.0.0 was a major release with a refactor of the internals with
 considerable performance improvements (based on the developments in the
 `PyGEOS <https://github.com/pygeos/pygeos>`__ package), along with several
 breaking changes.
@@ -33,13 +33,13 @@ can change their coordinates in-place. Illustrative code::
     >>> print(line)
     LINESTRING (0 0, 2 2)
 
-    >>> line.coords = [(0, 0), (10, 0), (10, 10)]
-    >>> print(line)
+    >>> line.coords = [(0, 0), (10, 0), (10, 10)]  # doctest: +SKIP
+    >>> print(line)  # doctest: +SKIP
     LINESTRING (0 0, 10 0, 10 10)
 
 In Shapely 1.8, this will start raising a warning::
 
-    >>> line.coords = [(0, 0), (10, 0), (10, 10)]
+    >>> line.coords = [(0, 0), (10, 0), (10, 10)]  # doctest: +SKIP
     ShapelyDeprecationWarning: Setting the 'coords' to mutate a Geometry
     in place is deprecated, and will not be possible any more in Shapely 2.0
 
@@ -56,21 +56,22 @@ Setting custom attributes
 -------------------------
 
 Another consequence of the geometry objects becoming immutable is that
-assigning custom attributes, which currently works, will no longer be possible.
+assigning custom attributes, which previously worked, will no longer be
+possible.
 
-Currently you can do::
+Previously, custom attributes could have ben added::
 
-    >>> line.name = "my_geometry"
-    >>> line.name
+    >>> line.name = "my_geometry"  # doctest: +SKIP
+    >>> line.name  # doctest: +SKIP
     'my_geometry'
 
-In Shapely 1.8, this will start raising a warning, and will raise an
+In Shapely 1.8, this will raise a warning, and will raise an
 AttributeError in Shapely 2.0.
 
 **How do I update my code?** There is no direct alternative for adding custom
-attributes to geometry objects. You can use other Python data structures such as
-(GeoJSON-like) dictionaries or GeoPandas' GeoDataFrames to store attributes
-alongside geometry features. 
+attributes to geometry objects. You can use other Python data structures such
+as (GeoJSON-like) dictionaries or GeoPandas' GeoDataFrames to store attributes
+alongside geometry features.
 
 Multi-part geometries will no longer be "sequences" (length, iterable, indexable)
 =================================================================================
@@ -85,18 +86,18 @@ Some examples of this with Shapely 1.x:
 
     >>> from shapely.geometry import Point, MultiPoint
     >>> mp = MultiPoint([(1, 1), (2, 2), (3, 3)])
-    >>> print(mp)
+    >>> print(mp)  # doctest: +SKIP
     MULTIPOINT (1 1, 2 2, 3 3)
-    >>> for part in mp:
-    ...     print(part)
+    >>> for part in mp:  # doctest: +SKIP
+    ...     print(part)  # doctest: +SKIP
     POINT (1 1)
     POINT (2 2)
     POINT (3 3)
-    >>> print(mp[1])
+    >>> print(mp[1])  # doctest: +SKIP
     POINT (2 2)
-    >>> len(mp)
+    >>> len(mp)  # doctest: +SKIP
     3
-    >>> list(mp)
+    >>> list(mp)  # doctest: +SKIP
     [<shapely.geometry.point.Point at 0x7f2e0912bf10>,
      <shapely.geometry.point.Point at 0x7f2e09fed820>,
      <shapely.geometry.point.Point at 0x7f2e09fed4c0>]
@@ -104,8 +105,8 @@ Some examples of this with Shapely 1.x:
 Starting with Shapely 1.8, all the examples above will start raising a
 deprecation warning. For example:
 
-    >>> for part in mp:
-    ...     print(part)
+    >>> for part in mp:  # doctest: +SKIP
+    ...     print(part)  # doctest: +SKIP
     ShapelyDeprecationWarning: Iteration over multi-part geometries is deprecated
     and will be removed in Shapely 2.0. Use the `geoms` property to access the
     constituent parts of a multi-part geometry.
@@ -129,7 +130,7 @@ The examples above can be updated to::
     POINT (2 2)
     >>> len(mp.geoms)
     3
-    >>> list(mp.geoms)
+    >>> list(mp.geoms)  # doctest: +SKIP
     [<shapely.geometry.point.Point at 0x7f2e0912bf10>,
      <shapely.geometry.point.Point at 0x7f2e09fed820>,
      <shapely.geometry.point.Point at 0x7f2e09fed4c0>]
@@ -152,7 +153,7 @@ A small example::
 
     >>> line = LineString([(0, 0), (1, 1), (2, 2)])
     >>> import numpy as np
-    >>> np.asarray(line)
+    >>> np.asarray(line)  # doctest: +SKIP
     array([[0., 0.],
            [1., 1.],
            [2., 2.]])
@@ -160,23 +161,24 @@ A small example::
 In addition, there are also the explicit ``array_interface()`` method and
 ``ctypes`` attribute to get access to the coordinates as array data:
 
-    >>> line.ctypes
+    >>> line.ctypes  # doctest: +SKIP
     <shapely.geometry.linestring.c_double_Array_6 at 0x7f75261eb740>
-    >>> line.array_interface()
+    >>> line.array_interface()  # doctest: +SKIP
     {'version': 3,
      'typestr': '<f8',
      'data': <shapely.geometry.linestring.c_double_Array_6 at 0x7f752664ae40>,
      'shape': (3, 2)}
 
-This functionality is available for Point, LineString, LinearRing and MultiPoint.
+This functionality is available for Point, LineString, LinearRing and
+MultiPoint.
 
-For more robust interoperability with NumPy, this array interface will be removed
-from those geometry classes, and limited to the ``coords``. 
+For more robust interoperability with NumPy, this array interface will be
+removed from those geometry classes, and limited to the ``coords``.
 
 Starting with Shapely 1.8, converting a geometry object to a NumPy array
 directly will start raising a warning::
 
-    >>> np.asarray(line)
+    >>> np.asarray(line)  # doctest: +SKIP
     ShapelyDeprecationWarning: The array interface is deprecated and will no longer
     work in Shapely 2.0. Convert the '.coords' to a NumPy array instead.
     array([[0., 0.],
@@ -208,7 +210,7 @@ as follows::
 
     >>> from shapely.geometry import Point
     >>> arr = np.array([Point(0, 0), Point(1, 1), Point(2, 2)])
-    >>> arr
+    >>> arr  # doctest: +SKIP
     array([<shapely.geometry.point.Point object at 0x7fb798407cd0>,
            <shapely.geometry.point.Point object at 0x7fb7982831c0>,
            <shapely.geometry.point.Point object at 0x7fb798283b80>],
@@ -225,7 +227,7 @@ way (first creating an empty array and then filling it)::
     arr[:] = geoms
 
 This code snippet results in the same array as the example above, and works
-for all geometry types and Shapely/NumPy versions. 
+for all geometry types and Shapely/NumPy versions.
 
 However, starting with Shapely 1.8, the above code will show deprecation
 warnings that cannot be avoided (depending on the geometry type, NumPy tries
@@ -299,7 +301,7 @@ creation methods. A small example for an empty Polygon geometry:
     >>> g1 = Polygon()
     >>> type(g1)
     <class 'shapely.geometry.polygon.Polygon'>
-    >>> g1.wkt
+    >>> g1.wkt  # doctest: +SKIP
     GEOMETRYCOLLECTION EMPTY
 
     # Converting from WKT gives a correct empty polygon
@@ -308,7 +310,7 @@ creation methods. A small example for an empty Polygon geometry:
     >>> type(g2)
     <class 'shapely.geometry.polygon.Polygon'>
     >>> g2.wkt
-    POLYGON EMPTY
+    'POLYGON EMPTY'
 
 Shapely 1.8 does not yet change this inconsistent behaviour, but starting
 with Shapely 2.0, the different methods will always consistently give an
@@ -341,4 +343,5 @@ as well:
 - The ``empty()`` method on a geometry object is deprecated.
 
 - The ``shapely.ops.cascaded_union`` function is deprecated. Use
-  ``shapely.ops.unary_union`` instead, which internally already uses a cascaded union operation for better performance.
+  ``shapely.ops.unary_union`` instead, which internally already uses a cascaded
+  union operation for better performance.

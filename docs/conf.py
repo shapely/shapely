@@ -12,7 +12,7 @@ os.environ["SPHINX_DOC_BUILD"] = "1"
 # -- Project information -----------------------------------------------------
 
 project = 'Shapely'
-copyright = '2011-2023, Sean Gillies and Shapely contributors'
+copyright = '2011-2026, Sean Gillies and Shapely contributors'
 
 # The full version, including alpha/beta/rc tags.
 import shapely
@@ -101,7 +101,7 @@ def rstjinja(app, docname, source):
 
 def get_module_functions(module, exclude=None):
     """Return a list of function names for the given submodule."""
-    
+
     mod = getattr(shapely, module)
     return mod.__all__
 
@@ -112,7 +112,7 @@ html_context = {
 
 
 # write dummy _reference.rst with all functions listed to ensure the reference/
-# stub pages are crated (the autogeneration of those stub pages by autosummary 
+# stub pages are created (the autogeneration of those stub pages by autosummary
 # happens before the jinja rendering is done, and thus at that point the
 # autosummary directives do not yet contain the final content
 
@@ -129,7 +129,7 @@ template = """
 """
 
 modules = [
-    "_geometry", "creation", "constructive", "coordinates", "io", "linear",
+    "_coverage", "_geometry", "creation", "constructive", "coordinates", "io", "linear",
     "measurement", "predicates", "set_operations"]
 functions = [func for mod in modules for func in get_module_functions(mod)]
 
