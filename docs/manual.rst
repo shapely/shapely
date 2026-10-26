@@ -1053,8 +1053,9 @@ Operations on non-simple `LineStrings` are fully supported by Shapely.
 
 .. note::
 
-   The validity test is meaningful only for `Polygons`, `LinearRings`,
-   and some `LineStrings`. Other geometry types always return ``True``.
+   The validity test is meaningful only for `Polygons`, `MultiPolygons`,
+   `LinearRings`, and some `LineStrings`.
+   Other geometry types always return ``True``.
 
 A valid `Polygon` may not possess any overlapping exterior or interior rings. A
 valid `MultiPolygon` may not collect any overlapping polygons. A valid `LineString`
