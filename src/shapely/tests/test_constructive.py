@@ -62,14 +62,6 @@ CONSTRUCTIVE_FLOAT_ARG = (
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", CONSTRUCTIVE_NO_ARGS)
 def test_no_args_array(geometry, func):
-    if (
-        geometry.is_empty
-        and shapely.get_num_geometries(geometry) > 0
-        and func is shapely.node
-        and geos_version < (3, 10, 3)
-    ):  # GEOS GH-601
-        pytest.xfail("GEOS < 3.10.3 crashes with empty geometries")
-
     with ignore_invalid(func is shapely.minimum_width and sys.platform == "darwin"):
         actual = func([geometry, geometry])
     assert actual.shape == (2,)
@@ -1163,7 +1155,6 @@ def test_maximum_inscribed_circle_all_types(geometry):
         with pytest.raises(
             GEOSException,
             match=(
-                r"Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
                 r"must be a Polygon or MultiPolygon|"
                 "Operation not supported by GeometryCollection"
             ),
@@ -1205,10 +1196,7 @@ def test_maximum_inscribed_circle_empty():
     geometry = shapely.from_wkt("POINT EMPTY")
     with pytest.raises(
         GEOSException,
-        match=(
-            r"Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
-            "must be a Polygon or MultiPolygon"
-        ),
+        match="must be a Polygon or MultiPolygon",
     ):
         shapely.maximum_inscribed_circle(geometry)
 
