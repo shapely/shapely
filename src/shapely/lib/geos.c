@@ -539,12 +539,7 @@ int get_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom, double* xmin, double
     return 1;
   }
 
-  // use min / max coordinates
-  if (!(GEOSGeom_getXMin_r(ctx, geom, xmin) && GEOSGeom_getYMin_r(ctx, geom, ymin) &&
-        GEOSGeom_getXMax_r(ctx, geom, xmax) && GEOSGeom_getYMax_r(ctx, geom, ymax))) {
-    return 0;
-  }
-
+  retval = GEOSGeom_getExtent_r(ctx, geom, xmin, ymin, xmax, ymax);
   return retval;
 }
 
