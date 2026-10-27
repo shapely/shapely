@@ -187,7 +187,6 @@ enum ShapelyErrorCode {
 
 
 
-#define GEOS_SINCE_3_11_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 11))
 #define GEOS_SINCE_3_12_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 12))
 #define GEOS_SINCE_3_13_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 13))
 #define GEOS_SINCE_3_14_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 14))
@@ -200,7 +199,6 @@ extern GEOSContextHandle_t init_geos_context(void);
 extern char* init_geos_error_buffer(void);
 
 extern void geos_error_handler(const char* message, void* userdata);
-extern char has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 extern GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx,
                                                   GEOSGeometry* geom);
 #if !GEOS_SINCE_3_13_0

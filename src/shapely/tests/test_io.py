@@ -178,10 +178,6 @@ def test_from_wkt_on_invalid(wkt, on_invalid, error, message):
         assert result is None
 
 
-@pytest.mark.skipif(
-    shapely.geos_version < (3, 11, 0),
-    reason="on_invalid='fix' not supported with GEOS < 3.11",
-)
 @pytest.mark.parametrize(
     "wkt, expected_wkt",
     [
@@ -209,18 +205,6 @@ def test_from_wkt_on_invalid_fix(wkt, expected_wkt):
     """
     geom = shapely.from_wkt(wkt, on_invalid="fix")
     assert shapely.to_wkt(geom) == expected_wkt
-
-
-@pytest.mark.skipif(
-    shapely.geos_version >= (3, 11, 0),
-    reason="on_invalid='fix' is supported with GEOS >= 3.11",
-)
-def test_from_wkt_on_invalid_fix_unsupported_geos():
-    """on_invalid="fix" not supported with GEOS < 3.11"""
-    with pytest.raises(
-        ValueError, match=r"on_invalid='fix' only supported for GEOS >= 3.11"
-    ):
-        _ = shapely.from_wkt("", on_invalid="fix")
 
 
 @pytest.mark.parametrize("geom", all_types)
@@ -334,10 +318,6 @@ def test_from_wkb_on_invalid(wkb, on_invalid, error, message):
         assert result is None
 
 
-@pytest.mark.skipif(
-    shapely.geos_version < (3, 11, 0),
-    reason="on_invalid='fix' not supported with GEOS < 3.11",
-)
 @pytest.mark.parametrize(
     "wkb, expected_wkt",
     [
@@ -356,18 +336,6 @@ def test_from_wkb_on_invalid_fix(wkb, expected_wkt):
     """
     geom = shapely.from_wkb(wkb, on_invalid="fix")
     assert shapely.to_wkt(geom) == expected_wkt
-
-
-@pytest.mark.skipif(
-    shapely.geos_version >= (3, 11, 0),
-    reason="on_invalid='fix' is supported with GEOS >= 3.11",
-)
-def test_from_wkb_on_invalid_fix_unsupported_geos():
-    """on_invalid="fix" not supported with GEOS < 3.11"""
-    with pytest.raises(
-        ValueError, match=r"on_invalid='fix' only supported for GEOS >= 3.11"
-    ):
-        _ = shapely.from_wkb(b"", on_invalid="fix")
 
 
 @pytest.mark.parametrize("geom", all_types)
@@ -694,7 +662,6 @@ def test_to_wkb_hex():
     assert actual == le + point_type + 2 * coord
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_to_wkb_z():
     point = shapely.points(1, 2, 3)
 
@@ -708,7 +675,6 @@ def test_to_wkb_z():
         assert shapely.to_wkb(point, output_dimension=4, byte_order=1) == expected_wkb_z
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_to_wkb_m():
     # POINT M (1 2 4)
     point = shapely.from_wkb(struct.pack("<BI3d", 1, 1 | EWKBM, 1.0, 2.0, 4.0))
@@ -726,7 +692,6 @@ def test_to_wkb_m():
         assert shapely.to_wkb(point, output_dimension=4, byte_order=1) == expected_wkb_m
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_to_wkb_zm():
     # POINT ZM (1 2 3 4)
     point = shapely.from_wkb(struct.pack("<BI4d", 1, 1 | EWKBZM, 1.0, 2.0, 3.0, 4.0))
@@ -776,7 +741,6 @@ def test_to_wkb_byte_order():
     )
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_to_wkb_srid():
     # hex representation of POINT (0 0) with SRID=4
     ewkb = "01010000200400000000000000000000000000000000000000"
@@ -794,7 +758,6 @@ def test_to_wkb_srid():
     assert np.frombuffer(result[5:9], "<u4").item() == 4326
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_to_wkb_flavor():
     # http://libgeos.org/specifications/wkb/#extended-wkb
     actual = shapely.to_wkb(point_z, byte_order=1)  # default "extended"
@@ -911,7 +874,6 @@ def test_to_wkb_point_empty_2d(geom, expected):
     assert np.isnan(struct.unpack("<2d", actual[header_length:])).all()
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -1135,7 +1097,6 @@ def test_from_wkb_point_empty_zm(wkb, expected_type):
     assert shapely.has_m(geom)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_to_wkb_point_empty_srid():
     expected = shapely.set_srid(empty_point, 4236)
     wkb = shapely.to_wkb(expected, include_srid=True)
@@ -1188,7 +1149,6 @@ def test_pickle_zm(geom):
         assert actual.has_m
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize("geom", all_types + (point_z, empty_point))
 def test_pickle_with_srid(geom):
     geom = shapely.set_srid(geom, 4326)
@@ -1196,7 +1156,6 @@ def test_pickle_with_srid(geom):
     assert shapely.get_srid(pickle.loads(pickled)) == 4326
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize(
     "geojson,expected",
     [
@@ -1227,7 +1186,6 @@ def test_from_geojson(geojson, expected):
     assert_geometries_equal(actual, expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_from_geojson_exceptions():
     with pytest.raises(TypeError, match="Expected bytes or string, got int"):
         shapely.from_geojson(1)
@@ -1250,20 +1208,17 @@ def test_from_geojson_exceptions():
         shapely.from_geojson('{"no": "geojson"}')
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_from_geojson_warn_on_invalid():
     with pytest.warns(Warning, match="Invalid GeoJSON"):
         assert shapely.from_geojson("", on_invalid="warn") is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_from_geojson_ignore_on_invalid():
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         assert shapely.from_geojson("", on_invalid="ignore") is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_from_geojson_on_invalid_unsupported_option():
     with pytest.raises(ValueError, match="not a valid option"):
         shapely.from_geojson(GEOJSON_GEOMETRY, on_invalid="unsupported_option")
@@ -1308,7 +1263,6 @@ def test_to_geojson_exceptions():
         shapely.to_geojson(1)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 2), reason="GEOS < 3.10.2")
 @pytest.mark.parametrize(
     "geom",
     [
@@ -1324,18 +1278,11 @@ def test_to_geojson_point_empty(geom):
     assert geom.equals(shapely.from_geojson(shapely.to_geojson(geom)))
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize("geom", all_types)
 def test_geojson_all_types(geom):
     type_id = shapely.get_type_id(geom)
     if type_id == shapely.GeometryType.LINEARRING:
         pytest.skip("Linearrings are not preserved in GeoJSON")
-    elif (
-        geom.is_empty
-        and type_id == shapely.GeometryType.POINT
-        and shapely.geos_version < (3, 10, 2)
-    ):
-        pytest.skip("GEOS < 3.10.2 with POINT EMPTY")  # TRAC-1139
     geojson = shapely.to_geojson(geom)
     actual = shapely.from_geojson(geojson)
     assert not actual.has_z

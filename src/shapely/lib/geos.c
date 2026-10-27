@@ -98,37 +98,6 @@ char* init_geos_error_buffer(void) {
   return tl_geos->last_error;
 }
 
-
-/* These functions are used to workaround issues in GeoJSON writer for GEOS 3.10.0:
- * - POINT EMPTY was not handled correctly (we do it ourselves)
- * - MULTIPOINT (EMPTY) resulted in segfault (we check for it and raise)
- */
-
-/* Returns 1 if a multipoint has an empty point, 0 otherwise, 2 on error.
- */
-char multipoint_has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
-  int n, i;
-  char is_empty;
-  const GEOSGeometry* sub_geom;
-
-  n = GEOSGetNumGeometries_r(ctx, geom);
-  if (n == -1) {
-    return 2;
-  }
-  for (i = 0; i < n; i++) {
-    sub_geom = GEOSGetGeometryN_r(ctx, geom, i);
-    if (sub_geom == NULL) {
-      return 2;
-    }
-    is_empty = GEOSisEmpty_r(ctx, sub_geom);
-    if (is_empty != 0) {
-      // If empty encountered, or on exception, return:
-      return is_empty;
-    }
-  }
-  return 0;
-}
-
 /* Returns 1 if geometry is an empty point, 0 otherwise, 2 on error.
  */
 char is_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
@@ -137,51 +106,6 @@ char is_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
   geom_type = GEOSGeomTypeId_r(ctx, geom);
   if (geom_type == GEOS_POINT) {
     return GEOSisEmpty_r(ctx, geom);
-  } else if (geom_type == -1) {
-    return 2;  // GEOS exception
-  } else {
-    return 0;  // No empty point
-  }
-}
-
-/* Returns 1 if a geometrycollection has an empty point, 0 otherwise, 2 on error.
-Checks recursively (geometrycollections may contain multipoints / geometrycollections)
-*/
-char geometrycollection_has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
-  int n, i;
-  char has_empty;
-  const GEOSGeometry* sub_geom;
-
-  n = GEOSGetNumGeometries_r(ctx, geom);
-  if (n == -1) {
-    return 2;
-  }
-  for (i = 0; i < n; i++) {
-    sub_geom = GEOSGetGeometryN_r(ctx, geom, i);
-    if (sub_geom == NULL) {
-      return 2;
-    }
-    has_empty = has_point_empty(ctx, (GEOSGeometry*)sub_geom);
-    if (has_empty != 0) {
-      // If empty encountered, or on exception, return:
-      return has_empty;
-    }
-  }
-  return 0;
-}
-
-/* Returns 1 if geometry is / has an empty point, 0 otherwise, 2 on error.
- */
-char has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
-  int geom_type;
-
-  geom_type = GEOSGeomTypeId_r(ctx, geom);
-  if (geom_type == GEOS_POINT) {
-    return GEOSisEmpty_r(ctx, geom);
-  } else if (geom_type == GEOS_MULTIPOINT) {
-    return multipoint_has_point_empty(ctx, geom);
-  } else if (geom_type == GEOS_GEOMETRYCOLLECTION) {
-    return geometrycollection_has_point_empty(ctx, geom);
   } else if (geom_type == -1) {
     return 2;  // GEOS exception
   } else {
@@ -615,12 +539,7 @@ int get_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom, double* xmin, double
     return 1;
   }
 
-  // use min / max coordinates
-  if (!(GEOSGeom_getXMin_r(ctx, geom, xmin) && GEOSGeom_getYMin_r(ctx, geom, ymin) &&
-        GEOSGeom_getXMax_r(ctx, geom, xmax) && GEOSGeom_getYMax_r(ctx, geom, ymax))) {
-    return 0;
-  }
-
+  retval = GEOSGeom_getExtent_r(ctx, geom, xmin, ymin, xmax, ymax);
   return retval;
 }
 

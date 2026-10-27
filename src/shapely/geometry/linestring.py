@@ -167,13 +167,7 @@ class LineString(BaseGeometry):
         mitre limit allows controlling the maximum length of the join corner.
         Corners with a ratio which exceed the limit will be beveled.
 
-        Note: the behaviour regarding orientation of the resulting line
-        depends on the GEOS version. With GEOS < 3.11, the line retains the
-        same direction for a left offset (positive distance) or has reverse
-        direction for a right offset (negative distance), and this behaviour
-        was documented as such in previous Shapely versions. Starting with
-        GEOS 3.11, the function tries to preserve the orientation of the
-        original line.
+        The method attempts to preserve the orientation of line to the input.
         """
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")

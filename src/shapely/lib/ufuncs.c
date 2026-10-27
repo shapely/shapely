@@ -1363,7 +1363,6 @@ static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp*
     if (in1 == NULL) { /* no geometry => bbox becomes (nan, nan, nan, nan) */
       *x1 = *y1 = *x2 = *y2 = NPY_NAN;
     } else {
-#if GEOS_SINCE_3_11_0
       if (GEOSisEmpty_r(ctx, in1)) {
         *x1 = *y1 = *x2 = *y2 = NPY_NAN;
       }
@@ -1373,29 +1372,6 @@ static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp*
           goto finish;
         }
       }
-
-#else
-      if (GEOSisEmpty_r(ctx, in1)) {
-        *x1 = *y1 = *x2 = *y2 = NPY_NAN;
-      } else {
-        if (!GEOSGeom_getXMin_r(ctx, in1, x1)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSGeom_getYMin_r(ctx, in1, y1)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSGeom_getXMax_r(ctx, in1, x2)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSGeom_getYMax_r(ctx, in1, y2)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-      }
-#endif
     }
   }
 
@@ -1440,12 +1416,7 @@ static void from_wkb_func(char** args, const npy_intp* dimensions, const npy_int
 
   /* If on_invalid is 3, try to fix invalid geometries */
   if (on_invalid == 3) {
-    #if GEOS_SINCE_3_11_0
-      GEOSWKBReader_setFixStructure_r(ctx, reader, 1);
-    #else
-      PyErr_Format(PyExc_ValueError, "on_invalid='fix' only supported for GEOS >= 3.11");
-      goto finish;
-    #endif
+    GEOSWKBReader_setFixStructure_r(ctx, reader, 1);
   }
 
   for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {
@@ -1543,12 +1514,7 @@ static void from_wkt_func(char** args, const npy_intp* dimensions, const npy_int
 
   /* If on_invalid is 3, try to fix invalid geometries */
   if (on_invalid == 3) {
-    #if GEOS_SINCE_3_11_0
-      GEOSWKTReader_setFixStructure_r(ctx, reader, 1);
-    #else
-      PyErr_Format(PyExc_ValueError, "on_invalid='fix' only supported for GEOS >= 3.11");
-      goto finish;
-    #endif
+    GEOSWKTReader_setFixStructure_r(ctx, reader, 1);
   }
 
   for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {

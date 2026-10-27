@@ -38,13 +38,8 @@ from shapely.tests.common import (
 CONSTRUCTIVE_NO_ARGS = (
     shapely.boundary,
     shapely.centroid,
+    shapely.concave_hull,
     shapely.convex_hull,
-    pytest.param(
-        shapely.concave_hull,
-        marks=pytest.mark.skipif(
-            shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11"
-        ),
-    ),
     shapely.envelope,
     shapely.extract_unique_points,
     shapely.minimum_clearance_line,
@@ -67,14 +62,6 @@ CONSTRUCTIVE_FLOAT_ARG = (
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", CONSTRUCTIVE_NO_ARGS)
 def test_no_args_array(geometry, func):
-    if (
-        geometry.is_empty
-        and shapely.get_num_geometries(geometry) > 0
-        and func is shapely.node
-        and geos_version < (3, 10, 3)
-    ):  # GEOS GH-601
-        pytest.xfail("GEOS < 3.10.3 crashes with empty geometries")
-
     with ignore_invalid(func is shapely.minimum_width and sys.platform == "darwin"):
         actual = func([geometry, geometry])
     assert actual.shape == (2,)
@@ -84,14 +71,6 @@ def test_no_args_array(geometry, func):
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", CONSTRUCTIVE_FLOAT_ARG)
 def test_float_arg_array(geometry, func):
-    if (
-        func is shapely.offset_curve
-        and shapely.get_type_id(geometry) not in {1, 2}
-        and shapely.geos_version < (3, 11, 0)
-    ):
-        with pytest.raises(GEOSException, match="only accept linestrings"):
-            func([geometry, geometry], 0.0)
-        return
     # voronoi_polygons emits an "invalid" warning when supplied with an empty
     # point (see https://github.com/libgeos/geos/issues/515)
     with ignore_invalid(
@@ -399,7 +378,6 @@ def test_offset_curve_join_style_invalid():
         shapely.offset_curve(line_string, 1.0, join_style="invalid")
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -466,7 +444,6 @@ def test_remove_repeated_points_invalid_result(geom, tolerance):
             shapely.remove_repeated_points(geom, tolerance)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
 def test_remove_repeated_points_none():
     assert shapely.remove_repeated_points(None, 1) is None
     assert shapely.remove_repeated_points([None], 1).tolist() == [None]
@@ -478,7 +455,6 @@ def test_remove_repeated_points_none():
     assert_geometries_equal(result[1], expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
 @pytest.mark.parametrize("geom, tolerance", [("Not a geometry", 1), (1, 1)])
 def test_remove_repeated_points_invalid_type(geom, tolerance):
     with pytest.raises(TypeError, match="One of the arguments is of incorrect type"):
@@ -635,7 +611,7 @@ def test_clip_by_rect_array(geometry):
     if (
         geometry.is_empty
         and shapely.get_type_id(geometry) == shapely.GeometryType.POINT
-        and (geos_version < (3, 10, 6) or ((3, 11, 0) <= geos_version < (3, 11, 3)))
+        and (geos_version < (3, 11, 3))
     ):
         # GEOS GH-913
         with pytest.raises(GEOSException):
@@ -1098,7 +1074,6 @@ def test_oriented_evelope_array_like():
     assert_geometries_equal(np.asarray(actual), expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
 def test_concave_hull_kwargs():
     p = Point(10, 10)
     mp = MultiPoint(p.buffer(5).exterior.coords[:] + p.buffer(4).exterior.coords[:])
@@ -1180,7 +1155,6 @@ def test_maximum_inscribed_circle_all_types(geometry):
         with pytest.raises(
             GEOSException,
             match=(
-                r"Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
                 r"must be a Polygon or MultiPolygon|"
                 "Operation not supported by GeometryCollection"
             ),
@@ -1222,10 +1196,7 @@ def test_maximum_inscribed_circle_empty():
     geometry = shapely.from_wkt("POINT EMPTY")
     with pytest.raises(
         GEOSException,
-        match=(
-            r"Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
-            "must be a Polygon or MultiPolygon"
-        ),
+        match="must be a Polygon or MultiPolygon",
     ):
         shapely.maximum_inscribed_circle(geometry)
 

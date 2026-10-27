@@ -65,7 +65,7 @@ endif
 # GEOS setup
 ###############################################################
 
-min_geos_version = '3.10'
+min_geos_version = '3.11'
 
 # Previous shapely versions had multiple ways to specify GEOS dependency
 # which are not supported (in principle). This warning can be removed someday.
