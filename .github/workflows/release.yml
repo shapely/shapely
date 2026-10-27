@@ -17,6 +17,8 @@ on:
     - cron: '34 2 * * 0'
   workflow_dispatch:
 
+permissions: {}
+
 env:
   GEOS_VERSION: "3.14.1"
 
@@ -24,12 +26,15 @@ jobs:
   build_sdist:
     name: Build sdist
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -56,6 +61,8 @@ jobs:
   build_wheels_linux:
     name: Build ${{ matrix.baseimage }} wheels
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -84,6 +91,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Docker Buildx
         id: buildx
@@ -134,6 +142,8 @@ jobs:
   build_wheels_mac_win:
     name: Build ${{ matrix.arch }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -159,10 +169,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Cache GEOS build
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        with:  # zizmor: ignore[cache-poisoning]
           path: ${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/*') }}
 
@@ -214,6 +226,8 @@ jobs:
     name: Upload nightly wheels
     needs: [build_sdist, build_wheels_linux, build_wheels_mac_win]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: github.repository == 'shapely/shapely' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
