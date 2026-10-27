@@ -214,7 +214,7 @@ def test_linestrings_invalid_shape_scalar():
     ],
 )
 def test_linestrings_invalid_shape(shape):
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError):
         shapely.linestrings(np.ones(shape))
 
 
@@ -272,7 +272,7 @@ def test_linestrings_handle_nan_skip(coords):
 
 
 def test_linestrings_handle_nan_skip_invalid():
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError):
         shapely.linestrings([[0, 1], [2, float("nan")]], handle_nan="skip")
 
 
@@ -362,7 +362,7 @@ def test_linearrings_invalid_ndim():
 
 def test_linearrings_all_nan():
     coords = np.full((4, 2), np.nan)
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError):
         shapely.linearrings(coords)
 
 

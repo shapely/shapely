@@ -365,12 +365,10 @@ def test_relate_pattern_none(g1, g2):
     assert shapely.relate_pattern(g1, g2, "*" * 9).item() is False
 
 
-def test_relate_pattern_incorrect_length():
-    with pytest.raises(shapely.GEOSException, match="Should be length 9"):
-        shapely.relate_pattern(point, polygon, "**")
-
-    with pytest.raises(shapely.GEOSException, match="Should be length 9"):
-        shapely.relate_pattern(point, polygon, "**********")
+@pytest.mark.parametrize("pattern", ["**", "**********"])
+def test_relate_pattern_incorrect_length(pattern):
+    with pytest.raises(ValueError, match="Should be length 9"):
+        shapely.relate_pattern(point, polygon, pattern)
 
 
 @pytest.mark.parametrize("pattern", [b"*********", 10, None])
