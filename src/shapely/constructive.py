@@ -6,10 +6,7 @@ from shapely import lib
 from shapely._enum import ParamEnum
 from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
 from shapely.algorithms.cga import _orient_polygons_vectorized
-from shapely.decorators import (
-    deprecate_positional,
-    requires_geos,
-)
+from shapely.decorators import deprecate_positional
 from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
@@ -421,7 +418,6 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
     )
 
 
-@requires_geos("3.11.0")
 def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
     """Compute a concave geometry that encloses an input geometry.
 
@@ -981,7 +977,6 @@ def polygonize_full(geometries, **kwargs):
     return lib.polygonize_full(geometries, **kwargs)
 
 
-@requires_geos("3.11.0")
 def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
     """Return a copy of a Geometry with repeated points removed.
 

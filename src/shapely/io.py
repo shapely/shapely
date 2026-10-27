@@ -7,7 +7,6 @@ from shapely._enum import ParamEnum
 
 # include ragged array functions here for reference documentation purpose
 from shapely._ragged_array import from_ragged_array, to_ragged_array
-from shapely.decorators import requires_geos
 
 __all__ = [
     "from_geojson",
@@ -358,7 +357,6 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
     return lib.from_wkb(geometry, invalid_handler, **kwargs)
 
 
-@requires_geos("3.10.1")
 def from_geojson(geometry, on_invalid="raise", **kwargs):
     """Create geometries from GeoJSON representations (strings).
 
