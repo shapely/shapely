@@ -2,10 +2,14 @@ name: Tests
 
 on: [push, pull_request]
 
+permissions: {}
+
 jobs:
   test:
     name: ${{ matrix.os }} Py${{ matrix.python }} GEOS ${{ matrix.geos }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     defaults:
       run:
         shell: bash
