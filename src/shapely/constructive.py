@@ -272,12 +272,7 @@ def offset_curve(
     line. For a negative distance it will be at the right side. In general,
     this function tries to preserve the direction of the input.
 
-    Note: the behaviour regarding orientation of the resulting line depends
-    on the GEOS version. With GEOS < 3.11, the line retains the same
-    direction for a left offset (positive distance) or has opposite direction
-    for a right offset (negative distance), and this behaviour was documented
-    as such in previous Shapely versions. Starting with GEOS 3.11, the
-    function tries to preserve the orientation of the original line.
+    The method attempts to preserve the orientation of line to the input.
 
     Parameters
     ----------
