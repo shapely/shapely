@@ -3,6 +3,7 @@ import unittest
 import pytest
 
 from shapely import geometry
+from shapely.errors import GEOSException
 from shapely.ops import transform
 
 
@@ -113,3 +114,32 @@ class TypeTestCase(unittest.TestCase):
 
         with pytest.warns(DeprecationWarning):
             transform(func, geometry.LineString([(0, 1), (2, 3)]))
+
+
+class NaNTestCase(unittest.TestCase):
+    """Regression test for GH-761.
+
+    A transform function returning NaN coordinates used to segfault when
+    the transformed coordinates were used to construct a linear ring.
+    The error from GEOS is now propagated as a GEOSException instead.
+    """
+
+    def func(self, x, y):
+        nan = float("nan")
+        return tuple(nan for _ in x), tuple(nan for _ in y)
+
+    def test_linearring(self):
+        g = geometry.LinearRing([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(
+                GEOSException, match="do not form a closed linestring"
+            ):
+                transform(self.func, g)
+
+    def test_polygon(self):
+        g = geometry.Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(
+                GEOSException, match="do not form a closed linestring"
+            ):
+                transform(self.func, g)
