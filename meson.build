@@ -31,14 +31,7 @@ add_project_arguments(_global_c_args, language: 'c')
 # Python setup
 ###############################################################
 
-min_python_version = '3.11'  # keep in sync with [project.requires-python] in pyproject.toml
-
 py = import('python').find_installation(pure: false)
-
-python_version = py.language_version()
-if python_version.version_compare(f'<@min_python_version@')
-  error(f'Minimum supported Python version is @min_python_version@, found @python_version@')
-endif
 
 ###############################################################
 # Dynamic version
