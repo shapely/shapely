@@ -115,6 +115,9 @@ jobs:
 
       - name: Build wheels
         uses: pypa/cibuildwheel@b9e566a2b284570af229f6c2a33673410d0389a3 # v4.3.4
+        # While reviewing dependabot updates, check the Security Scan status at
+        # https://quay.io/repository/pypa/manylinux_2_28_x86_64?tab=tags
+        # and update "basetag" (line 80-ish) if there are critical-level vulnerabilities.
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.cibw_build }}
