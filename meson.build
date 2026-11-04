@@ -15,6 +15,8 @@ project(
   ],
 )
 
+py = import('python').find_installation(pure: false)
+
 ###############################################################
 # C setup
 ###############################################################
@@ -26,12 +28,6 @@ _global_c_args = cc.get_supported_arguments(
   '-Wno-unused-parameter',
 )
 add_project_arguments(_global_c_args, language: 'c')
-
-###############################################################
-# Python setup
-###############################################################
-
-py = import('python').find_installation(pure: false)
 
 ###############################################################
 # Dynamic version
