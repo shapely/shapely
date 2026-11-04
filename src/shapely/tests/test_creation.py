@@ -60,18 +60,15 @@ def test_points_invalid_ndim():
 
 
 @pytest.mark.skipif(
-    shapely.geos_version[:2] not in {(3, 10), (3, 11), (3, 12)},
-    reason="GEOS not in 3.10, 3.11, 3.12",
+    shapely.geos_version[:2] not in {(3, 11), (3, 12)},
+    reason="GEOS not in 3.11, 3.12",
 )
 def test_points_nan_all_nan_becomes_empty():
     actual = shapely.points(np.nan, np.nan)
     assert actual.wkt == "POINT EMPTY"
 
 
-@pytest.mark.skipif(
-    shapely.geos_version[:2] not in {(3, 10), (3, 11)},
-    reason="GEOS not in 3.10, 3.11",
-)
+@pytest.mark.skipif(shapely.geos_version[:2] != (3, 11), reason="GEOS != 3.11")
 def test_points_nan_3D_all_nan_becomes_empty_2D():
     actual = shapely.points(np.nan, np.nan, np.nan)
     assert actual.wkt == "POINT EMPTY"

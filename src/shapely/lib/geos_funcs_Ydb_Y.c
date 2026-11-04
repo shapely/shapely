@@ -39,14 +39,12 @@ typedef GEOSGeometry* FuncGEOS_Ydb_Y(GEOSContextHandle_t context, const GEOSGeom
 
 /* Wrapper functions to handle special cases */
 
-#if GEOS_SINCE_3_11_0
 static GEOSGeometry* ShapelyConcaveHull_r(GEOSContextHandle_t ctx,
                                            const GEOSGeometry* g,
                                            double ratio,
                                            int allow_holes) {
   return GEOSConcaveHull_r(ctx, g, ratio, (unsigned int)allow_holes);
 }
-#endif  // GEOS_SINCE_3_11_0
 
 #if GEOS_SINCE_3_12_0
 static GEOSGeometry* ShapelyCoverageSimplifyVWValidated_r(GEOSContextHandle_t ctx,
@@ -282,10 +280,7 @@ static char Ydb_Y_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
   }
 
 DEFINE_Ydb_Y(GEOSDelaunayTriangulation_r)
-
-#if GEOS_SINCE_3_11_0
 DEFINE_Ydb_Y(ShapelyConcaveHull_r)
-#endif
 
 #if GEOS_SINCE_3_12_0
 DEFINE_Ydb_Y(ShapelyCoverageSimplifyVWValidated_r)
@@ -333,10 +328,7 @@ int init_geos_funcs_Ydb_Y(PyObject* m, PyObject* d) {
   PyObject* ufunc;  // Temporary variable for ufunc creation
 
   INIT_Ydb_Y(GEOSDelaunayTriangulation_r, delaunay_triangles);
-
-#if GEOS_SINCE_3_11_0
   INIT_Ydb_Y(ShapelyConcaveHull_r, concave_hull);
-#endif
 
 #if GEOS_SINCE_3_12_0
   INIT_Ydb_Y(ShapelyCoverageSimplifyVWValidated_r, coverage_simplify);

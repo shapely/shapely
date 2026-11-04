@@ -2,7 +2,6 @@
 
 from shapely import lib
 from shapely.decorators import deprecate_positional
-from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "line_interpolate_point",
@@ -133,7 +132,6 @@ def line_merge(line, directed=False, **kwargs):
         Linear geometry or geometries to merge.
     directed : bool, default False
         Only combine lines if possible without changing point order.
-        Requires GEOS >= 3.11.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -155,12 +153,6 @@ directed=True)
 
     """
     if directed:
-        if lib.geos_version < (3, 11, 0):
-            raise UnsupportedGEOSVersionError(
-                "'{}' requires at least GEOS {}.{}.{}.".format(
-                    "line_merge", *(3, 11, 0)
-                )
-            )
         return lib.line_merge_directed(line, **kwargs)
     return lib.line_merge(line, **kwargs)
 
