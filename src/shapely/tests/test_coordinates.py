@@ -264,7 +264,7 @@ def test_set_coords_nan():
 
 
 def test_set_coords_breaks_ring():
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError):
         set_coordinates(linear_ring, np.random.random((5, 2)))
 
 

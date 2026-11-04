@@ -440,7 +440,7 @@ def test_remove_repeated_points_invalid_result(geom, tolerance):
         result = shapely.remove_repeated_points(geom, tolerance)
         assert result.wkt == "POLYGON EMPTY"
     else:
-        with pytest.raises(shapely.GEOSException, match="Invalid number of points"):
+        with pytest.raises(ValueError, match="Invalid number of points"):
             shapely.remove_repeated_points(geom, tolerance)
 
 
@@ -815,7 +815,7 @@ def test_polygonize_full_missing():
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("max_segment_length", [-1, 0])
 def test_segmentize_invalid_max_segment_length(geometry, max_segment_length):
-    with pytest.raises(GEOSException, match="IllegalArgumentException"):
+    with pytest.raises(ValueError):
         shapely.segmentize(geometry, max_segment_length=max_segment_length)
 
 
@@ -1153,7 +1153,7 @@ def test_maximum_inscribed_circle_all_types(geometry):
     if shapely.get_type_id(geometry) not in {3, 6}:
         # Maximum Inscribed Circle is only supported for (Multi)Polygon input
         with pytest.raises(
-            GEOSException,
+            ValueError,
             match=(
                 r"must be a Polygon or MultiPolygon|"
                 "Operation not supported by GeometryCollection"
@@ -1164,7 +1164,7 @@ def test_maximum_inscribed_circle_all_types(geometry):
 
     if geometry.is_empty:
         with pytest.raises(
-            GEOSException, match=r"Empty input(?: geometry)? is not supported"
+            ValueError, match=r"Empty input(?: geometry)? is not supported"
         ):
             shapely.maximum_inscribed_circle(geometry)
         return
@@ -1192,18 +1192,16 @@ def test_maximum_inscribed_circle(geometry, expected):
     assert_geometries_equal(actual, expected)
 
 
-def test_maximum_inscribed_circle_empty():
-    geometry = shapely.from_wkt("POINT EMPTY")
-    with pytest.raises(
-        GEOSException,
-        match="must be a Polygon or MultiPolygon",
-    ):
-        shapely.maximum_inscribed_circle(geometry)
-
-    geometry = shapely.from_wkt("POLYGON EMPTY")
-    with pytest.raises(
-        GEOSException, match=r"Empty input(?: geometry)? is not supported"
-    ):
+@pytest.mark.parametrize(
+    "wkt, pattern",
+    [
+        ("POINT EMPTY", "must be a Polygon or MultiPolygon"),
+        ("POLYGON EMPTY", r"Empty input(?: geometry)? is not supported"),
+    ],
+)
+def test_maximum_inscribed_circle_empty(wkt, pattern):
+    geometry = shapely.from_wkt(wkt)
+    with pytest.raises(ValueError, match=pattern):
         shapely.maximum_inscribed_circle(geometry)
 
 
@@ -1722,7 +1720,7 @@ def test_split_roundtrip(geometry, splitter, expected_num_parts):
 
 
 def test_split_unsupported_geometry_type():
-    error = GeometryTypeError if geos_version < (3, 15, 0) else GEOSException
+    error = GeometryTypeError if geos_version < (3, 15, 0) else ValueError
     msg = "Splitting a Polygon with a (point|Point|MultiPoint) is not supported"
     with pytest.raises(error, match=msg):
         shapely.split(polygon, point)
