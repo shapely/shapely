@@ -110,7 +110,12 @@ enum ShapelyErrorCode {
                       "Geometry objects.");                                              \
       break;                                                                             \
     case PGERR_GEOS_EXCEPTION:                                                           \
-      PyErr_SetString(geos_exception[0], last_error);                                    \
+      if (last_error != NULL && strlen(last_error) > 26 && strncmp("IllegalArgumentException: ", last_error, 26) == 0) { \
+        PyErr_SetString(geos_exception[1], last_error + 26);                             \
+      }                                                                                  \
+      else {                                                                             \
+        PyErr_SetString(geos_exception[0], last_error);                                  \
+      }                                                                                  \
       break;                                                                             \
     case PGERR_NO_MALLOC:                                                                \
       PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");                   \
@@ -193,7 +198,7 @@ enum ShapelyErrorCode {
 #define GEOS_SINCE_3_14_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 14))
 #define GEOS_SINCE_3_15_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 15))
 
-extern PyObject* geos_exception[1];
+extern PyObject* geos_exception[2];
 
 /* Threadlocal GEOS context support */
 extern GEOSContextHandle_t init_geos_context(void);
