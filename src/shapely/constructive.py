@@ -272,7 +272,7 @@ def offset_curve(
     line. For a negative distance it will be at the right side. In general,
     this function tries to preserve the direction of the input.
 
-    The method attempts to preserve the orientation of line to the input.
+    The method attempts to preserve the orientation of the input geometry.
 
     Parameters
     ----------

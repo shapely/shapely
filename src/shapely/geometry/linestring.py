@@ -167,7 +167,7 @@ class LineString(BaseGeometry):
         mitre limit allows controlling the maximum length of the join corner.
         Corners with a ratio which exceed the limit will be beveled.
 
-        The method attempts to preserve the orientation of line to the input.
+        The method attempts to preserve the orientation of the input geometry.
         """
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
