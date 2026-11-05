@@ -92,10 +92,14 @@ def test_line_interpolate_point_nan():
     assert shapely.line_interpolate_point(line_string, np.nan) is None
 
 
-def test_line_interpolate_point_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `normalized` for `line_interpolate_point` "
-        "is deprecated"
+def test_line_interpolate_point_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=(
+            r"line_interpolate_point\(\) takes 2 positional arguments "
+            "but 3 were given"
+        ),
     ):
         shapely.line_interpolate_point(line_string, 0, False)
 
@@ -152,9 +156,11 @@ def test_line_locate_point_invalid_geometry(args, exception, normalized):
         shapely.line_locate_point(*args, normalized=normalized)
 
 
-def test_line_locate_point_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `normalized` for `line_locate_point` is deprecated"
+def test_line_locate_point_positional_error():
+    # These worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"line_locate_point\(\) takes 2 positional arguments but 3 were given",
     ):
         shapely.line_locate_point(line_string, point, False)
 
@@ -183,6 +189,14 @@ def test_line_merge_directed():
     # the original geometry is returned
     result = shapely.line_merge(lines, directed=True)
     assert_geometries_equal(result, lines)
+
+
+def test_line_merge_deprecate_positional():
+    lines = MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]])
+    with pytest.deprecated_call(
+        match="positional argument `directed` for `line_merge` is deprecated"
+    ):
+        shapely.line_merge(lines, True)
 
 
 def test_shared_paths_linestring():
