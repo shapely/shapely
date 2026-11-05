@@ -234,8 +234,12 @@ jobs:
     name: Publish on GitHub and PyPI
     needs: [build_sdist, build_wheels_linux, build_wheels_mac_win]
     runs-on: ubuntu-latest
-    # release on every tag
-    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
+    # release on every non-dev tag
+    if: >
+      github.repository == 'shapely/shapely' &&
+      github.event_name == 'push' &&
+      startsWith(github.ref, 'refs/tags/') &&
+      ( ! endsWith(github.ref, 'dev0'))
     environment:
       name: pypi
       url: https://pypi.org/p/shapely
