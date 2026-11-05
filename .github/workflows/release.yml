@@ -180,6 +180,7 @@ jobs:
         with:
           path: ${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/*') }}
+          # disable reading from the cache when releasing to avoid cache poisoning risk
           lookup-only: ${{ startsWith(github.ref, 'refs/tags/') }}
 
       - name: Add GEOS LICENSE
