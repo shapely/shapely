@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-import shapely
 from shapely import LinearRing, LineString, Point
 from shapely.coords import CoordinateSequence
 
@@ -106,7 +105,7 @@ def test_from_invalid_dim():
     # pytest.raises(
     #     ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"
     # ):
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError):
         LineString([(1, 2)])
 
     # exact error depends on numpy version
@@ -127,7 +126,7 @@ def test_from_invalid_dim():
 def test_from_single_coordinate():
     """Test for issue #486"""
     coords = [[-122.185933073564, 37.3629353839073]]
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError):
         ls = LineString(coords)
         ls.geom_type  # caused segfault before fix
 

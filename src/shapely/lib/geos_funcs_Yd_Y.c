@@ -65,24 +65,9 @@ static GEOSGeometry* GEOSMaximumInscribedCircleWithDefaultTolerance(GEOSContextH
     double xmin, xmax, ymin, ymax;
     double width, height, size;
 
-#if GEOS_SINCE_3_11_0
     if (!GEOSGeom_getExtent_r(context, a, &xmin, &ymin, &xmax, &ymax)) {
       return NULL;
     }
-#else
-    if (!GEOSGeom_getXMin_r(context, a, &xmin)) {
-      return NULL;
-    }
-    if (!GEOSGeom_getYMin_r(context, a, &ymin)) {
-      return NULL;
-    }
-    if (!GEOSGeom_getXMax_r(context, a, &xmax)) {
-      return NULL;
-    }
-    if (!GEOSGeom_getYMax_r(context, a, &ymax)) {
-      return NULL;
-    }
-#endif
     width = xmax - xmin;
     height = ymax - ymin;
     size = width > height ? width : height;
@@ -300,10 +285,7 @@ DEFINE_Yd_Y(PyGEOSForce3D);
 DEFINE_Yd_Y(GEOSUnaryUnionPrec_r);
 DEFINE_Yd_Y(GEOSMaximumInscribedCircleWithDefaultTolerance);
 DEFINE_Yd_Y(GEOSDensify_r);
-
-#if GEOS_SINCE_3_11_0
 DEFINE_Yd_Y(GEOSRemoveRepeatedPoints_r);
-#endif
 
 
 /* ========================================================================
@@ -360,10 +342,7 @@ int init_geos_funcs_Yd_Y(PyObject* m, PyObject* d) {
   INIT_Yd_Y(GEOSUnaryUnionPrec_r, unary_union_prec);
   INIT_Yd_Y(GEOSMaximumInscribedCircleWithDefaultTolerance, maximum_inscribed_circle);
   INIT_Yd_Y(GEOSDensify_r, segmentize);
-
-#if GEOS_SINCE_3_11_0
   INIT_Yd_Y(GEOSRemoveRepeatedPoints_r, remove_repeated_points);
-#endif
 
   return 0;
 }

@@ -60,18 +60,15 @@ def test_points_invalid_ndim():
 
 
 @pytest.mark.skipif(
-    shapely.geos_version[:2] not in {(3, 10), (3, 11), (3, 12)},
-    reason="GEOS not in 3.10, 3.11, 3.12",
+    shapely.geos_version[:2] not in {(3, 11), (3, 12)},
+    reason="GEOS not in 3.11, 3.12",
 )
 def test_points_nan_all_nan_becomes_empty():
     actual = shapely.points(np.nan, np.nan)
     assert actual.wkt == "POINT EMPTY"
 
 
-@pytest.mark.skipif(
-    shapely.geos_version[:2] not in {(3, 10), (3, 11)},
-    reason="GEOS not in 3.10, 3.11",
-)
+@pytest.mark.skipif(shapely.geos_version[:2] != (3, 11), reason="GEOS != 3.11")
 def test_points_nan_3D_all_nan_becomes_empty_2D():
     actual = shapely.points(np.nan, np.nan, np.nan)
     assert actual.wkt == "POINT EMPTY"
@@ -214,7 +211,7 @@ def test_linestrings_invalid_shape_scalar():
     ],
 )
 def test_linestrings_invalid_shape(shape):
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError):
         shapely.linestrings(np.ones(shape))
 
 
@@ -272,7 +269,7 @@ def test_linestrings_handle_nan_skip(coords):
 
 
 def test_linestrings_handle_nan_skip_invalid():
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError):
         shapely.linestrings([[0, 1], [2, float("nan")]], handle_nan="skip")
 
 
@@ -362,7 +359,7 @@ def test_linearrings_invalid_ndim():
 
 def test_linearrings_all_nan():
     coords = np.full((4, 2), np.nan)
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError):
         shapely.linearrings(coords)
 
 
