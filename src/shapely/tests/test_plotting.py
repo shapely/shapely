@@ -113,6 +113,79 @@ def test_plot_points():
     assert artist.get_fillstyle() == "top"
 
 
+def test_plot_polygon_deprecate_positional():
+    poly = box(0, 0, 1, 1)
+    with pytest.deprecated_call(
+        match="positional argument `ax` for `plot_polygon` is deprecated"
+    ):
+        plot_polygon(poly, None)
+    with pytest.deprecated_call(
+        match="positional arguments `ax` and `add_points` "
+        "for `plot_polygon` are deprecated"
+    ):
+        plot_polygon(poly, None, True)
+    with pytest.deprecated_call(
+        match="positional arguments `ax`, `add_points`, and `color` "
+        "for `plot_polygon` are deprecated"
+    ):
+        plot_polygon(poly, None, True, None)
+    with pytest.deprecated_call(
+        match="positional arguments `ax`, `add_points`, `color`, and `facecolor` "
+        "for `plot_polygon` are deprecated"
+    ):
+        plot_polygon(poly, None, True, None, None)
+    with pytest.deprecated_call(
+        match="positional arguments `ax`, `add_points`, `color`, `facecolor`, "
+        "and `edgecolor` for `plot_polygon` are deprecated"
+    ):
+        plot_polygon(poly, None, True, None, None, None)
+    with pytest.deprecated_call(
+        match="positional arguments `ax`, `add_points`, `color`, `facecolor`, "
+        "`edgecolor`, and `linewidth` for `plot_polygon` are deprecated"
+    ):
+        plot_polygon(poly, None, True, None, None, None, None)
+
+
+def test_plot_line_deprecate_positional():
+    line = LineString([(0, 0), (1, 0), (1, 1)])
+    with pytest.deprecated_call(
+        match="positional argument `ax` for `plot_line` is deprecated"
+    ):
+        plot_line(line, None)
+    with pytest.deprecated_call(
+        match="positional arguments `ax` and `add_points` "
+        "for `plot_line` are deprecated"
+    ):
+        plot_line(line, None, True)
+    with pytest.deprecated_call(
+        match="positional arguments `ax`, `add_points`, and `color` "
+        "for `plot_line` are deprecated"
+    ):
+        plot_line(line, None, True, None)
+    with pytest.deprecated_call(
+        match="positional arguments `ax`, `add_points`, `color`, and `linewidth` "
+        "for `plot_line` are deprecated"
+    ):
+        plot_line(line, None, True, None, 2)
+
+
+def test_plot_points_deprecate_positional():
+    point = Point(0, 0)
+    with pytest.deprecated_call(
+        match="positional argument `ax` for `plot_points` is deprecated"
+    ):
+        plot_points(point, None)
+    with pytest.deprecated_call(
+        match="positional arguments `ax` and `color` for `plot_points` are deprecated"
+    ):
+        plot_points(point, None, None)
+    with pytest.deprecated_call(
+        match="positional arguments `ax`, `color`, and `marker` "
+        "for `plot_points` are deprecated"
+    ):
+        plot_points(point, None, None, "o")
+
+
 def equal_color(actual, expected, alpha=None):
     from matplotlib import colors
 

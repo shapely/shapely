@@ -210,15 +210,14 @@ def test_get_coords_zm(geoms, x, y, z, m, include_z, include_m):
     assert_equal(actual, np.array(expected, np.float64).T)
 
 
-def test_get_coords_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `include_z` for `get_coordinates` is deprecated"
+def test_get_coords_positional_error():
+    # These worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"get_coordinates\(\) takes 1 positional argument but 2 were given",
     ):
         get_coordinates(point, False)
-    with pytest.deprecated_call(
-        match="positional arguments `include_z` and `return_index` "
-        "for `get_coordinates` are deprecated"
-    ):
+    with pytest.raises(TypeError, match="but 3 were given"):
         get_coordinates(point, False, False)
 
 
@@ -519,8 +518,9 @@ def test_transform_auto_coordinate_dimension_mixed_interleaved(transform_func):
     )
 
 
-def test_transform_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `include_z` for `transform` is deprecated"
+def test_transform_positional_error():
+    # These worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError, match=r"transform\(\) takes 2 positional arguments but 3 were given"
     ):
         transform(line_string_z, lambda x: x + 1, False)

@@ -370,9 +370,10 @@ def test_get_parts_invalid_geometry(geom):
         shapely.get_parts(geom)
 
 
-def test_get_parts_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `return_index` for `get_parts` is deprecated"
+def test_get_parts_positional_error():
+    # These worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError, match=r"get_parts\(\) takes 1 positional argument but 2 were given"
     ):
         shapely.get_parts(multi_point, False)
 
@@ -439,9 +440,10 @@ def test_get_rings_invalid_dimensions(geom):
         shapely.get_parts(geom)
 
 
-def test_get_rings_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `return_index` for `get_rings` is deprecated"
+def test_get_rings_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError, match=r"get_rings\(\) takes 1 positional argument but 2 were given"
     ):
         shapely.get_rings(polygon, False)
 

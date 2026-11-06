@@ -95,3 +95,31 @@ def test_normalize_default():
 def test_normalize_false():
     with pytest.raises(AssertionError):
         assert_geometries_equal(line_string_reversed, line_string, normalize=False)
+
+
+def test_assert_geometries_equal_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `equal_none` "
+        "for `assert_geometries_equal` is deprecated"
+    ):
+        assert_geometries_equal(point, point, 1e-7, True)
+    with pytest.deprecated_call(
+        match="positional arguments `equal_none` and `equal_nan` "
+        "for `assert_geometries_equal` are deprecated"
+    ):
+        assert_geometries_equal(point, point, 1e-7, True, True)
+    with pytest.deprecated_call(
+        match="positional arguments `equal_none`, `equal_nan`, and `normalize` "
+        "for `assert_geometries_equal` are deprecated"
+    ):
+        assert_geometries_equal(point, point, 1e-7, True, True, False)
+    with pytest.deprecated_call(
+        match="positional arguments `equal_none`, `equal_nan`, `normalize`, "
+        "and `err_msg` for `assert_geometries_equal` are deprecated"
+    ):
+        assert_geometries_equal(point, point, 1e-7, True, True, False, "")
+    with pytest.deprecated_call(
+        match="positional arguments `equal_none`, `equal_nan`, `normalize`, "
+        "`err_msg`, and `verbose` for `assert_geometries_equal` are deprecated"
+    ):
+        assert_geometries_equal(point, point, 1e-7, True, True, False, "", True)

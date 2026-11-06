@@ -510,6 +510,28 @@ def test_to_wkt_exceptions(arg, kwargs, exception):
         shapely.to_wkt(arg, **kwargs)
 
 
+def test_to_wkt_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `rounding_precision` for `to_wkt` is deprecated"
+    ):
+        shapely.to_wkt(point, 6)
+    with pytest.deprecated_call(
+        match="positional arguments `rounding_precision` and `trim` "
+        "for `to_wkt` are deprecated"
+    ):
+        shapely.to_wkt(point, 6, True)
+    with pytest.deprecated_call(
+        match="positional arguments `rounding_precision`, `trim`, and "
+        "`output_dimension` for `to_wkt` are deprecated"
+    ):
+        shapely.to_wkt(point, 6, True, 2)
+    with pytest.deprecated_call(
+        match="positional arguments `rounding_precision`, `trim`, "
+        "`output_dimension`, and `old_3d` for `to_wkt` are deprecated"
+    ):
+        shapely.to_wkt(point, 6, True, 2, False)
+
+
 def test_to_wkt_point_empty():
     assert shapely.to_wkt(empty_point) == "POINT EMPTY"
 
@@ -729,6 +751,33 @@ def test_to_wkb_none():
 def test_to_wkb_exceptions(arg, kwargs, exception):
     with pytest.raises(exception):
         shapely.to_wkb(arg, **kwargs)
+
+
+def test_to_wkb_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `hex` for `to_wkb` is deprecated"
+    ):
+        shapely.to_wkb(point, False)
+    with pytest.deprecated_call(
+        match="positional arguments `hex` and `output_dimension` "
+        "for `to_wkb` are deprecated"
+    ):
+        shapely.to_wkb(point, False, 2)
+    with pytest.deprecated_call(
+        match="positional arguments `hex`, `output_dimension`, and "
+        "`byte_order` for `to_wkb` are deprecated"
+    ):
+        shapely.to_wkb(point, False, 2, -1)
+    with pytest.deprecated_call(
+        match="positional arguments `hex`, `output_dimension`, `byte_order`, "
+        "and `include_srid` for `to_wkb` are deprecated"
+    ):
+        shapely.to_wkb(point, False, 2, -1, False)
+    with pytest.deprecated_call(
+        match="positional arguments `hex`, `output_dimension`, `byte_order`, "
+        "`include_srid`, and `flavor` for `to_wkb` are deprecated"
+    ):
+        shapely.to_wkb(point, False, 2, -1, False, "extended")
 
 
 def test_to_wkb_byte_order():
