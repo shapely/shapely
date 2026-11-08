@@ -7,6 +7,7 @@ from shapely._enum import ParamEnum
 
 # include ragged array functions here for reference documentation purpose
 from shapely._ragged_array import from_ragged_array, to_ragged_array
+from shapely.decorators import deprecate_positional
 
 __all__ = [
     "from_geojson",
@@ -29,6 +30,17 @@ DecodingErrorOptions = ParamEnum(
 WKBFlavorOptions = ParamEnum("WKBFlavorOptions", {"extended": 1, "iso": 2})
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.2:
+#   to_wkt(geometry, rounding_precision=6, trim=True, ...)
+# shapely 2.3: shows deprecation warning about positional 'rounding_precision', etc.
+#   to_wkt(geometry, rounding_precision=6, trim=True, ...)
+# shapely 2.4(?): enforce keyword-only arguments after 'geometry'
+#   to_wkt(geometry, *, rounding_precision=6, trim=True, ...)
+@deprecate_positional(
+    ["rounding_precision", "trim", "output_dimension", "old_3d"],
+    category=DeprecationWarning,
+)
 def to_wkt(
     geometry,
     rounding_precision=6,
@@ -68,6 +80,15 @@ def to_wkt(
         the WKT will be formatted in the style "POINT (10 20 30)".
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.3.0
+        A deprecation warning is shown if ``rounding_precision``,  ``trim``,
+        ``output_dimension`` or ``old_3d`` are specified as positional
+        arguments. In a future release, these will need to be specified as
+        keyword arguments.
 
     Examples
     --------
@@ -115,7 +136,18 @@ def to_wkt(
     )
 
 
-def to_wkb(
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.2:
+#   to_wkb(geometry, hex=False, output_dimension=None, ...)
+# shapely 2.3: shows deprecation warning about positional 'hex', etc.
+#   to_wkb(geometry, hex=False, output_dimension=None, ...)
+# shapely 2.4(?): enforce keyword-only arguments after 'geometry'
+#   to_wkb(geometry, *, hex=False, output_dimension=None, ...)
+@deprecate_positional(
+    ["hex", "output_dimension", "byte_order", "include_srid", "flavor"],
+    category=DeprecationWarning,
+)
+def to_wkb(  # noqa: PLR0917
     geometry,
     hex=False,
     output_dimension=None,
@@ -163,6 +195,15 @@ def to_wkb(
         The `from_wkb` function can read both flavors.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.3.0
+        A deprecation warning is shown if ``hex``,  ``output_dimension``,
+        ``byte_order``, ``include_srid`` or ``flavor`` are
+        specified as positional arguments. In a future release, these will
+        need to be specified as keyword arguments.
 
     Examples
     --------

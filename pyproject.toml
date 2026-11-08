@@ -175,7 +175,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # ignore pydocstyle errors in tests
-"**/tests/*" = ["D", "PLC2801", "PLR6301"]
+"**/tests/*" = ["D", "PLC2801", "PLR0917", "PLR6301"]
 # the order of imports in __init__ is a bit tricky, so keep manual
 "src/shapely/__init__.py" = ["F401", "F403", "I"]
 "src/shapely/ops.py" = ["PLR6301"]
@@ -194,7 +194,6 @@ allow-dunder-method-names = [
     "__geo_interface__",
     "_repr_svg_",
 ]
-max-positional-args = 8  # TODO: revise with deprecate_positional changes
 
 [tool.versioneer]
 VCS = "git"

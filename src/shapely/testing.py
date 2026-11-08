@@ -5,6 +5,7 @@ from functools import partial
 import numpy as np
 
 import shapely
+from shapely.decorators import deprecate_positional
 
 __all__ = ["assert_geometries_equal"]
 
@@ -72,7 +73,18 @@ def _assert_none_same(x, y, err_msg, verbose):
         return y_id
 
 
-def assert_geometries_equal(
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.2:
+#   assert_geometries_equal(x, y, tolerance=1e-7, equal_none=True, ...)
+# shapely 2.3: shows deprecation warning about positional 'equal_none', etc.
+#   assert_geometries_equal(x, y, tolerance=1e-7, equal_none=True, ...)
+# shapely 2.4(?): enforce keyword-only arguments after 'tolerance'
+#   assert_geometries_equal(x, y, tolerance=1e-7, *, equal_none=True, ...)
+@deprecate_positional(
+    ["equal_none", "equal_nan", "normalize", "err_msg", "verbose"],
+    category=DeprecationWarning,
+)
+def assert_geometries_equal(  # noqa: PLR0917
     x,
     y,
     tolerance=1e-7,
@@ -105,6 +117,15 @@ def assert_geometries_equal(
         The error message to be printed in case of failure.
     verbose : bool, optional
         If True, the conflicting values are appended to the error message.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.3.0
+        A deprecation warning is shown if ``equal_none``,  ``equal_nan``,
+        ``normalize``, ``err_msg`` or ``verbose`` are specified as positional
+        arguments. In a future release, these will need to be specified as
+        keyword arguments.
 
     """
     __tracebackhide__ = True  # Hide traceback for py.test
@@ -175,7 +196,7 @@ def assert_geometries_equal(
 # BELOW A COPY FROM numpy.testing._private.utils (numpy version 1.20.2)
 
 
-def build_err_msg(
+def build_err_msg(  # noqa: PLR0917
     arrays,
     err_msg,
     header="Geometries are not equal:",

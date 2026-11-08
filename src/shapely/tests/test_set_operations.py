@@ -410,9 +410,11 @@ def test_uary_union_alias():
     assert shapely.equals(actual, expected)
 
 
-def test_difference_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `grid_size` for `difference` is deprecated"
+def test_difference_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"difference\(\) takes 2 positional arguments but 3 were given",
     ):
         shapely.difference(point, point, None)
 
@@ -446,56 +448,70 @@ def test_difference_dim_empty_result(geom):
     assert result.is_empty
 
 
-def test_intersection_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `grid_size` for `intersection` is deprecated"
+def test_intersection_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"intersection\(\) takes 2 positional arguments but 3 were given",
     ):
         shapely.intersection(point, point, None)
 
 
-def test_intersection_all_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `axis` for `intersection_all` is deprecated"
+def test_intersection_all_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"intersection_all\(\) takes 1 positional argument but 2 were given",
     ):
         shapely.intersection_all([point, point], None)
 
 
-def test_symmetric_difference_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `grid_size` for `symmetric_difference` is deprecated"
+def test_symmetric_difference_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"symmetric_difference\(\) takes 2 positional arguments but 3 were given",
     ):
         shapely.symmetric_difference(point, point, None)
 
 
-def test_symmetric_difference_all_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `axis` for `symmetric_difference_all` is deprecated"
+def test_symmetric_difference_all_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=(
+            r"symmetric_difference_all\(\) takes 1 positional argument "
+            "but 2 were given"
+        ),
     ):
         shapely.symmetric_difference_all([point, point], None)
 
 
-def test_union_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `grid_size` for `union` is deprecated"
+def test_union_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"union\(\) takes 2 positional arguments but 3 were given",
     ):
         shapely.union(point, point, None)
 
 
-def test_union_all_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `grid_size` for `union_all` is deprecated"
+def test_union_all_positional_error():
+    # These worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"union_all\(\) takes 1 positional argument but 2 were given",
     ):
         shapely.union_all([point, point], None)
-    with pytest.deprecated_call(
-        match="positional arguments `grid_size` and `axis` for `union_all` "
-        "are deprecated"
-    ):
+    with pytest.raises(TypeError, match="but 3 were given"):
         shapely.union_all([point, point], None, None)
 
 
-def test_coverage_union_all_deprecate_positional():
+def test_coverage_union_all_positional_error():
+    # This worked with prior versions, but now raise a TypeError
     data = [shapely.box(0, 0, 1, 1), shapely.box(1, 0, 2, 1)]
-    with pytest.deprecated_call(
-        match="positional argument `axis` for `coverage_union_all` is deprecated"
+    with pytest.raises(
+        TypeError,
+        match=r"coverage_union_all\(\) takes 1 positional argument but 2 were given",
     ):
         shapely.coverage_union_all(data, None)

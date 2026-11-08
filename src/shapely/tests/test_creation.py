@@ -691,9 +691,10 @@ def test_box_nan(coords):
     assert shapely.box(*coords) is None
 
 
-def test_box_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `ccw` for `box` is deprecated"
+def test_box_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError, match=r"box\(\) takes 4 positional arguments but 5 were given"
     ):
         shapely.box(0, 0, 1, 1, True)
 

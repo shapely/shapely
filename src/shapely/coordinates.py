@@ -4,7 +4,6 @@ import numpy as np
 
 import shapely
 from shapely import GeometryType, lib
-from shapely.decorators import deprecate_positional
 
 __all__ = [
     "count_coordinates",
@@ -15,21 +14,11 @@ __all__ = [
 ]
 
 
-# Note: future plan is to change this signature over a few releases:
-# shapely 2.0: only supported XY and XYZ geometries
-#   transform(geometry, transformation, include_z=False)
-# shapely 2.1: shows deprecation warning about positional 'include_z' arg
-#   transform(geometry, transformation, include_z=False, *, interleaved=True)
-# shapely 2.2(?): enforce keyword-only arguments after 'transformation'
-#   transform(geometry, transformation, *, include_z=False, interleaved=True)
-
-
-@deprecate_positional(["include_z"], category=DeprecationWarning)
 def transform(
     geometry,
     transformation,
-    include_z: bool | None = False,
     *,
+    include_z: bool | None = False,
     interleaved: bool = True,
 ):
     """Apply a transformation to the coordinates in a geometry or geometry array.
@@ -67,14 +56,6 @@ def transform(
         of a single one. The return value must be a tuple of (x, y and optional z).
 
         .. versionadded:: 2.1.0
-
-    Notes
-    -----
-
-    .. deprecated:: 2.1.0
-        A deprecation warning is shown if ``include_z`` is specified as a
-        positional argument. This will need to be specified as a keyword
-        argument in a future release.
 
     See Also
     --------
@@ -321,17 +302,7 @@ def count_coordinates(geometry):
     return lib.count_coordinates(np.asarray(geometry, dtype=np.object_))
 
 
-# Note: future plan is to change this signature over a few releases:
-# shapely 2.0: only supported XY and XYZ geometries
-#   get_coordinates(geometry, include_z=False, return_index=False)
-# shapely 2.1: shows deprecation warning about positional 'include_z' and 'return_index'
-#   get_coordinates(geometry, include_z=False, return_index=False, *, include_m=False)
-# shapely 2.2(?): enforce keyword-only arguments after 'geometry'
-#   get_coordinates(geometry, *, include_z=False, include_m=False, return_index=False)
-
-
-@deprecate_positional(["include_z", "return_index"], category=DeprecationWarning)
-def get_coordinates(geometry, include_z=False, return_index=False, *, include_m=False):
+def get_coordinates(geometry, *, include_z=False, include_m=False, return_index=False):
     """Get coordinates from a geometry array as an array of floats.
 
     The shape of the returned array is (N, 2), with N being the number of
@@ -357,14 +328,6 @@ def get_coordinates(geometry, include_z=False, return_index=False, *, include_m=
         If True, also return the index of each returned geometry as a separate
         ndarray of integers. For multidimensional arrays, this indexes into the
         flattened array (in C contiguous order).
-
-    Notes
-    -----
-
-    .. deprecated:: 2.1.0
-        A deprecation warning is shown if ``include_z`` or ``return_index`` are
-        specified as positional arguments. In a future release, these will
-        need to be specified as keyword arguments.
 
     Examples
     --------

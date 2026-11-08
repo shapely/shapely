@@ -339,88 +339,111 @@ def test_array_argument_buffer():
 def test_buffer_deprecate_positional():
     point = Point(1, 1)
     with pytest.deprecated_call(
-        match="positional argument `cap_style` for `buffer` is deprecated"
+        match="positional argument `quad_segs` for `buffer` is deprecated"
+    ):
+        point.buffer(1.0, 8)
+
+
+def test_buffer_positional_error():
+    # These worked with prior versions, but now raise a TypeError
+    point = Point(1, 1)
+    with pytest.raises(
+        TypeError,
+        match=r"buffer\(\) takes from 2 to 3 positional arguments but 4 were given",
     ):
         point.buffer(1.0, 8, "round")
-    with pytest.deprecated_call(
-        match="positional arguments `cap_style` and `join_style` "
-        "for `buffer` are deprecated"
-    ):
+    with pytest.raises(TypeError, match="but 5 were given"):
         point.buffer(1.0, 8, "round", "round")
-    with pytest.deprecated_call():
+    with pytest.raises(TypeError, match="but 6 were given"):
         point.buffer(1.0, 8, "round", "round", 5.0)
-    with pytest.deprecated_call():
+    with pytest.raises(TypeError, match="but 7 were given"):
         point.buffer(1.0, 8, "round", "round", 5.0, False)
 
 
-def test_simplify_deprecate_positional():
+def test_simplify_positional_error():
+    # This worked with prior versions, but now raise a TypeError
     linestring = LineString([(0, 0), (1, 1)])
-    with pytest.deprecated_call(
-        match="positional argument `preserve_topology` for `simplify` is deprecated"
+    with pytest.raises(
+        TypeError, match=r"simplify\(\) takes 2 positional arguments but 3 were given"
     ):
         linestring.simplify(1.0, True)
 
 
-def test_difference_deprecate_positional():
+def test_difference_positional_error():
+    # This worked with prior versions, but now raise a TypeError
     point = Point(1, 1)
-    with pytest.deprecated_call(
-        match="positional argument `grid_size` for `difference` is deprecated"
+    with pytest.raises(
+        TypeError, match=r"difference\(\) takes 2 positional arguments but 3 were given"
     ):
         point.difference(point, None)
 
 
-def test_intersection_deprecate_positional():
+def test_intersection_positional_error():
+    # This worked with prior versions, but now raise a TypeError
     point = Point(1, 1)
-    with pytest.deprecated_call(
-        match="positional argument `grid_size` for `intersection` is deprecated"
+    with pytest.raises(
+        TypeError,
+        match=r"intersection\(\) takes 2 positional arguments but 3 were given",
     ):
         point.intersection(point, None)
 
 
-def test_symmetric_difference_deprecate_positional():
+def test_symmetric_difference_positional_error():
+    # This worked with prior versions, but now raise a TypeError
     point = Point(1, 1)
-    with pytest.deprecated_call(
-        match="positional argument `grid_size` for `symmetric_difference` is deprecated"
+    with pytest.raises(
+        TypeError,
+        match=r"symmetric_difference\(\) takes 2 positional arguments but 3 were given",
     ):
         point.symmetric_difference(point, None)
 
 
-def test_union_deprecate_positional():
+def test_union_positional_error():
+    # This worked with prior versions, but now raise a TypeError
     point = Point(1, 1)
-    with pytest.deprecated_call(
-        match="positional argument `grid_size` for `union` is deprecated"
+    with pytest.raises(
+        TypeError, match=r"union\(\) takes 2 positional arguments but 3 were given"
     ):
         point.union(point, None)
 
 
-def test_line_locate_point_deprecate_positional():
+def test_line_locate_point_positional_error():
+    # This worked with prior versions, but now raise a TypeError
     line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
-    with pytest.deprecated_call(
-        match="positional argument `normalized` for `line_locate_point` is deprecated"
+    with pytest.raises(
+        TypeError,
+        match=r"line_locate_point\(\) takes 2 positional arguments but 3 were given",
     ):
         line_string.line_locate_point(Point(1, 1), False)
 
 
-def test_project_deprecate_positional():
+def test_project_positional_error():
+    # This worked with prior versions, but now raise a TypeError
     line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
-    with pytest.deprecated_call(
-        match="positional argument `normalized` for `project` is deprecated"
+    with pytest.raises(
+        TypeError, match=r"project\(\) takes 2 positional arguments but 3 were given"
     ):
         line_string.project(Point(1, 1), False)
 
 
-def test_line_interpolate_point_deprecate_positional():
+def test_line_interpolate_point_positional_error():
+    # This worked with prior versions, but now raise a TypeError
     line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
-    with pytest.deprecated_call(
-        match="positional argument `normalized` for `line_interpolate_point` "
-        "is deprecated"
+    with pytest.raises(
+        TypeError,
+        match=(
+            r"line_interpolate_point\(\) takes 2 positional arguments "
+            "but 3 were given"
+        ),
     ):
         line_string.line_interpolate_point(0, False)
 
 
-def test_interpolate_deprecate_positional():
+def test_interpolate_positional_error():
+    # This worked with prior versions, but now raise a TypeError
     line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
-    with pytest.deprecated_call(
-        match="positional argument `normalized` for `interpolate` is deprecated"
+    with pytest.raises(
+        TypeError,
+        match=r"interpolate\(\) takes 2 positional arguments but 3 were given",
     ):
         line_string.interpolate(0, False)

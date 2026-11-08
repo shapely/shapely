@@ -213,19 +213,15 @@ def test_linestring_array_coercion():
     assert arr.item() == line
 
 
-def test_offset_curve_deprecate_positional():
+def test_offset_curve_positional_error():
+    # These worked with prior versions, but now raise a TypeError
     line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
-    with pytest.deprecated_call(
-        match="positional argument `quad_segs` for `offset_curve` is deprecated"
+    with pytest.raises(
+        TypeError,
+        match=r"offset_curve\(\) takes 2 positional arguments but 3 were given",
     ):
         line_string.offset_curve(1.0, 8)
-    with pytest.deprecated_call(
-        match="positional arguments `quad_segs` and `join_style` "
-        "for `offset_curve` are deprecated"
-    ):
+    with pytest.raises(TypeError, match="but 4 were given"):
         line_string.offset_curve(1.0, 8, "round")
-    with pytest.deprecated_call(
-        match="positional arguments `quad_segs`, `join_style`, and `mitre_limit` "
-        "for `offset_curve` are deprecated"
-    ):
+    with pytest.raises(TypeError, match="but 5 were given"):
         line_string.offset_curve(1.0, 8, "round", 5.0)

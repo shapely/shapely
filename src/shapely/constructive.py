@@ -6,7 +6,6 @@ from shapely import lib
 from shapely._enum import ParamEnum
 from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
 from shapely.algorithms.cga import _orient_polygons_vectorized
-from shapely.decorators import deprecate_positional
 from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
@@ -121,22 +120,10 @@ MultiLineString, MultiPoint, Point, Polygon
     return lib.boundary(geometry, **kwargs)
 
 
-# Note: future plan is to change this signature over a few releases:
-# shapely 2.0:
-#   buffer(geometry, distance, quad_segs=8, ...)
-# shapely 2.1: shows deprecation warning about positional 'quad_segs', etc.
-#   same signature as 2.0
-# shapely 2.2(?): enforce keyword-only arguments after 'distance'
-#   buffer(geometry, distance, *, quad_segs=8, ...)
-
-
-@deprecate_positional(
-    ["quad_segs", "cap_style", "join_style", "mitre_limit", "single_sided"],
-    category=DeprecationWarning,
-)
 def buffer(
     geometry,
     distance,
+    *,
     quad_segs=8,
     cap_style="round",
     join_style="round",
@@ -180,15 +167,6 @@ def buffer(
         Only buffer at one side of the geometry.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
-
-    Notes
-    -----
-
-    .. deprecated:: 2.1.0
-        A deprecation warning is shown if ``quad_segs``,  ``cap_style``,
-        ``join_style``, ``mitre_limit`` or ``single_sided`` are
-        specified as positional arguments. In a future release, these will
-        need to be specified as keyword arguments.
 
     Examples
     --------
@@ -251,20 +229,8 @@ def buffer(
     )
 
 
-# Note: future plan is to change this signature over a few releases:
-# shapely 2.0:
-#   offset_curve(geometry, distance, quad_segs=8, ...)
-# shapely 2.1: shows deprecation warning about positional 'quad_segs', etc.
-#   same signature as 2.0
-# shapely 2.2(?): enforce keyword-only arguments after 'distance'
-#   offset_curve(geometry, distance, *, quad_segs=8, ...)
-
-
-@deprecate_positional(
-    ["quad_segs", "join_style", "mitre_limit"], category=DeprecationWarning
-)
 def offset_curve(
-    geometry, distance, quad_segs=8, join_style="round", mitre_limit=5.0, **kwargs
+    geometry, distance, *, quad_segs=8, join_style="round", mitre_limit=5.0, **kwargs
 ):
     """Return a (Multi)LineString at a distance from the object.
 
@@ -294,14 +260,6 @@ def offset_curve(
         buffered vertex by more than this limit.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
-
-    Notes
-    -----
-
-    .. deprecated:: 2.1.0
-        A deprecation warning is shown if ``quad_segs``, ``join_style`` or
-        ``mitre_limit`` are specified as positional arguments. In a future
-        release, these will need to be specified as keyword arguments.
 
     Examples
     --------
@@ -1074,17 +1032,7 @@ def segmentize(geometry, max_segment_length, **kwargs):
     return lib.segmentize(geometry, max_segment_length, **kwargs)
 
 
-# Note: future plan is to change this signature over a few releases:
-# shapely 2.0:
-#   simplify(geometry, tolerance, preserve_topology=True, **kwargs)
-# shapely 2.1: shows deprecation warning about positional 'preserve_topology'
-#   same signature as 2.0
-# shapely 2.2(?): enforce keyword-only arguments after 'tolerance'
-#   simplify(geometry, tolerance, *, preserve_topology=True, **kwargs)
-
-
-@deprecate_positional(["preserve_topology"], category=DeprecationWarning)
-def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
+def simplify(geometry, tolerance, *, preserve_topology=True, **kwargs):
     """Return a simplified version of an input geometry.
 
     The Douglas-Peucker algorithm is used to simplify the geometry.
@@ -1102,14 +1050,6 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
         this is computationally more expensive.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
-
-    Notes
-    -----
-
-    .. deprecated:: 2.1.0
-        A deprecation warning is shown if ``preserve_topology`` is specified as
-        a positional argument. This will need to be specified as a keyword
-        argument in a future release.
 
     Examples
     --------
@@ -1284,20 +1224,14 @@ def split(geometry, splitter, **kwargs):
         return lib.split(geometry, splitter, **kwargs)
 
 
-# Note: future plan is to change this signature over a few releases:
-# shapely 2.0:
-#   voronoi_polygons(geometry, tolerance=0.0, extend_to=None, ...)
-# shapely 2.1: shows deprecation warning about positional 'extend_to'
-#   same signature as 2.0
-# shapely 2.2(?): enforce keyword-only arguments after 'tolerance'
-#   voronoi_polygons(geometry, tolerance=0.0, extend_to=None, ...)
-
-
-@deprecate_positional(
-    ["extend_to", "only_edges", "ordered"], category=DeprecationWarning
-)
 def voronoi_polygons(
-    geometry, tolerance=0.0, extend_to=None, only_edges=False, ordered=False, **kwargs
+    geometry,
+    tolerance=0.0,
+    *,
+    extend_to=None,
+    only_edges=False,
+    ordered=False,
+    **kwargs,
 ):
     """Compute a Voronoi diagram from the vertices of an input geometry.
 
@@ -1325,14 +1259,6 @@ def voronoi_polygons(
         .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
-
-    Notes
-    -----
-
-    .. deprecated:: 2.1.0
-        A deprecation warning is shown if ``extend_to``, ``only_edges`` or
-        ``ordered`` are specified as positional arguments. In a future
-        release, these will need to be specified as keyword arguments.
 
     Examples
     --------

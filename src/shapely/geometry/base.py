@@ -468,16 +468,16 @@ class BaseGeometry(shapely.Geometry):
     #   buffer(self, geometry, distance, quad_segs=16, cap_style="round", ...)
     # shapely 2.1: shows deprecation warning about positional 'cap_style', etc.
     #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'quad_segs'
+    # shapely 2.3: enforce keyword-only arguments after 'quad_segs'
     #   buffer(self, geometry, distance, quad_segs=16, *, cap_style="round", ...)
-    @deprecate_positional(
-        ["cap_style", "join_style", "mitre_limit", "single_sided"],
-        category=DeprecationWarning,
-    )
+    # shapely 2.4(?): enforce keyword-only arguments after 'distance'
+    #   buffer(self, geometry, distance, *, quad_segs=16, cap_style="round", ...)
+    @deprecate_positional(["quad_segs"], category=DeprecationWarning)
     def buffer(
         self,
         distance,
         quad_segs=16,
+        *,
         cap_style="round",
         join_style="round",
         mitre_limit=5.0,
@@ -545,11 +545,10 @@ class BaseGeometry(shapely.Geometry):
         The return value is a strictly two-dimensional geometry. All
         Z coordinates of the original geometry will be ignored.
 
-        .. deprecated:: 2.1.0
-            A deprecation warning is shown if ``quad_segs``,  ``cap_style``,
-            ``join_style``, ``mitre_limit`` or ``single_sided`` are
-            specified as positional arguments. In a future release, these will
-            need to be specified as keyword arguments.
+        .. deprecated:: 2.3.0
+            A deprecation warning is shown if ``quad_segs`` is specified as a
+            positional argument. This will need to be specified as a keyword
+            argument in a future release.
 
         Examples
         --------
@@ -613,16 +612,7 @@ class BaseGeometry(shapely.Geometry):
             single_sided=single_sided,
         )
 
-    # Note: future plan is to change this signature over a few releases:
-    # shapely 2.0:
-    #   simplify(self, tolerance, preserve_topology=True)
-    # shapely 2.1: shows deprecation warning about positional 'preserve_topology'
-    #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'tolerance'
-    #   simplify(self, tolerance, *, preserve_topology=True)
-
-    @deprecate_positional(["preserve_topology"], category=DeprecationWarning)
-    def simplify(self, tolerance, preserve_topology=True):
+    def simplify(self, tolerance, *, preserve_topology=True):
         """Return a simplified geometry produced by the Douglas-Peucker algorithm.
 
         Coordinates of the simplified geometry will be no more than the
@@ -666,16 +656,7 @@ class BaseGeometry(shapely.Geometry):
     # Overlay operations
     # ---------------------------
 
-    # Note: future plan is to change this signature over a few releases:
-    # shapely 2.0:
-    #   difference(self, other, grid_size=None)
-    # shapely 2.1: shows deprecation warning about positional 'grid_size' arg
-    #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'other'
-    #   difference(self, other, *, grid_size=None)
-
-    @deprecate_positional(["grid_size"], category=DeprecationWarning)
-    def difference(self, other, grid_size=None):
+    def difference(self, other, *, grid_size=None):
         """Return the difference of the geometries.
 
         Refer to `shapely.difference` for full documentation.
@@ -687,16 +668,7 @@ class BaseGeometry(shapely.Geometry):
                 return shapely.lib.difference_prec_scalar(self, other, float(grid_size))
         return shapely.difference(self, other, grid_size=grid_size)
 
-    # Note: future plan is to change this signature over a few releases:
-    # shapely 2.0:
-    #   intersection(self, other, grid_size=None)
-    # shapely 2.1: shows deprecation warning about positional 'grid_size' arg
-    #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'other'
-    #   intersection(self, other, *, grid_size=None)
-
-    @deprecate_positional(["grid_size"], category=DeprecationWarning)
-    def intersection(self, other, grid_size=None):
+    def intersection(self, other, *, grid_size=None):
         """Return the intersection of the geometries.
 
         Refer to `shapely.intersection` for full documentation.
@@ -710,16 +682,7 @@ class BaseGeometry(shapely.Geometry):
                 )
         return shapely.intersection(self, other, grid_size=grid_size)
 
-    # Note: future plan is to change this signature over a few releases:
-    # shapely 2.0:
-    #   symmetric_difference(self, other, grid_size=None)
-    # shapely 2.1: shows deprecation warning about positional 'grid_size' arg
-    #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'other'
-    #   symmetric_difference(self, other, *, grid_size=None)
-
-    @deprecate_positional(["grid_size"], category=DeprecationWarning)
-    def symmetric_difference(self, other, grid_size=None):
+    def symmetric_difference(self, other, *, grid_size=None):
         """Return the symmetric difference of the geometries.
 
         Refer to `shapely.symmetric_difference` for full documentation.
@@ -733,16 +696,7 @@ class BaseGeometry(shapely.Geometry):
                 )
         return shapely.symmetric_difference(self, other, grid_size=grid_size)
 
-    # Note: future plan is to change this signature over a few releases:
-    # shapely 2.0:
-    #   union(self, other, grid_size=None)
-    # shapely 2.1: shows deprecation warning about positional 'grid_size' arg
-    #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'other'
-    #   union(self, other, *, grid_size=None)
-
-    @deprecate_positional(["grid_size"], category=DeprecationWarning)
-    def union(self, other, grid_size=None):
+    def union(self, other, *, grid_size=None):
         """Return the union of the geometries.
 
         Refer to `shapely.union` for full documentation.
@@ -972,16 +926,7 @@ class BaseGeometry(shapely.Geometry):
     # Linear referencing
     # ------------------
 
-    # Note: future plan is to change this signature over a few releases:
-    # shapely 2.0:
-    #   line_locate_point(self, other, normalized=False)
-    # shapely 2.1: shows deprecation warning about positional 'normalized'
-    #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'other'
-    #   line_locate_point(self, other, *, normalized=False)
-
-    @deprecate_positional(["normalized"], category=DeprecationWarning)
-    def line_locate_point(self, other, normalized=False):
+    def line_locate_point(self, other, *, normalized=False):
         """Return the distance of this geometry to a point nearest the specified point.
 
         If the normalized arg is True, return the distance normalized to the
@@ -993,16 +938,7 @@ class BaseGeometry(shapely.Geometry):
             shapely.line_locate_point(self, other, normalized=normalized)
         )
 
-    # Note: future plan is to change this signature over a few releases:
-    # shapely 2.0:
-    #   project(self, other, normalized=False)
-    # shapely 2.1: shows deprecation warning about positional 'normalized'
-    #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'other'
-    #   project(self, other, *, normalized=False)
-
-    @deprecate_positional(["normalized"], category=DeprecationWarning)
-    def project(self, other, normalized=False):
+    def project(self, other, *, normalized=False):
         """Return the distance of geometry to a point nearest the specified point.
 
         If the normalized arg is True, return the distance normalized to the
@@ -1014,16 +950,7 @@ class BaseGeometry(shapely.Geometry):
             shapely.line_locate_point(self, other, normalized=normalized)
         )
 
-    # Note: future plan is to change this signature over a few releases:
-    # shapely 2.0:
-    #   line_interpolate_point(self, distance, normalized=False)
-    # shapely 2.1: shows deprecation warning about positional 'normalized'
-    #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'distance'
-    #   line_interpolate_point(self, distance, *, normalized=False)
-
-    @deprecate_positional(["normalized"], category=DeprecationWarning)
-    def line_interpolate_point(self, distance, normalized=False):
+    def line_interpolate_point(self, distance, *, normalized=False):
         """Return a point at the specified distance along a linear geometry.
 
         Negative length values are taken as measured in the reverse
@@ -1036,16 +963,7 @@ class BaseGeometry(shapely.Geometry):
         """
         return self._line_interpolate_point(distance, normalized=normalized)
 
-    # Note: future plan is to change this signature over a few releases:
-    # shapely 2.0:
-    #   interpolate(self, distance, normalized=False)
-    # shapely 2.1: shows deprecation warning about positional 'normalized'
-    #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'distance'
-    #   interpolate(self, distance, *, normalized=False)
-
-    @deprecate_positional(["normalized"], category=DeprecationWarning)
-    def interpolate(self, distance, normalized=False):
+    def interpolate(self, distance, *, normalized=False):
         """Return a point at the specified distance along a linear geometry.
 
         Negative length values are taken as measured in the reverse

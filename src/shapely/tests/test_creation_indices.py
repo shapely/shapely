@@ -529,57 +529,78 @@ def test_incompatible_types(geometries, func):
         func(geometries, indices=[0])
 
 
-def test_points_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `indices` for `points` is deprecated"
+def test_points_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"points\(\) takes from 1 to 3 positional arguments but 4 were given",
     ):
         shapely.points([[0, 1], [2, 3]], None, None, [0, 1])
 
 
-def test_linestrings_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `indices` for `linestrings` is deprecated"
+def test_linestrings_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=(
+            r"linestrings\(\) takes from 1 to 3 positional arguments "
+            "but 4 were given"
+        ),
     ):
         shapely.linestrings([[0, 1], [2, 3], [4, 5], [6, 7]], None, None, [0, 0, 1, 1])
 
 
-def test_linearrings_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `indices` for `linearrings` is deprecated"
+def test_linearrings_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=(
+            r"linearrings\(\) takes from 1 to 3 positional arguments "
+            "but 4 were given"
+        ),
     ):
         shapely.linearrings([[0, 1], [1, 1], [1, 0]], None, None, [0, 0, 0])
 
 
-def test_polygons_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `indices` for `polygons` is deprecated"
+def test_polygons_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"polygons\(\) takes from 1 to 2 positional arguments but 3 were given",
     ):
         shapely.polygons([linear_ring, linear_ring], None, [0, 1])
 
 
-def test_multipoints_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `indices` for `multipoints` is deprecated"
+def test_multipoints_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError, match=r"multipoints\(\) takes 1 positional argument but 2 were given"
     ):
         shapely.multipoints([point, point], [0, 1])
 
 
-def test_multilinestrings_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `indices` for `multilinestrings` is deprecated"
+def test_multilinestrings_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"multilinestrings\(\) takes 1 positional argument but 2 were given",
     ):
         shapely.multilinestrings([line_string, line_string], [0, 1])
 
 
-def test_multipolygons_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `indices` for `multipolygons` is deprecated"
+def test_multipolygons_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"multipolygons\(\) takes 1 positional argument but 2 were given",
     ):
         shapely.multipolygons([polygon, polygon], [0, 1])
 
 
-def test_geometrycollections_deprecate_positional():
-    with pytest.deprecated_call(
-        match="positional argument `indices` for `geometrycollections` is deprecated"
+def test_geometrycollections_positional_error():
+    # This worked with prior versions, but now raise a TypeError
+    with pytest.raises(
+        TypeError,
+        match=r"geometrycollections\(\) takes 1 positional argument but 2 were given",
     ):
         shapely.geometrycollections([point, polygon], [0, 1])

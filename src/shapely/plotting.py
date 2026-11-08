@@ -8,6 +8,7 @@ exploration, debugging and illustration purposes.
 import numpy as np
 
 import shapely
+from shapely.decorators import deprecate_positional
 
 
 def _default_ax():
@@ -59,7 +60,18 @@ def patch_from_polygon(polygon, **kwargs):
     return PathPatch(_path_from_polygon(polygon), **kwargs)
 
 
-def plot_polygon(
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.2:
+#   plot_polygon(polygon, ax=None, ...)
+# shapely 2.3: shows deprecation warning about positional 'ax'
+#   plot_polygon(polygon, ax=None, ...)
+# shapely 2.4(?): enforce keyword-only arguments after 'polygon'
+#   plot_polygon(polygon, *, ax=None, ...)
+@deprecate_positional(
+    ["ax", "add_points", "color", "facecolor", "edgecolor", "linewidth"],
+    category=DeprecationWarning,
+)
+def plot_polygon(  # noqa: PLR0917
     polygon,
     ax=None,
     add_points=True,
@@ -95,6 +107,15 @@ def plot_polygon(
         The line width for the polygon boundary.
     **kwargs
         Additional keyword arguments passed to the matplotlib Patch.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.3.0
+        A deprecation warning is shown if ``ax``,  ``add_points``, ``color``,
+        ``facecolor``, ``edgecolor`` or ``linewidth`` are specified as
+        positional arguments. In a future release, these will need to be
+        specified as keyword arguments.
 
     Returns
     -------
@@ -132,6 +153,16 @@ def plot_polygon(
     return patch
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.2:
+#   plot_line(line, ax=None, ...)
+# shapely 2.3: shows deprecation warning about positional 'ax'
+#   plot_line(line,, ax=None, ...)
+# shapely 2.4(?): enforce keyword-only arguments after 'line'
+#   plot_line(line,, *, ax=None, ...)
+@deprecate_positional(
+    ["ax", "add_points", "color", "linewidth"], category=DeprecationWarning
+)
 def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs):
     """Plot a (Multi)LineString/LinearRing.
 
@@ -153,6 +184,14 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
         The line width for the polygon boundary.
     **kwargs
         Additional keyword arguments passed to the matplotlib Patch.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.3.0
+        A deprecation warning is shown if ``ax``,  ``add_points``, ``color``,
+        or ``linewidth`` are specified as positional arguments. In a future
+        release, these will need to be specified as keyword arguments.
 
     Returns
     -------
@@ -188,6 +227,14 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
     return patch
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.2:
+#   plot_points(geom, ax=None, ...)
+# shapely 2.3: shows deprecation warning about positional 'ax'
+#   plot_points(geom, ax=None, ...)
+# shapely 2.4(?): enforce keyword-only arguments after 'geom'
+#   plot_points(geom, *, ax=None, ...)
+@deprecate_positional(["ax", "color", "marker"], category=DeprecationWarning)
 def plot_points(geom, ax=None, color=None, marker="o", **kwargs):
     """Plot a Point/MultiPoint or the vertices of any other geometry type.
 
@@ -206,6 +253,14 @@ def plot_points(geom, ax=None, color=None, marker="o", **kwargs):
         The matplotlib marker for the points.
     **kwargs
         Additional keyword arguments passed to matplotlib `plot` (Line2D).
+
+    Notes
+    -----
+
+    .. deprecated:: 2.3.0
+        A deprecation warning is shown if ``ax``, ``color`` or ``marker``
+        are specified as positional arguments. In a future
+        release, these will need to be specified as keyword arguments.
 
     Returns
     -------

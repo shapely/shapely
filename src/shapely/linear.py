@@ -11,17 +11,8 @@ __all__ = [
     "shortest_line",
 ]
 
-# Note: future plan is to change this signature over a few releases:
-# shapely 2.0:
-#   line_interpolate_point(line, distance, normalized=False, **kwargs)
-# shapely 2.1: shows deprecation warning about positional 'normalized' arg
-#    same signature as 2.0
-# shapely 2.2(?): enforce keyword-only arguments after 'normalized'
-#   line_interpolate_point(line, distance, *, normalized=False, **kwargs)
 
-
-@deprecate_positional(["normalized"], category=DeprecationWarning)
-def line_interpolate_point(line, distance, normalized=False, **kwargs):
+def line_interpolate_point(line, distance, *, normalized=False, **kwargs):
     """Return a point interpolated at given distance on a line.
 
     Parameters
@@ -62,17 +53,7 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
         return lib.line_interpolate_point(line, distance, **kwargs)
 
 
-# Note: future plan is to change this signature over a few releases:
-# shapely 2.0:
-#   line_locate_point(line, other, normalized=False, **kwargs)
-# shapely 2.1: shows deprecation warning about positional 'normalized' arg
-#    same signature as 2.0
-# shapely 2.2(?): enforce keyword-only arguments after 'normalized'
-#   line_locate_point(line, other, *, normalized=False, **kwargs)
-
-
-@deprecate_positional(["normalized"], category=DeprecationWarning)
-def line_locate_point(line, other, normalized=False, **kwargs):
+def line_locate_point(line, other, *, normalized=False, **kwargs):
     """Return the distance to the line origin of given point.
 
     If given point does not intersect with the line, the point will first be
@@ -112,6 +93,14 @@ def line_locate_point(line, other, normalized=False, **kwargs):
         return lib.line_locate_point(line, other, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.2:
+#   line_merge(line, directed=False, **kwargs)
+# shapely 2.3: shows deprecation warning about positional 'directed'
+#   same signature as 2.2
+# shapely 2.4(?): enforce keyword-only arguments after 'line'
+#   line_merge(line, *, directed=False, **kwargs)
+@deprecate_positional(["directed"], category=DeprecationWarning)
 def line_merge(line, directed=False, **kwargs):
     """Return (Multi)LineStrings formed by combining the lines in a MultiLineString.
 
@@ -134,6 +123,14 @@ def line_merge(line, directed=False, **kwargs):
         Only combine lines if possible without changing point order.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.3.0
+        A deprecation warning is shown if ``directed`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     Examples
     --------
