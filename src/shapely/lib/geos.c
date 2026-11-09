@@ -40,7 +40,11 @@ int init_shapely(PyObject* m) {
   PyModule_AddObject(m, "GEOSException", geos_exception[0]);
 
   PyObject* base_class_tuple = Py_BuildValue("(NN)", PyExc_ValueError, geos_exception[0]);
-  geos_exception[1] = PyErr_NewException("shapely.errors._ShapelyValueError", base_class_tuple, NULL);
+  geos_exception[1] = PyErr_NewExceptionWithDoc(
+      "shapely.errors._ShapelyValueError",
+      "ValueError subclass that also inherits from GEOSException for backward "
+      "compatibility. Never use this class directly, but treat as a normal ValueError.",
+      base_class_tuple, NULL);
   PyModule_AddObject(m, "_ShapelyValueError", geos_exception[1]);
 
   // Create unique key for threadlocal storage (only needs to be done once globally)
