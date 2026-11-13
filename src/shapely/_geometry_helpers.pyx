@@ -29,6 +29,9 @@ from shapely._geos cimport (
     GEOSGetExteriorRing_r,
     GEOSGetGeometryN_r,
     GEOSGetInteriorRingN_r,
+    GEOSGetNumCoordinates_r,
+    GEOSGetNumGeometries_r,
+    GEOSGetNumInteriorRings_r,
     get_geos_handle,
 )
 from shapely._pygeos_api cimport (
@@ -718,6 +721,67 @@ def _from_ragged_array_multipolygon(
             result_view[i] = PyGEOS_CreateGeometry(<GEOSGeometry *>temp_geoms_view[i], geos_handle)
 
     return result
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _get_multilinestring_offsets(np.ndarray[object] array):
+    """
+    Get the offset arrays for an array of (Multi)LineStrings.
+
+    Assumes there are only (Multi)LineStrings, does not validate this.
+    """
+    cdef Py_ssize_t idx, idx_part, idx_coords
+    cdef Py_ssize_t n_geoms, n_parts, n_coords
+    cdef int counter_parts, counter_coords
+
+    cdef GEOSGeometry *geom = NULL
+    cdef const GEOSGeometry *new_geom = NULL
+
+    n_geoms = array.size
+    n_parts = shapely.get_num_geometries(array).sum()
+
+    # TODO this should choose between int32 or int64 depending on size
+
+    # offsets into the coords for each part
+    offsets1 = np.empty(n_parts + 1, dtype=np.int32)
+    # offsets into the parts for each geom
+    offsets2 = np.empty(n_geoms + 1, dtype=np.int32)
+
+    cdef np.int32_t[:] offsets1_view = offsets1
+    cdef np.int32_t[:] offsets2_view = offsets2
+
+    counter_parts, counter_coords = 0, 0
+    offsets2_view[0] = counter_parts
+
+    idx_coords = 0
+    offsets1_view[idx_coords] = counter_coords
+
+    with get_geos_handle() as geos_handle:
+
+        for idx in range(n_geoms):
+            if PyGEOS_GetGEOSGeometry(<PyObject *>array[idx], &geom) == 0:
+                raise TypeError("One of the arguments is of incorrect type. "
+                                "Please provide only Geometry objects.")
+
+            if geom == NULL:
+                # missing geometry: only write to offsets per geometry, but
+                # without incrementing counters
+                offsets2_view[idx+1] = counter_parts
+                continue
+
+            n_parts = GEOSGetNumGeometries_r(geos_handle, geom)
+            counter_parts += n_parts
+            offsets2_view[idx+1] = counter_parts
+
+            for idx_part in range(n_parts):
+                part = GEOSGetGeometryN_r(geos_handle, geom, idx_part)
+                n_coords = GEOSGetNumCoordinates_r(geos_handle, part)
+                counter_coords += n_coords
+                idx_coords += 1
+                offsets1_view[idx_coords] = counter_coords
+
+    return offsets1, offsets2
 
 
 def _geom_factory(uintptr_t g):

@@ -36,6 +36,7 @@ from shapely._geometry import (
 from shapely._geometry_helpers import (
     _from_ragged_array_multi_linear,
     _from_ragged_array_multipolygon,
+    _get_multilinestring_offsets,
 )
 from shapely.coordinates import get_coordinates
 from shapely.predicates import is_empty, is_missing
@@ -107,17 +108,8 @@ def _get_arrays_linestring(arr, include_z, include_m):
 
 
 def _get_arrays_multilinestring(arr, include_z, include_m):
-    # explode/flatten the MultiLineStrings
-    arr_flat, part_indices = get_parts(arr, return_index=True)
-    # the offsets into the multilinestring parts
-    offsets2 = _indices_to_offsets(part_indices, len(arr))
-
-    # the coords and offsets into the coordinates of the linestrings
-    coords, indices = get_coordinates(
-        arr_flat, return_index=True, include_z=include_z, include_m=include_m
-    )
-    offsets1 = _indices_to_offsets(indices, len(arr_flat))
-
+    offsets1, offsets2 = _get_multilinestring_offsets(arr)
+    coords = get_coordinates(arr, include_z=include_z, include_m=include_m)
     return coords, (offsets1, offsets2)
 
 
