@@ -108,8 +108,8 @@ def _get_arrays_linestring(arr, include_z, include_m):
 
 
 def _get_arrays_multilinestring(arr, include_z, include_m):
-    offsets1, offsets2 = _get_multilinestring_offsets(arr)
     coords = get_coordinates(arr, include_z=include_z, include_m=include_m)
+    offsets1, offsets2 = _get_multilinestring_offsets(arr, len(coords))
     return coords, (offsets1, offsets2)
 
 

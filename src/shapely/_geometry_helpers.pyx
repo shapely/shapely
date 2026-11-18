@@ -723,33 +723,50 @@ def _from_ragged_array_multipolygon(
     return result
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _get_multilinestring_offsets(np.ndarray[object] array):
+# default to int32 offsets if possible (to prefer the non-large arrow list variants)
+cdef Py_ssize_t INT32_MAX = 2147483647
+
+
+ctypedef fused int_t:
+    np.int32_t
+    np.int64_t
+
+
+def _get_multilinestring_offsets(np.ndarray[object] array, Py_ssize_t n_coords):
     """
     Get the offset arrays for an array of (Multi)LineStrings.
 
     Assumes there are only (Multi)LineStrings, does not validate this.
     """
-    cdef Py_ssize_t idx, idx_part, idx_coords
-    cdef Py_ssize_t n_geoms, n_parts, n_coords
-    cdef int counter_parts, counter_coords
-
-    cdef GEOSGeometry *geom = NULL
-    cdef const GEOSGeometry *new_geom = NULL
+    cdef Py_ssize_t n_geoms, n_parts
 
     n_geoms = array.size
     n_parts = shapely.get_num_geometries(array).sum()
 
-    # TODO this should choose between int32 or int64 depending on size
-
     # offsets into the coords for each part
-    offsets1 = np.empty(n_parts + 1, dtype=np.int32)
+    offsets1 = np.empty(n_parts + 1, dtype=np.int64 if n_coords > INT32_MAX else np.int32)
     # offsets into the parts for each geom
-    offsets2 = np.empty(n_geoms + 1, dtype=np.int32)
+    offsets2 = np.empty(n_geoms + 1, dtype=np.int64 if n_parts > INT32_MAX else np.int32)
 
-    cdef np.int32_t[:] offsets1_view = offsets1
-    cdef np.int32_t[:] offsets2_view = offsets2
+    _get_multilinestring_offsets_impl(array, offsets1, offsets2, n_geoms)
+    return offsets1, offsets2
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _get_multilinestring_offsets_impl(
+    np.ndarray[object] array,
+    int_t[:] offsets1_view,
+    int_t[:] offsets2_view,
+    Py_ssize_t n_geoms,
+):
+    # core logic of _get_multilinestring_offsets, separated to work with
+    # int32/int64 fused types
+    cdef Py_ssize_t idx, idx_part, idx_coords
+    cdef Py_ssize_t n_parts, n_coords
+    cdef int_t counter_parts, counter_coords
+    cdef GEOSGeometry *geom = NULL
+    cdef const GEOSGeometry *new_geom = NULL
 
     counter_parts, counter_coords = 0, 0
     offsets2_view[0] = counter_parts
@@ -780,8 +797,6 @@ def _get_multilinestring_offsets(np.ndarray[object] array):
                 counter_coords += n_coords
                 idx_coords += 1
                 offsets1_view[idx_coords] = counter_coords
-
-    return offsets1, offsets2
 
 
 def _geom_factory(uintptr_t g):
