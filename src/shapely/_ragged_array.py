@@ -30,12 +30,13 @@ from shapely import creation, geos_version
 from shapely._geometry import (
     GeometryType,
     get_parts,
-    get_rings,
     get_type_id,
 )
 from shapely._geometry_helpers import (
     _from_ragged_array_multi_linear,
     _from_ragged_array_multipolygon,
+    _get_multilinestring_offsets,
+    _get_multipolygon_offsets,
 )
 from shapely.coordinates import get_coordinates
 from shapely.predicates import is_empty, is_missing
@@ -107,51 +108,21 @@ def _get_arrays_linestring(arr, include_z, include_m):
 
 
 def _get_arrays_multilinestring(arr, include_z, include_m):
-    # explode/flatten the MultiLineStrings
-    arr_flat, part_indices = get_parts(arr, return_index=True)
-    # the offsets into the multilinestring parts
-    offsets2 = _indices_to_offsets(part_indices, len(arr))
-
-    # the coords and offsets into the coordinates of the linestrings
-    coords, indices = get_coordinates(
-        arr_flat, return_index=True, include_z=include_z, include_m=include_m
-    )
-    offsets1 = _indices_to_offsets(indices, len(arr_flat))
-
+    coords = get_coordinates(arr, include_z=include_z, include_m=include_m)
+    offsets1, offsets2 = _get_multilinestring_offsets(arr, len(coords))
     return coords, (offsets1, offsets2)
 
 
 def _get_arrays_polygon(arr, include_z, include_m):
-    # explode/flatten the Polygons into Rings
-    arr_flat, ring_indices = get_rings(arr, return_index=True)
-    # the offsets into the exterior/interior rings of the multipolygon parts
-    offsets2 = _indices_to_offsets(ring_indices, len(arr))
-
-    # the coords and offsets into the coordinates of the rings
-    coords, indices = get_coordinates(
-        arr_flat, return_index=True, include_z=include_z, include_m=include_m
-    )
-    offsets1 = _indices_to_offsets(indices, len(arr_flat))
+    coords = get_coordinates(arr, include_z=include_z, include_m=include_m)
+    offsets1, offsets2, _ = _get_multipolygon_offsets(arr, len(coords), is_multi=False)
 
     return coords, (offsets1, offsets2)
 
 
 def _get_arrays_multipolygon(arr, include_z, include_m):
-    # explode/flatten the MultiPolygons
-    arr_flat, part_indices = get_parts(arr, return_index=True)
-    # the offsets into the multipolygon parts
-    offsets3 = _indices_to_offsets(part_indices, len(arr))
-
-    # explode/flatten the Polygons into Rings
-    arr_flat2, ring_indices = get_rings(arr_flat, return_index=True)
-    # the offsets into the exterior/interior rings of the multipolygon parts
-    offsets2 = _indices_to_offsets(ring_indices, len(arr_flat))
-
-    # the coords and offsets into the coordinates of the rings
-    coords, indices = get_coordinates(
-        arr_flat2, return_index=True, include_z=include_z, include_m=include_m
-    )
-    offsets1 = _indices_to_offsets(indices, len(arr_flat2))
+    coords = get_coordinates(arr, include_z=include_z, include_m=include_m)
+    offsets1, offsets2, offsets3 = _get_multipolygon_offsets(arr, len(coords))
 
     return coords, (offsets1, offsets2, offsets3)
 

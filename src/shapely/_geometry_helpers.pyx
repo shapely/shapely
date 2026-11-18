@@ -26,9 +26,13 @@ from shapely._geos cimport (
     GEOSGeom_getCoordSeq_r,
     GEOSGeometry,
     GEOSGeomTypeId_r,
+    GEOSisEmpty_r,
     GEOSGetExteriorRing_r,
     GEOSGetGeometryN_r,
     GEOSGetInteriorRingN_r,
+    GEOSGetNumCoordinates_r,
+    GEOSGetNumGeometries_r,
+    GEOSGetNumInteriorRings_r,
     get_geos_handle,
 )
 from shapely._pygeos_api cimport (
@@ -684,12 +688,16 @@ def _from_ragged_array_multipolygon(
                         temp_rings_view[rings_idx] = <np.intp_t>ring
                         rings_idx += 1
 
-                    part = GEOSGeom_createPolygon_r(
-                        geos_handle,
-                        <GEOSGeometry*> temp_rings_view[0],
-                        <GEOSGeometry**> &temp_rings_view[1 if rings_idx > 1 else 0],
-                        rings_idx - 1
-                    )
+                    if rings_idx > 0:
+                        part = GEOSGeom_createPolygon_r(
+                            geos_handle,
+                            <GEOSGeometry*> temp_rings_view[0],
+                            <GEOSGeometry**> &temp_rings_view[1 if rings_idx > 1 else 0],
+                            rings_idx - 1
+                        )
+                    else:
+                        part = GEOSGeom_createEmptyPolygon_r(geos_handle)
+
                     if part == NULL:
                         _deallocate_arr(geos_handle, temp_rings_view, rings_idx - 1)
                         _deallocate_arr(geos_handle, temp_parts_view, parts_idx)
@@ -718,6 +726,233 @@ def _from_ragged_array_multipolygon(
             result_view[i] = PyGEOS_CreateGeometry(<GEOSGeometry *>temp_geoms_view[i], geos_handle)
 
     return result
+
+
+# default to int32 offsets if possible (to prefer the non-large arrow list variants)
+cdef Py_ssize_t INT32_MAX = 2147483647
+
+
+ctypedef fused int_t:
+    np.int32_t
+    np.int64_t
+
+
+def _get_multilinestring_offsets(np.ndarray[object] array, Py_ssize_t n_coords):
+    """
+    Get the offset arrays for an array of (Multi)LineStrings.
+
+    Assumes there are only (Multi)LineStrings, does not validate this.
+    """
+    cdef Py_ssize_t n_geoms, n_parts
+
+    n_geoms = array.size
+    n_parts = shapely.get_num_geometries(array).sum()
+
+    # offsets into the coords for each part
+    offsets1 = np.empty(n_parts + 1, dtype=np.int64 if n_coords > INT32_MAX else np.int32)
+    # offsets into the parts for each geom
+    offsets2 = np.empty(n_geoms + 1, dtype=np.int64 if n_parts > INT32_MAX else np.int32)
+
+    _get_multilinestring_offsets_impl(array, offsets1, offsets2, n_geoms)
+    return offsets1, offsets2
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _get_multilinestring_offsets_impl(
+    np.ndarray[object] array,
+    int_t[:] offsets1_view,
+    int_t[:] offsets2_view,
+    Py_ssize_t n_geoms,
+):
+    # core logic of _get_multilinestring_offsets, separated to work with
+    # int32/int64 fused types
+    cdef Py_ssize_t idx, idx_part, idx_coords
+    cdef Py_ssize_t n_parts, n_coords
+    cdef int_t counter_parts, counter_coords
+    cdef GEOSGeometry *geom = NULL
+    cdef const GEOSGeometry *new_geom = NULL
+
+    counter_parts, counter_coords = 0, 0
+    offsets2_view[0] = counter_parts
+
+    idx_coords = 0
+    offsets1_view[idx_coords] = counter_coords
+
+    with get_geos_handle() as geos_handle:
+
+        for idx in range(n_geoms):
+            if PyGEOS_GetGEOSGeometry(<PyObject *>array[idx], &geom) == 0:
+                raise TypeError("One of the arguments is of incorrect type. "
+                                "Please provide only Geometry objects.")
+
+            if geom == NULL:
+                # missing geometry: only write to offsets per geometry, but
+                # without incrementing counters
+                offsets2_view[idx+1] = counter_parts
+                continue
+
+            n_parts = GEOSGetNumGeometries_r(geos_handle, geom)
+            counter_parts += n_parts
+            offsets2_view[idx + 1] = counter_parts
+
+            for idx_part in range(n_parts):
+                part = GEOSGetGeometryN_r(geos_handle, geom, idx_part)
+                n_coords = GEOSGetNumCoordinates_r(geos_handle, part)
+                counter_coords += n_coords
+                idx_coords += 1
+                offsets1_view[idx_coords] = counter_coords
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _count_multipolygons(np.ndarray[object] array):
+    """
+    Get the size of the offset arrays for MultiPolygons
+    (for second and third level)
+    """
+    cdef Py_ssize_t idx, idx_part
+    cdef Py_ssize_t n_parts, n_rings
+    cdef Py_ssize_t counter_parts, counter_rings
+
+    cdef GEOSGeometry *geom = NULL
+    cdef const GEOSGeometry *new_geom = NULL
+
+    counter_parts = 0
+    counter_rings = 0
+
+    with get_geos_handle() as geos_handle:
+
+        for idx in range(array.size):
+            if PyGEOS_GetGEOSGeometry(<PyObject *>array[idx], &geom) == 0:
+                raise TypeError("One of the arguments is of incorrect type. "
+                                "Please provide only Geometry objects.")
+
+            if geom == NULL:
+                continue
+
+            n_parts = GEOSGetNumGeometries_r(geos_handle, geom)
+            counter_parts += n_parts
+
+            for idx_part in range(n_parts):
+                new_geom = GEOSGetGeometryN_r(geos_handle, geom, idx_part)
+                if GEOSisEmpty_r(geos_handle, new_geom):
+                    continue
+                else:
+                    n_rings = GEOSGetNumInteriorRings_r(geos_handle, new_geom)
+                    counter_rings += n_rings + 1
+
+    return counter_parts, counter_rings
+
+
+def _get_multipolygon_offsets(np.ndarray[object] array, Py_ssize_t n_coords, bint is_multi=True):
+    """
+    Get the offset arrays for an array of MultiPolygons.
+
+    Assumes there are only (Multi)Polygons, does not validate this.
+    """
+    cdef Py_ssize_t n_geoms, n_parts, n_rings
+
+    n_geoms = array.size
+    n_parts, n_rings = _count_multipolygons(array)
+
+    # offsets into the coords for each ring
+    offsets1 = np.empty(n_rings + 1, dtype=np.int64 if n_coords > INT32_MAX else np.int32)
+    if is_multi:
+        # offsets into the rings for each part
+        offsets2 = np.empty(n_parts + 1, dtype=np.int64 if n_rings > INT32_MAX else np.int32)
+        # offsets into the parts for each geom
+        offsets3 = np.empty(n_geoms + 1, dtype=np.int64 if n_parts > INT32_MAX else np.int32)
+    else:
+        # offsets into the rings for each geom
+        offsets2 = np.empty(n_geoms + 1, dtype=np.int64 if n_parts > INT32_MAX else np.int32)
+        # dummy which is not used
+        offsets3 = np.empty(1, dtype=np.int32)
+
+    _get_multipolygon_offsets_impl(array, offsets1, offsets2, offsets3, n_geoms, is_multi)
+    return offsets1, offsets2, offsets3
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _get_multipolygon_offsets_impl(
+    np.ndarray[object] array,
+    int_t[:] offsets1_view,
+    int_t[:] offsets2_view,
+    int_t[:] offsets3_view,
+    Py_ssize_t n_geoms,
+    bint is_multi,
+):
+    # core logic of _get_multipolygon_offsets, separated to work with
+    # int32/int64 fused types
+    cdef Py_ssize_t idx, idx_part, idx_rings, idx_coords
+    cdef Py_ssize_t n_parts, n_rings, n_coords
+    cdef int_t counter_parts, counter_rings, counter_coords
+
+    cdef GEOSGeometry *geom = NULL
+    cdef const GEOSGeometry *new_geom = NULL
+    cdef const GEOSGeometry *ring = NULL
+
+    counter_parts, counter_rings, counter_coords = 0, 0, 0
+    offsets3_view[0] = counter_parts
+
+    idx_rings = 0
+    offsets2_view[idx_rings] = counter_rings
+
+    idx_coords = 0
+    offsets1_view[idx_coords] = counter_coords
+
+    with get_geos_handle() as geos_handle:
+
+        for idx in range(n_geoms):
+            if PyGEOS_GetGEOSGeometry(<PyObject *>array[idx], &geom) == 0:
+                raise TypeError("One of the arguments is of incorrect type. "
+                                "Please provide only Geometry objects.")
+
+            if geom == NULL:
+                # missing geometry: only write to offsets per geometry, but
+                # without incrementing counters
+                if is_multi:
+                    offsets3_view[idx + 1] = counter_parts
+                else:
+                    idx_rings += 1
+                    offsets2_view[idx_rings] = counter_rings
+                continue
+
+            if is_multi:
+                n_parts = GEOSGetNumGeometries_r(geos_handle, geom)
+                counter_parts += n_parts
+                offsets3_view[idx + 1] = counter_parts
+            else:
+                n_parts = 1
+
+            for idx_part in range(n_parts):
+                new_geom = GEOSGetGeometryN_r(geos_handle, geom, idx_part)
+                if GEOSisEmpty_r(geos_handle, new_geom):
+                    # empty MultiPolygon -> n_parts = 0, so we don't get here
+                    # empty Polygon / MultiPolygon with empty Polygon part -> write to
+                    # offsets per geometry / part, but without incrementing counters
+                    idx_rings += 1
+                    offsets2_view[idx_rings] = counter_rings
+                    continue
+
+                n_rings = GEOSGetNumInteriorRings_r(geos_handle, new_geom)
+                counter_rings += n_rings + 1
+                idx_rings += 1
+                offsets2_view[idx_rings] = counter_rings
+
+                ring = GEOSGetExteriorRing_r(geos_handle, new_geom)
+                n_coords = GEOSGetNumCoordinates_r(geos_handle, ring)
+                counter_coords += n_coords
+                idx_coords += 1
+                offsets1_view[idx_coords] = counter_coords
+
+                for idx_ring in range(n_rings):
+                    ring = GEOSGetInteriorRingN_r(geos_handle, new_geom, idx_ring)
+                    n_coords = GEOSGetNumCoordinates_r(geos_handle, ring)
+                    counter_coords += n_coords
+                    idx_coords += 1
+                    offsets1_view[idx_coords] = counter_coords
 
 
 def _geom_factory(uintptr_t g):
