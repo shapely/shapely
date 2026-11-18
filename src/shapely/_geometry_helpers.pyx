@@ -684,12 +684,16 @@ def _from_ragged_array_multipolygon(
                         temp_rings_view[rings_idx] = <np.intp_t>ring
                         rings_idx += 1
 
-                    part = GEOSGeom_createPolygon_r(
-                        geos_handle,
-                        <GEOSGeometry*> temp_rings_view[0],
-                        <GEOSGeometry**> &temp_rings_view[1 if rings_idx > 1 else 0],
-                        rings_idx - 1
-                    )
+                    if rings_idx > 0:
+                        part = GEOSGeom_createPolygon_r(
+                            geos_handle,
+                            <GEOSGeometry*> temp_rings_view[0],
+                            <GEOSGeometry**> &temp_rings_view[1 if rings_idx > 1 else 0],
+                            rings_idx - 1
+                        )
+                    else:
+                        part = GEOSGeom_createEmptyPolygon_r(geos_handle)
+
                     if part == NULL:
                         _deallocate_arr(geos_handle, temp_rings_view, rings_idx - 1)
                         _deallocate_arr(geos_handle, temp_parts_view, parts_idx)

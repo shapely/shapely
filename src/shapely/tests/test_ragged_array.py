@@ -503,7 +503,6 @@ def test_multipolygons():
     offsets_sliced = (offsets[0], offsets[1], offsets[2][:-3])
     result = shapely.from_ragged_array(typ, coords, offsets_sliced)
     assert_geometries_equal(result, arr[:-3])
-    print(result)
 
 
 def test_mixture_point_multipoint():
@@ -697,3 +696,8 @@ def test_multipolygon_with_empty_parts():
     assert_allclose(offsets[0], expected_offsets1)
     assert_allclose(offsets[1], expected_offsets2)
     assert_allclose(offsets[2], expected_offsets3)
+
+    result = shapely.from_ragged_array(typ, coords, offsets)
+    # in a roundtrip, missing geometries come back as empty
+    arr[-3] = shapely.from_wkt("MULTIPOLYGON EMPTY")
+    assert_geometries_equal(result, arr)
