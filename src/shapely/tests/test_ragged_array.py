@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
@@ -14,6 +16,7 @@ from shapely.tests.common import (
     empty_multi_polygon_z,
     empty_multi_polygon_zm,
     geometry_collection,
+    ignore_invalid,
     line_string,
     line_string_m,
     line_string_z,
@@ -673,17 +676,18 @@ def test_multipolygon_with_empty_parts():
     # this is specifically about multipolygons with empty parts,
     # not empty multipolygons themselves
 
-    arr = shapely.from_wkt(
-        [
-            "MULTIPOLYGON (((0 0, 1 0, 1 1, 0 0)), EMPTY)",
-            "MULTIPOLYGON (EMPTY, ((0 0, 1 0, 1 1, 0 0)))",
-            "MULTIPOLYGON (EMPTY)",
-            "MULTIPOLYGON (((0 0, 1 0, 1 1, 0 0), (0 0, 1 0, 1 1, 0 0)), ((0 0, 1 0, 1 1, 0 0)))",  # noqa: E501
-            None,
-            "MULTIPOLYGON EMPTY",
-            "MULTIPOLYGON (EMPTY)",
-        ]
-    )
+    with ignore_invalid(sys.platform == "darwin"):
+        arr = shapely.from_wkt(
+            [
+                "MULTIPOLYGON (((0 0, 1 0, 1 1, 0 0)), EMPTY)",
+                "MULTIPOLYGON (EMPTY, ((0 0, 1 0, 1 1, 0 0)))",
+                "MULTIPOLYGON (EMPTY)",
+                "MULTIPOLYGON (((0 0, 1 0, 1 1, 0 0), (0 0, 1 0, 1 1, 0 0)), ((0 0, 1 0, 1 1, 0 0)))",  # noqa: E501
+                None,
+                "MULTIPOLYGON EMPTY",
+                "MULTIPOLYGON (EMPTY)",
+            ]
+        )
 
     typ, coords, offsets = shapely.to_ragged_array(arr)
     expected = np.array([[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 0.0]] * 5)
