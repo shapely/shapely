@@ -665,3 +665,35 @@ def test_from_ragged_wrong_offsets_values():
         shapely.from_ragged_array(
             shapely.GeometryType.MULTIPOLYGON, coords, (offsets1, offsets2, offsets3)
         )
+
+
+def test_multipolygon_with_empty_parts():
+    # caused segfault in shapely 2.1 - 2.2 (from_ragged_array)
+
+    # https://github.com/shapely/shapely/issues/2539/
+    # this is specifically about multipolygons with empty parts,
+    # not empty multipolygons themselves
+
+    arr = shapely.from_wkt(
+        [
+            "MULTIPOLYGON (((0 0, 1 0, 1 1, 0 0)), EMPTY)",
+            "MULTIPOLYGON (EMPTY, ((0 0, 1 0, 1 1, 0 0)))",
+            "MULTIPOLYGON (EMPTY)",
+            "MULTIPOLYGON (((0 0, 1 0, 1 1, 0 0), (0 0, 1 0, 1 1, 0 0)), ((0 0, 1 0, 1 1, 0 0)))",  # noqa: E501
+            None,
+            "MULTIPOLYGON EMPTY",
+            "MULTIPOLYGON (EMPTY)",
+        ]
+    )
+
+    typ, coords, offsets = shapely.to_ragged_array(arr)
+    expected = np.array([[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 0.0]] * 5)
+    expected_offsets1 = np.array([0, 4, 8, 12, 16, 20])
+    expected_offsets2 = np.array([0, 1, 1, 1, 2, 2, 4, 5, 5])
+    expected_offsets3 = np.array([0, 2, 4, 5, 7, 7, 7, 8])
+
+    assert typ == shapely.GeometryType.MULTIPOLYGON
+    assert_allclose(coords, expected)
+    assert_allclose(offsets[0], expected_offsets1)
+    assert_allclose(offsets[1], expected_offsets2)
+    assert_allclose(offsets[2], expected_offsets3)
