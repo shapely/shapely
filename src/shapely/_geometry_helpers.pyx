@@ -688,12 +688,16 @@ def _from_ragged_array_multipolygon(
                         temp_rings_view[rings_idx] = <np.intp_t>ring
                         rings_idx += 1
 
-                    part = GEOSGeom_createPolygon_r(
-                        geos_handle,
-                        <GEOSGeometry*> temp_rings_view[0],
-                        <GEOSGeometry**> &temp_rings_view[1 if rings_idx > 1 else 0],
-                        rings_idx - 1
-                    )
+                    if rings_idx > 0:
+                        part = GEOSGeom_createPolygon_r(
+                            geos_handle,
+                            <GEOSGeometry*> temp_rings_view[0],
+                            <GEOSGeometry**> &temp_rings_view[1 if rings_idx > 1 else 0],
+                            rings_idx - 1
+                        )
+                    else:
+                        part = GEOSGeom_createEmptyPolygon_r(geos_handle)
+
                     if part == NULL:
                         _deallocate_arr(geos_handle, temp_rings_view, rings_idx - 1)
                         _deallocate_arr(geos_handle, temp_parts_view, parts_idx)
@@ -926,11 +930,10 @@ def _get_multipolygon_offsets_impl(
                 new_geom = GEOSGetGeometryN_r(geos_handle, geom, idx_part)
                 if GEOSisEmpty_r(geos_handle, new_geom):
                     # empty MultiPolygon -> n_parts = 0, so we don't get here
-                    if not is_multi:
-                        # empty Polygon -> write to offsets per geometry, but
-                        # without incrementing counters
-                        idx_rings += 1
-                        offsets2_view[idx_rings] = counter_rings
+                    # empty Polygon / MultiPolygon with empty Polygon part -> write to
+                    # offsets per geometry / part, but without incrementing counters
+                    idx_rings += 1
+                    offsets2_view[idx_rings] = counter_rings
                     continue
 
                 n_rings = GEOSGetNumInteriorRings_r(geos_handle, new_geom)
