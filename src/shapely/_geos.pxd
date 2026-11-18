@@ -33,6 +33,8 @@ cdef extern from "geos_c.h":
     int GEOSGetNumCoordinates_r(GEOSContextHandle_t handle, const GEOSGeometry* g) nogil
     int GEOSGetNumInteriorRings_r(GEOSContextHandle_t handle, const GEOSGeometry* g) nogil
 
+    char GEOSisEmpty_r(GEOSContextHandle_t handle, const GEOSGeometry* g) nogil
+
     # Geometry creation / destruction
     GEOSGeometry* GEOSGeom_clone_r(GEOSContextHandle_t handle, const GEOSGeometry* g) nogil
     GEOSGeometry* GEOSGeom_createPoint_r(GEOSContextHandle_t handle, GEOSCoordSequence* s) nogil
