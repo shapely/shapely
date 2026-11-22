@@ -599,7 +599,7 @@ def get_geometry(geometry, index, **kwargs):
     Examples
     --------
     >>> import shapely
-    >>> from shapely import Point, MultiPoint
+    >>> from shapely import Point, MultiPoint , GeometryCollection
     >>> multipoint = MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)])
     >>> shapely.get_geometry(multipoint, 1)
     <POINT (1 1)>
@@ -626,16 +626,15 @@ def get_geometry(geometry, index, **kwargs):
 
 
 @deprecate_positional(["return_index"])
-def get_parts(geometry, return_index=False):
+def get_parts(geometry, return_index=False, *, recursive=False):
     """Get parts of each GeometryCollection or Multi* geometry object.
 
     A copy of each geometry in the GeometryCollection or Multi* geometry object
     is returned.
 
-    Note: This does not return the individual parts of Multi* geometry objects
-    in a GeometryCollection. You may need to call this function multiple times
-    to return individual parts of Multi* geometry objects in a
-    GeometryCollection.
+    Note: By default, only direct parts are extracted, so nested geometries
+    may require multiple calls. With recursive=True, parts of nested
+    GeometryCollections and multipart geometries are extracted in a single call.
 
     Parameters
     ----------
@@ -644,6 +643,10 @@ def get_parts(geometry, return_index=False):
     return_index : bool, default False
         If True, will return a tuple of ndarrays of (parts, indexes), where
         indexes are the indexes of the original geometries in the source array.
+    recursive : bool, default False
+        If False, only the top-level parts are extracted.
+        If True, nested GeometryCollections and multipart geometries
+        are also extracted recursively.
 
     Notes
     -----
@@ -664,7 +667,7 @@ def get_parts(geometry, return_index=False):
     Examples
     --------
     >>> import shapely
-    >>> from shapely import MultiPoint
+    >>> from shapely import GeometryCollection, MultiPoint, Point
     >>> shapely.get_parts(MultiPoint([(0, 1), (2, 3)])).tolist()
     [<POINT (0 1)>, <POINT (2 3)>]
     >>> parts, index = shapely.get_parts([MultiPoint([(0, 1)]), \
@@ -673,6 +676,14 @@ MultiPoint([(4, 5), (6, 7)])], return_index=True)
     [<POINT (0 1)>, <POINT (4 5)>, <POINT (6 7)>]
     >>> index.tolist()
     [0, 1, 1]
+    >>> gc = GeometryCollection([MultiPoint([(0, 1), (2, 3)]), Point(2, 2)])
+    >>> shapely.get_parts(gc).tolist()
+    [<MULTIPOINT ((0 1), (2 3))>, <POINT (2 2)>]
+    >>> parts, indexes = shapely.get_parts(gc, recursive=True, return_index=True)
+    >>> parts.tolist()
+    [<POINT (0 1)>, <POINT (2 3)>, <POINT (2 2)>]
+    >>> indexes.tolist()
+    [0, 0, 0]
 
     """
     geometry = np.asarray(geometry, dtype=np.object_)
@@ -680,11 +691,31 @@ MultiPoint([(4, 5), (6, 7)])], return_index=True)
 
     if geometry.ndim != 1:
         raise ValueError("Array should be one dimensional")
+    parts, index = _geometry_helpers.get_parts(geometry)
+    if recursive:
+        final_parts = []
+        final_indexes = []
+        for part, original_index in zip(parts, index, strict=True):
+            if part.geom_type in (
+                "MultiPoint",
+                "MultiLineString",
+                "MultiPolygon",
+                "GeometryCollection",
+            ):
+                subparts = get_parts(part, recursive=True)
+                final_parts.extend(subparts)
+                final_indexes.extend([original_index] * len(subparts))
+            else:
+                final_parts.append(part)
+                final_indexes.append(original_index)
+
+        parts = np.asarray(final_parts, dtype=np.object_)
+        index = np.asarray(final_indexes, dtype=np.intp)
 
     if return_index:
-        return _geometry_helpers.get_parts(geometry)
-
-    return _geometry_helpers.get_parts(geometry)[0]
+        return parts, index
+    else:
+        return parts
 
 
 # Note: future plan is to change this signature over a few releases:
