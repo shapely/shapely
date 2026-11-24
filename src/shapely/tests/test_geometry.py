@@ -326,6 +326,21 @@ def test_get_parts_geometry_collection_multi():
     subparts = shapely.get_parts(parts)
     assert len(subparts) == len(expected_subparts)
     assert_geometries_equal(subparts, expected_subparts)
+    recursive_parts = shapely.get_parts(geom, recursive=True)
+    assert len(recursive_parts) == len(expected_subparts)
+    assert_geometries_equal(recursive_parts, expected_subparts)
+
+
+def test_recursive_extraction_geometry_collection_multi():
+    point = shapely.geometry.Point(1, 2)
+    polygon1 = shapely.geometry.Polygon([(0, 0), (1, 1), (1, 0)])
+    polygon2 = shapely.geometry.Polygon([(2, 2), (3, 3), (3, 2)])
+    multipolygon = shapely.geometry.MultiPolygon([polygon1, polygon2])
+    geom = shapely.geometry.GeometryCollection([point, multipolygon])
+    parts = shapely.get_parts(geom, recursive=True)
+    expected = [point, polygon1, polygon2]
+    assert len(parts) == len(expected)
+    assert_geometries_equal(parts, expected)
 
 
 def test_get_parts_return_index():
@@ -375,6 +390,45 @@ def test_get_parts_deprecate_positional():
         match="positional argument `return_index` for `get_parts` is deprecated"
     ):
         shapely.get_parts(multi_point, False)
+
+
+def test_get_parts_recursive_return_index():
+    point = shapely.geometry.Point(1, 2)
+    polygon1 = shapely.geometry.Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    polygon2 = shapely.geometry.Polygon([(2, 2), (3, 2), (3, 3), (2, 3), (2, 2)])
+    multi_polygon = shapely.geometry.MultiPolygon([polygon1, polygon2])
+    geometry_collection = shapely.geometry.GeometryCollection([point, multi_polygon])
+    geoms = [point, geometry_collection]
+
+    parts, indexes = shapely.get_parts(geoms, return_index=True, recursive=True)
+    expected_parts = [point, point, polygon1, polygon2]
+    expected_indexes = [0, 1, 1, 1]
+    assert_geometries_equal(parts, expected_parts)
+    assert np.array_equal(indexes, expected_indexes)
+
+
+def test_get_parts_recursive_nested_collections():
+    point = shapely.geometry.Point(1, 2)
+    polygon1 = shapely.geometry.Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    polygon2 = shapely.geometry.Polygon([(2, 2), (3, 2), (3, 3), (2, 3), (2, 2)])
+    multi_polygon = shapely.geometry.MultiPolygon([polygon1, polygon2])
+    inner_collection = shapely.geometry.GeometryCollection([point, multi_polygon])
+    outer_collection = shapely.geometry.GeometryCollection([inner_collection])
+
+    parts = shapely.get_parts(outer_collection, recursive=True)
+    expected_parts = [point, polygon1, polygon2]
+    assert_geometries_equal(parts, expected_parts)
+
+
+def test_get_parts_recursive_empty_inputs():
+    empty_geometry_collection = shapely.GeometryCollection([])
+    empty_multi_polygon = shapely.MultiPolygon([])
+    geoms = [empty_geometry_collection, empty_multi_polygon, None]
+    parts, indexes = shapely.get_parts(geoms, recursive=True, return_index=True)
+    assert len(parts) == 0
+    assert len(indexes) == 0
+    assert parts.dtype == np.object_
+    assert indexes.dtype == np.intp
 
 
 @pytest.mark.parametrize(
