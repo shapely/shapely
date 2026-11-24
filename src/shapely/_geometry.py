@@ -8,6 +8,7 @@ from shapely.decorators import (
     deprecate_positional,
     requires_geos,
 )
+from shapely.geometry.base import BaseMultipartGeometry
 
 __all__ = [
     "GeometryType",
@@ -696,12 +697,7 @@ MultiPoint([(4, 5), (6, 7)])], return_index=True)
         final_parts = []
         final_indexes = []
         for part, original_index in zip(parts, index, strict=True):
-            if part.geom_type in (
-                "MultiPoint",
-                "MultiLineString",
-                "MultiPolygon",
-                "GeometryCollection",
-            ):
+            if isinstance(part, BaseMultipartGeometry):
                 subparts = get_parts(part, recursive=True)
                 final_parts.extend(subparts)
                 final_indexes.extend([original_index] * len(subparts))
