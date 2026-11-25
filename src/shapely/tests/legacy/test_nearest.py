@@ -3,6 +3,8 @@ import unittest
 import pytest
 
 from shapely.geometry import Point
+import numpy as np
+
 from shapely.ops import nearest_points
 
 
@@ -16,3 +18,11 @@ class Nearest(unittest.TestCase):
         assert second.x == pytest.approx(2.0)
         assert first.y == pytest.approx(0.0)
         assert second.y == pytest.approx(0.0)
+
+
+def test_nearest_points_array():
+    geom1 = np.array([Point(1, 1)])
+    geom2 = np.array([Point(1, 10)])
+    first, second = nearest_points(geom1, geom2)
+    assert first[0].equals_exact(Point(1, 1), 0.001)
+    assert second[0].equals_exact(Point(1, 10), 0.001)
