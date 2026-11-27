@@ -13,6 +13,14 @@ import versioneer
 sys.path.insert(0, "")
 
 
+def get_version():
+    """Use version from environment if set."""
+    if "SHAPELY_VERSION" in os.environ:
+        return os.environ["SHAPELY_VERSION"]
+    else:
+        return versioneer.get_version()
+
+
 def write_version_info(path) -> None:
     """Write version Python file."""
     version = None
@@ -71,7 +79,7 @@ def main() -> None:
 
             version = _version.__version__
         except ImportError:
-            version = versioneer.get_version()
+            version = get_version()
         print(version)
 
 
